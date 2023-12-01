@@ -1,0 +1,41 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@font-face {
+  font-family: "PT Mono";
+  src: url("fonts/PTMono-Regular.ttf");
+}
+
+body {
+  font-family: "PT Mono";
+  @apply bg-background;
+}
+
+h1 {
+  @apply text-3xl text-primary py-4 text-center;
+}
+
+h2 {
+  @apply text-2xl text-subheader py-2;
+}
+
+h3 {
+  @apply text-xl text-content py-2;
+}
+
+p {
+  @apply text-lg text-content max-w-5xl py-2;
+}
+
+code {
+  @apply text-white;
+}
+
+pre {
+  @apply bg-black/20 p-4;
+}
+
+ul {
+  @apply text-white pl-12 list-disc;
+}
