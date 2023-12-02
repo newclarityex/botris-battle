@@ -2,7 +2,6 @@ import { checkAuth } from '~/server/utils/auth';
 
 export default defineEventHandler(async (event) => {
     const profile = await checkAuth(event);
-
     if (!profile) {
         throw createError({
             statusCode: 401,
@@ -10,12 +9,15 @@ export default defineEventHandler(async (event) => {
         });
     }
 
-    const tokens = await prisma.apiToken.findMany({
-        where: {
+    const token = await prisma.apiToken.create({
+        data: {
             profileId: profile.id,
-            temp: false
+            temp: true,
+            expires: new Date(Date.now() + 1000 * 60 * 5),
         }
     });
 
-    return tokens
+    return {
+        token: token.token,
+    };
 });

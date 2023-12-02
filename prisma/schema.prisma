@@ -66,8 +66,10 @@ model Profile {
 }
 
 model ApiToken {
-  token     String  @id @default(uuid())
-  name      String
-  Profile   Profile @relation(fields: [profileId], references: [id])
+  token     String    @id @default(uuid())
+  name      String?
+  Profile   Profile   @relation(fields: [profileId], references: [id])
   profileId String
+  temp      Boolean   @default(false)
+  expires   DateTime?
 }

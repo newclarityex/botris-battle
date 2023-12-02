@@ -2,6 +2,9 @@ import { resolve } from "node:path";
 
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
+  experimental: {
+    asyncContext: true
+  },
   devtools: { enabled: true },
   css: ['~/assets/css/main.css'],
   modules: [
@@ -36,3 +39,5 @@ export default defineNuxtConfig({
     crypto: resolve(__dirname, "node_modules/crypto"),
   }
 })
+
+

@@ -1,8 +1,9 @@
 import type { WebSocket } from "ws";
 import { getPublicGameState, type GameState, PublicGameState } from "libtris";
+import { GeneralServerMessage } from "./messages";
 
 export type PlayerInfo = {
-    playerId: string;
+    userId: string;
     creator: string;
     bot: string;
 }
@@ -18,7 +19,7 @@ type PlayerData = {
     info: PlayerInfo;
 }
 
-type PublicPlayerData = {
+export type PublicPlayerData = {
     id: string;
     ready: boolean;
     playing: boolean;
@@ -51,7 +52,11 @@ export type Connection = {
 export const connections = new Map<string, Connection>();
 export const rooms = new Map<string, RoomData>();
 
-export function sendRoom(roomId: string, message: { [key: string]: any }) {
+export function sendClient(ws: WebSocket, message: GeneralServerMessage) {
+    const parsed = JSON.stringify(message);
+    ws.send(parsed);
+}
+export function sendRoom(roomId: string, message: GeneralServerMessage) {
     const parsed = JSON.stringify(message);
     const room = rooms.get(roomId);
     if (!room) return;
@@ -85,7 +90,7 @@ export function getPublicPlayerData(player: PlayerData): PublicPlayerData {
 }
 
 export function getPublicPlayers(players: Map<string, PlayerData>): PublicPlayerData[] {
-    return [...players.values()].map(player => getPublicPlayerInfo(player));
+    return [...players.values()].map(player => getPublicPlayerData(player));
 }
 
 export function getRoomInfo(roomData: RoomData): RoomInfo {

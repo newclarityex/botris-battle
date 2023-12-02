@@ -14,11 +14,14 @@ const roomData = ref({
     public: false,
 });
 
+const disableCreate = ref(false);
 async function createRoom(event: Event) {
     event.preventDefault()
 
     const form = event.target as HTMLFormElement;
     if (!form.checkValidity()) return;
+
+    disableCreate.value = true;
 
     const room = await $fetch('/api/room/create', {
         method: 'POST',
@@ -56,7 +59,7 @@ async function createRoom(event: Event) {
                     <label for="room-public">Room Public:</label>
                     <input type="checkbox" id="room-public" class="bg-black/40" v-model="roomData.public">
                 </div>
-                <button>Submit</button>
+                <button class="disabled:opacity-50" :disabled="disableCreate">Submit</button>
             </form>
         </div>
     </UModal>

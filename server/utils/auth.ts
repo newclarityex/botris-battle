@@ -7,11 +7,15 @@ export async function checkAuthToken(token: string) {
     const apiToken = await prisma.apiToken.findUnique({
         where: {
             token,
+            expires: {
+                gt: new Date()
+            }
         },
         include: {
             Profile: true
         }
     });
+
 
     return apiToken?.Profile ?? null;
 }

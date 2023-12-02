@@ -32,7 +32,7 @@ export default defineEventHandler(async (event) => {
     const match = {
         id: data.roomId,
         host: {
-            playerId: profile.id,
+            userId: profile.id,
             creator: profile.creator,
             bot: profile.name,
         },
