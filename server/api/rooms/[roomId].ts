@@ -1,4 +1,4 @@
-import { getRoomInfo, rooms } from "@/server/utils/rooms";
+import { getPublicRoomData, rooms } from "@/server/utils/rooms";
 
 export default defineEventHandler(async (event) => {
     const roomId = event.context.params?.roomId;
@@ -18,5 +18,5 @@ export default defineEventHandler(async (event) => {
         });
     }
 
-    return getRoomInfo(room);
+    return getPublicRoomData(room);
 })

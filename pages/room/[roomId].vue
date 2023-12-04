@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import { useRoute } from "vue-router";
 import type { GeneralServerMessage } from "~/server/utils/messages";
-import type { RoomInfo } from "~/server/utils/rooms";
+import type { PublicRoomData } from "~/server/utils/rooms";
 const { status } = useAuth();
 
 const route = useRoute();
 const roomId = route.params.roomId;
 
-const roomInfo = ref<RoomInfo | null>(null);
+const publicRoomData = ref<PublicRoomData | null>(null);
 const ws = ref<WebSocket | null>(null);
 
 async function getToken() {
@@ -20,12 +20,10 @@ async function getToken() {
     return token;
 }
 
+const roundStartTime = ref<number | null>(null);
+
 onMounted(async () => {
-    const res = await $fetch(`/api/rooms/${roomId}`);
-    roomInfo.value = res as RoomInfo;
-
     const token = await getToken();
-
 
     const urlParams = new URLSearchParams();
     urlParams.append("roomId", roomId as string);
@@ -36,44 +34,75 @@ onMounted(async () => {
     ws.value = new WebSocket(`ws://localhost:8080/api/ws?${urlParams.toString()}`);
 
     ws.value.addEventListener("message", (event) => {
-        if (!roomInfo.value) return console.error("no room info");
-
         const data = JSON.parse(event.data) as GeneralServerMessage;
 
         switch (data.type) {
-            case 'game_started': {
-                roomInfo.value.players = data.payload.players;
+            case 'room_info': {
+                publicRoomData.value = data.payload.publicRoomData;
+                break;
+            }
+            case 'round_started': {
+                if (!publicRoomData.value) return console.error("no room info");
+                roundStartTime.value = data.payload.startsAt;
+                publicRoomData.value.players = data.payload.players;
+                break;
+            }
+            case 'game_reset': {
+                if (!publicRoomData.value) return console.error("no room info");
+
+                roundStartTime.value = null;
+
+                publicRoomData.value.players = data.payload.players;
                 break;
             }
             case 'player_ready': {
-                const { userId } = data.payload;
-                const player = roomInfo.value.players.find((p) => p.id === userId);
+                if (!publicRoomData.value) return console.error("no room info");
+
+                const { sessionId } = data.payload;
+                const player = publicRoomData.value.players.find((p) => p.sessionId === sessionId);
                 if (!player) return console.error("player not found");
                 player.ready = true;
                 break;
             }
             case 'player_unready': {
-                const { userId } = data.payload;
-                const player = roomInfo.value.players.find((p) => p.id === userId);
+                if (!publicRoomData.value) return console.error("no room info");
+
+                const { sessionId } = data.payload;
+                const player = publicRoomData.value.players.find((p) => p.sessionId === sessionId);
                 if (!player) return console.error("player not found");
                 player.ready = false;
                 break;
             }
             case 'player_joined': {
+                if (!publicRoomData.value) return console.error("no room info");
+
                 const { playerData } = data.payload;
-                roomInfo.value.players.push(playerData);
+                publicRoomData.value.players.push(playerData);
                 break;
             }
             case 'player_left': {
+                if (!publicRoomData.value) return console.error("no room info");
+
                 const { sessionId } = data.payload;
-                const playerIndex = roomInfo.value.players.findIndex((p) => p.sessionId === sessionId);
+                const playerIndex = publicRoomData.value.players.findIndex((p) => p.sessionId === sessionId);
                 if (playerIndex === -1) return console.error("player not found");
-                roomInfo.value.players.splice(playerIndex, 1);
+                publicRoomData.value.players.splice(playerIndex, 1);
                 break;
             }
             case 'player_commands': {
+                if (!publicRoomData.value) return console.error("no room info");
+
                 const { sessionId, newGameState } = data.payload;
-                const player = roomInfo.value.players.find((p) => p.sessionId === sessionId);
+                const player = publicRoomData.value.players.find((p) => p.sessionId === sessionId);
+                if (!player) return console.error("player not found");
+                player.gameState = newGameState;
+                break;
+            }
+            case 'player_damage_received': {
+                if (!publicRoomData.value) return console.error("no room info");
+
+                const { sessionId, newGameState } = data.payload;
+                const player = publicRoomData.value.players.find((p) => p.sessionId === sessionId);
                 if (!player) return console.error("player not found");
                 player.gameState = newGameState;
                 break;
@@ -83,9 +112,9 @@ onMounted(async () => {
 });
 
 const readyPlayers = computed(() => {
-    if (!roomInfo.value) return 0;
+    if (!publicRoomData.value) return 0;
 
-    return roomInfo.value.players.filter((p) => p.ready).length;
+    return publicRoomData.value.players.filter((p) => p.ready).length;
 });
 
 function startGame() {
@@ -115,21 +144,26 @@ function banPlayer(userId: string) {
 
 <template>
     <div>
+        <Countdown v-if="roundStartTime" :startsAt="roundStartTime" />
         <h2>Players:</h2>
-        <ul v-if="roomInfo">
-            <li v-for="player in roomInfo.players">
+        <ul v-if="publicRoomData">
+            <li v-for="player in publicRoomData.players">
+                <GameBoard :gameState="player.gameState" />
                 <span>{{ player.info.bot }}</span>
                 <span>{{ player.info.creator }}</span>
                 <span v-if="player.ready">Ready</span>
                 <span v-else>Not Ready</span>
                 <button @click="kickPlayer(player.sessionId)">Kick</button>
-                <button @click="banPlayer(player.id)">Ban</button>
+                <button @click="banPlayer(player.info.userId)">Ban</button>
             </li>
         </ul>
-        <button @click="startGame" class="disabled:opacity-50" :disabled="readyPlayers < 2">Start Game</button>
-        <button @click="resetGame" class="disabled:opacity-50" :disabled="!roomInfo || !roomInfo.ongoing">
+        <button @click="startGame" class="disabled:opacity-50"
+            :disabled="readyPlayers < 2 || !publicRoomData || publicRoomData.ongoing">
+            Start Game
+        </button>
+        <button @click="resetGame" class="disabled:opacity-50" :disabled="!publicRoomData || !publicRoomData.ongoing">
             Reset Game
         </button>
-        {{ roomInfo }}
+        {{ publicRoomData }}
     </div>
 </template>

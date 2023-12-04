@@ -22,20 +22,20 @@ async function removeToken(token: string) {
         <div>
             <h1>Dashboard</h1>
             <h2>API Keys</h2>
-            <table class="text-white text-lg p-0">
-                <tbody>
-                    <tr v-for="token in tokens">
-                        <td>{{ token.name }}</td>
-                        <td>{{ token.token }}</td>
-                        <td>
-                            <button @click="removeToken(token.token)"> Remove </button>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-            <button @click="
-                createTokenModal = true;
-            "> Create Token </button>
+            <ul class="list-none p-0 flex flex-col gap-2">
+                <li v-for="token in tokens" class="bg-white/20 p-4 flex">
+                    <div class="w-40">{{ token.name }}</div>
+                    <div class="w-96">{{ token.token }}</div>
+                    <div>
+                        <button @click="removeToken(token.token)"> Remove </button>
+                    </div>
+                </li>
+            </ul>
+            <div class="w-full flex justify-center">
+                <button @click="createTokenModal = true" class="my-4 border-white border-2 p-2">
+                    Create Token
+                </button>
+            </div>
         </div>
     </div>
 </template>

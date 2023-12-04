@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { PlayerInfo, PublicPlayerData } from "./rooms";
+import { PlayerInfo, PublicPlayerData, PublicRoomData } from "./rooms";
 import { GameEvent, GameState, PublicGameState } from "libtris";
 
 export const AuthSchema = z.object({
@@ -86,6 +86,32 @@ export type PlayerMessage = z.infer<typeof PlayerMessageSchema>;
 
 export type GeneralServerMessage =
 	{
+		type: 'request_move';
+		payload: {
+			gameState: PublicGameState;
+			players: PublicPlayerData[];
+		};
+	} |
+	{
+		type: "game_info";
+		payload: {
+			publicRoomData: PublicRoomData;
+			players: PublicPlayerData[];
+		};
+	} |
+	{
+		type: "room_info";
+		payload: {
+			publicRoomData: PublicRoomData;
+		};
+	} |
+	{
+		type: "settings_changed";
+		payload: {
+			publicRoomData: PublicRoomData;
+		};
+	} |
+	{
 		type: "host_changed";
 		payload: {
 			hostInfo: PlayerInfo;
@@ -96,6 +122,9 @@ export type GeneralServerMessage =
 	}
 	| {
 		type: "game_started";
+	}
+	| {
+		type: "round_started";
 		payload: {
 			startsAt: number;
 			players: PublicPlayerData[];
@@ -103,6 +132,9 @@ export type GeneralServerMessage =
 	}
 	| {
 		type: "game_reset";
+		payload: {
+			players: PublicPlayerData[];
+		};
 	}
 	| {
 		type: "player_joined";
@@ -119,13 +151,13 @@ export type GeneralServerMessage =
 	| {
 		type: "player_ready";
 		payload: {
-			userId: string;
+			sessionId: string;
 		};
 	}
 	| {
 		type: "player_unready";
 		payload: {
-			userId: string;
+			sessionId: string;
 		};
 	}
 	| {
@@ -140,8 +172,9 @@ export type GeneralServerMessage =
 	| {
 		type: "player_damage_received";
 		payload: {
-			userId: string;
+			sessionId: string;
 			damage: number;
+			newGameState: PublicGameState;
 		};
 	}
 	| {
@@ -149,6 +182,12 @@ export type GeneralServerMessage =
 		payload: {
 			userId: string;
 		};
+	}
+	| {
+		type: "round_over";
+		payload: {
+			winnerId: string;
+		}
 	}
 	| {
 		type: "game_over";

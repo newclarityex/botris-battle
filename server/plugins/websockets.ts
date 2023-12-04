@@ -2,11 +2,10 @@ import { MessageEvent, RawData, WebSocket, WebSocketServer } from "ws";
 import { z } from "zod";
 import { zu } from "zod_utilz";
 import { v4 as uuid } from "uuid";
-import { rooms, connections, sendRoom } from "~/server/utils/rooms";
-import type { Connection } from "~/server/utils/rooms";
+import { rooms, connections, sendRoom, getPublicRoomData } from "~/server/utils/rooms";
+import type { Connection, RoomData } from "~/server/utils/rooms";
 import { checkAuthToken } from "../utils/auth";
 import {
-    AuthSchema,
     GeneralMessageSchema,
     PlayerMessageSchema,
 } from "../utils/messages";
@@ -17,19 +16,15 @@ import {
     getPublicGameState,
     queueGarbage,
 } from "libtris";
-import { Server } from "http";
 
 interface IDWebSocket extends WebSocket {
     id?: string;
 }
 
-
-
 async function authenticateWs(ws: IDWebSocket, token: string, roomId: string) {
     if (!ws.id) return null;
 
     const profile = await checkAuthToken(token);
-    console.log("Profile: ", profile);
 
     if (!profile) return null;
 
@@ -60,6 +55,38 @@ async function authenticateWs(ws: IDWebSocket, token: string, roomId: string) {
     return connection;
 }
 
+async function startRound(room: RoomData) {
+    for (const player of room.players.values()) {
+        if (!player.playing) return;
+
+        player.gameState = createGameState();
+    }
+
+    sendRoom(room.id, {
+        type: "round_started",
+        payload: {
+            startsAt: Date.now() + 3000,
+            players: getPublicPlayers(room.players),
+        },
+    });
+
+    room.ongoing = true;
+    room.allowInputs = false;
+    setTimeout(() => {
+        room.allowInputs = true;
+        room.players.forEach((player) => {
+            if (!player.playing || !player.gameState) return;
+            sendClient(player.ws, {
+                type: "request_move",
+                payload: {
+                    gameState: getPublicGameState(player.gameState),
+                    players: getPublicPlayers(room.players),
+                }
+            });
+        });
+    }, 3000);
+}
+
 const jsonSchema = zu.stringToJSON();
 async function handleGeneralMessage(data: RawData, connection: Connection) {
     const message = jsonSchema.safeParse(data.toString());
@@ -77,26 +104,25 @@ async function handleGeneralMessage(data: RawData, connection: Connection) {
 
     switch (messageData.type) {
         case "kick": {
+            console.log('players', room.players);
+
             const player = room.players.get(messageData.payload.sessionId);
+            console.log('player', player);
+
             if (!player) return;
             player.ws.close(4001, "Kicked by host");
-            for (const [sessionId, player] of room.players.entries()) {
-                if (player.id !== messageData.payload.sessionId) continue;
-
-                room.players.delete(sessionId);
-                sendRoom(connection.roomId, {
-                    type: "player_left",
-                    payload: {
-                        sessionId,
-                    },
-                });
-            }
+            sendRoom(connection.roomId, {
+                type: "player_left",
+                payload: {
+                    sessionId: player.sessionId,
+                },
+            });
             break;
         }
         case "ban": {
             room.banned.add(messageData.payload.userId);
             for (const [sessionId, player] of room.players.entries()) {
-                if (player.id !== messageData.payload.userId) continue;
+                if (player.info.userId !== messageData.payload.userId) continue;
 
                 player.ws.close(4002, "Banned by host");
                 room.players.delete(sessionId);
@@ -114,6 +140,15 @@ async function handleGeneralMessage(data: RawData, connection: Connection) {
             break;
         }
         case "start_game": {
+            if (room.players.size > room.maxPlayers) {
+                connection.ws.send(
+                    JSON.stringify({
+                        type: "error",
+                        payload: "Too many players",
+                    })
+                );
+                return;
+            }
             const playersReady = [...room.players.values()].filter(
                 (player) => player.ready
             ).length;
@@ -136,21 +171,18 @@ async function handleGeneralMessage(data: RawData, connection: Connection) {
                 return;
             }
 
-            room.ongoing = true;
             for (const player of room.players.values()) {
-                if (!player.ready) return;
-
-                player.playing = true;
-                player.gameState = createGameState();
+                player.wins = 0;
+                if (player.ready) {
+                    player.playing = true;
+                }
             }
 
             sendRoom(connection.roomId, {
                 type: "game_started",
-                payload: {
-                    startsAt: Date.now() + 3000,
-                    players: getPublicPlayers(room.players),
-                },
             });
+
+            startRound(room);
 
             break;
         }
@@ -165,11 +197,15 @@ async function handleGeneralMessage(data: RawData, connection: Connection) {
                 return;
             };
             room.ongoing = false;
+            room.allowInputs = false;
             room.players.forEach((player) => {
                 player.ready = false;
             });
             sendRoom(connection.roomId, {
                 type: "game_reset",
+                payload: {
+                    players: getPublicPlayers(room.players),
+                }
             });
             break;
         }
@@ -189,36 +225,52 @@ async function handleGeneralMessage(data: RawData, connection: Connection) {
             room.maxPlayers = messageData.payload.maxPlayers;
             room.ft = messageData.payload.ft;
             room.public = messageData.payload.public;
+            sendRoom(connection.roomId, {
+                type: 'settings_changed',
+                payload: {
+                    publicRoomData: getPublicRoomData(room),
+                }
+            });
             break;
         }
     }
 }
 
 async function handlePlayerMessage(data: RawData, connection: Connection) {
+    console.log("Message from ", connection.id);
+
     const message = jsonSchema.safeParse(data.toString());
     if (!message.success) return;
+
+    console.log("Parsed as json");
+
 
     const parsed = PlayerMessageSchema.safeParse(message.data);
     if (!parsed.success) return;
 
     const messageData = parsed.data;
 
+    console.log("Message data: ", messageData);
+
     const room = rooms.get(connection.roomId);
     if (!room) return;
 
+    console.log("Room: ", room);
+
+
     switch (messageData.type) {
         case "ready": {
-            if (!room.ongoing) return;
+            if (room.ongoing) return;
             const player = room.players.get(connection.id);
             if (!player) return;
             player.ready = true;
             sendRoom(connection.roomId, {
                 type: "player_ready",
                 payload: {
-                    userId: connection.id,
+                    sessionId: connection.id,
                 },
             });
-            if ([...room.players.values()].every((player) => player.ready)) {
+            if ([...room.players.values()].every((player) => player.ready) && room.players.size > 1) {
                 sendRoom(connection.roomId, {
                     type: "all_ready",
                 });
@@ -226,14 +278,14 @@ async function handlePlayerMessage(data: RawData, connection: Connection) {
             break;
         }
         case "unready": {
-            if (!room.ongoing) return;
+            if (room.ongoing) return;
             const player = room.players.get(connection.id);
             if (!player) return;
             player.ready = false;
             sendRoom(connection.roomId, {
                 type: "player_unready",
                 payload: {
-                    userId: connection.id,
+                    sessionId: connection.id,
                 },
             });
             break;
@@ -241,11 +293,37 @@ async function handlePlayerMessage(data: RawData, connection: Connection) {
         case "commands": {
             const player = room.players.get(connection.id);
             if (!player) return;
+            if (!room.ongoing) {
+                connection.ws.send(
+                    JSON.stringify({
+                        type: "error",
+                        payload: "Game not started",
+                    })
+                );
+            }
+            if (!room.allowInputs) {
+                connection.ws.send(
+                    JSON.stringify({
+                        type: "error",
+                        payload: "Inputs not currently allowed",
+                    })
+                );
+                return;
+            }
             const { gameState: newGameState, events } = executeCommands(
                 player.gameState!,
                 messageData.payload.commands
             );
             player.gameState = newGameState;
+            if (!player.gameState.dead) {
+                sendClient(connection.ws, {
+                    type: "request_move",
+                    payload: {
+                        gameState: getPublicGameState(player.gameState),
+                        players: getPublicPlayers(room.players),
+                    }
+                });
+            }
             for (const event of events) {
                 if (event.type === "game_over") {
                     sendRoom(connection.roomId, {
@@ -258,12 +336,21 @@ async function handlePlayerMessage(data: RawData, connection: Connection) {
                 if (event.type === "attack") {
                     const amount = event.payload.lines;
                     for (const player of room.players.values()) {
-                        if (player.id === connection.id) continue;
+                        if (player.sessionId === connection.id) continue;
+                        if (!player.gameState || !player.playing) continue;
                         const garbage = generateGarbage(amount);
                         player.gameState = queueGarbage(
                             player.gameState!,
                             garbage
                         );
+                        sendClient(player.ws, {
+                            type: "player_damage_received",
+                            payload: {
+                                sessionId: player.sessionId,
+                                damage: amount,
+                                newGameState: getPublicGameState(player.gameState),
+                            },
+                        });
                     }
                 }
             }
@@ -276,6 +363,39 @@ async function handlePlayerMessage(data: RawData, connection: Connection) {
                     events,
                 },
             });
+
+            const playersAlive = [...room.players.values()].filter(
+                (player) => player.playing && player.gameState && !player.gameState.dead
+            );
+
+            if (playersAlive.length < 2) {
+                const roundWinner = playersAlive[0];
+                roundWinner.wins++;
+                room.allowInputs = false;
+                sendRoom(connection.roomId, {
+                    type: "round_over",
+                    payload: {
+                        winnerId: roundWinner.sessionId,
+                    },
+                });
+                if (roundWinner.wins >= room.ft) {
+                    room.ongoing = false;
+                    sendRoom(connection.roomId, {
+                        type: "game_over",
+                        payload: {
+                            winnerId: roundWinner.sessionId,
+                        },
+                    });
+                    sendRoom(connection.roomId, {
+                        type: "game_reset",
+                        payload: {
+                            players: getPublicPlayers(room.players),
+                        }
+                    });
+                } else {
+                    startRound(room);
+                }
+            }
             break;
         }
     }
@@ -325,20 +445,39 @@ export default defineNitroPlugin((event) => {
             return;
         }
 
-        ws.send(
-            JSON.stringify({
-                type: "room_info",
-                payload: getRoomInfo(room),
-            })
-        );
+        sendClient(ws, {
+            type: "room_info",
+            payload: { publicRoomData: getPublicRoomData(room) },
+        });
 
         ws.on("close", () => {
             if (!ws.id) return;
+            if (room.players.get(ws.id)) {
+                sendRoom(roomId, {
+                    type: "player_left",
+                    payload: {
+                        sessionId: ws.id,
+                    },
+                });
+            }
             connections.delete(ws.id);
             room.players.delete(ws.id);
             room.spectators.delete(ws.id);
             if (room.players.size === 0 && room.spectators.size === 0) {
                 rooms.delete(roomId);
+            }
+            if (room.players.size === 1) {
+                room.players.forEach((player) => {
+                    player.ready = false;
+                    player.gameState = null;
+                });
+                room.ongoing = false;
+                sendRoom(roomId, {
+                    type: "game_reset",
+                    payload: {
+                        players: getPublicPlayers(room.players),
+                    }
+                });
             }
         });
 
@@ -391,15 +530,24 @@ export default defineNitroPlugin((event) => {
             return;
         }
 
-        room.players.set(connection.id, {
-            id: connection.id,
-            sessionId: uuid(),
+        const playerData = {
+            sessionId: connection.id,
             ws,
             ready: false,
             playing: false,
+            wins: 0,
             gameState: null,
             info: connection.info,
+        };
+
+        sendRoom(connection.roomId, {
+            type: "player_joined",
+            payload: {
+                playerData: getPublicPlayerData(playerData),
+            },
         });
+
+        room.players.set(connection.id, playerData);
 
         ws.on("message", (event) => handlePlayerMessage(event, connection));
     });

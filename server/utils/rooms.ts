@@ -10,21 +10,21 @@ export type PlayerInfo = {
 
 
 type PlayerData = {
-    id: string;
+    sessionId: string;
     ready: boolean;
     playing: boolean;
-    sessionId: string;
     ws: WebSocket;
+    wins: number;
     gameState: GameState | null;
     info: PlayerInfo;
 }
 
 export type PublicPlayerData = {
-    id: string;
+    sessionId: string;
     ready: boolean;
     playing: boolean;
-    sessionId: string;
     info: PlayerInfo;
+    wins: number;
     gameState: PublicGameState | null;
 }
 
@@ -33,8 +33,10 @@ export type RoomData = {
     host: PlayerInfo;
     public: boolean;
     ft: number;
+    ppsCap: number;
     maxPlayers: number;
     ongoing: boolean;
+    allowInputs: boolean;
     banned: Set<string>;
     players: Map<string, PlayerData>;
     spectators: Map<string, WebSocket>;
@@ -68,24 +70,27 @@ export function sendRoom(roomId: string, message: GeneralServerMessage) {
     }
 }
 
-export type RoomInfo = {
+export type PublicRoomData = {
     id: string;
     host: PlayerInfo;
     public: boolean;
     ft: number;
+    ppsCap: number;
     maxPlayers: number;
     ongoing: boolean;
+    allowInputs: boolean;
     players: PublicPlayerData[];
+    banned: string[];
 }
 
 export function getPublicPlayerData(player: PlayerData): PublicPlayerData {
     return {
-        id: player.id,
-        ready: player.ready,
         sessionId: player.sessionId,
+        ready: player.ready,
         playing: player.playing,
         info: player.info,
-        gameState: getPublicGameState(player.gameState!),
+        wins: player.wins,
+        gameState: player.gameState ? getPublicGameState(player.gameState) : null,
     };
 }
 
@@ -93,14 +98,17 @@ export function getPublicPlayers(players: Map<string, PlayerData>): PublicPlayer
     return [...players.values()].map(player => getPublicPlayerData(player));
 }
 
-export function getRoomInfo(roomData: RoomData): RoomInfo {
+export function getPublicRoomData(roomData: RoomData): PublicRoomData {
     return {
         id: roomData.id,
         host: roomData.host,
         public: roomData.public,
         ft: roomData.ft,
+        ppsCap: roomData.ppsCap,
         maxPlayers: roomData.maxPlayers,
         ongoing: roomData.ongoing,
-        players: getPublicPlayers(roomData.players)
+        allowInputs: roomData.allowInputs,
+        players: getPublicPlayers(roomData.players),
+        banned: [...roomData.banned],
     }
 }
