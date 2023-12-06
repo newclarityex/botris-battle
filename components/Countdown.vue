@@ -12,6 +12,10 @@ onMounted(() => {
 
         displayTime.value = timeLeft;
     }, 1000);
+
+    return () => {
+        clearInterval(interval);
+    }
 }); 
 </script>
 

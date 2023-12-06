@@ -161,6 +161,15 @@ export type GeneralServerMessage =
 		};
 	}
 	| {
+		type: "player_update";
+		payload: {
+			sessionId: string;
+			commands: string[];
+			newGameState: PublicGameState;
+			events: GameEvent[];
+		};
+	}
+	| {
 		type: "player_commands";
 		payload: {
 			sessionId: string;

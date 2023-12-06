@@ -10,6 +10,7 @@ const CreateGameSchema = z.object({
     public: z.boolean(),
     ft: z.number(),
     maxPlayers: z.number(),
+    ppsCap: z.number(),
 });
 
 
@@ -39,6 +40,8 @@ export default defineEventHandler(async (event) => {
         public: data.public,
         ft: data.ft,
         maxPlayers: data.maxPlayers,
+        ppsCap: data.ppsCap,
+        allowInputs: false,
         ongoing: false,
         banned: new Set() as Set<string>,
         players: new Map(),

@@ -1,5 +1,9 @@
 <script setup lang="ts">
+import { generateAvatar } from '~/utils/avatar';
+
 const { signIn } = useAuth()
+
+const avatar = ref(generateAvatar())
 </script>
 
 <template>

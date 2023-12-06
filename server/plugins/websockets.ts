@@ -237,25 +237,17 @@ async function handleGeneralMessage(data: RawData, connection: Connection) {
 }
 
 async function handlePlayerMessage(data: RawData, connection: Connection) {
-    console.log("Message from ", connection.id);
-
     const message = jsonSchema.safeParse(data.toString());
     if (!message.success) return;
-
-    console.log("Parsed as json");
-
 
     const parsed = PlayerMessageSchema.safeParse(message.data);
     if (!parsed.success) return;
 
     const messageData = parsed.data;
 
-    console.log("Message data: ", messageData);
 
     const room = rooms.get(connection.roomId);
     if (!room) return;
-
-    console.log("Room: ", room);
 
 
     switch (messageData.type) {
@@ -333,8 +325,8 @@ async function handlePlayerMessage(data: RawData, connection: Connection) {
                         },
                     });
                 }
-                if (event.type === "attack") {
-                    const amount = event.payload.lines;
+                if (event.type === "clear" && event.payload.attack !== 0) {
+                    const amount = event.payload.attack;
                     for (const player of room.players.values()) {
                         if (player.sessionId === connection.id) continue;
                         if (!player.gameState || !player.playing) continue;
@@ -343,7 +335,7 @@ async function handlePlayerMessage(data: RawData, connection: Connection) {
                             player.gameState!,
                             garbage
                         );
-                        sendClient(player.ws, {
+                        sendRoom(room.id, {
                             type: "player_damage_received",
                             payload: {
                                 sessionId: player.sessionId,

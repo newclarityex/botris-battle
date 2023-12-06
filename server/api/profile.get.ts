@@ -2,6 +2,7 @@
 import { getServerSession, getServerToken } from "#auth"
 import { authOptions } from "./auth/[...]";
 import { prisma } from "@/server/utils/prisma";
+
 export default defineEventHandler(async (event) => {
     const session = await getServerSession(event, authOptions)
     if (!session?.user?.id) {

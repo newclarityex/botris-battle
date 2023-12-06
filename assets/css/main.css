@@ -3,12 +3,12 @@
 @tailwind utilities;
 
 @font-face {
-  font-family: "PT Mono";
-  src: url("fonts/PTMono-Regular.ttf");
+  font-family: "Fira Mono";
+  src: url("fonts/FiraMono-Regular.ttf");
 }
 
 body {
-  font-family: "PT Mono";
+  font-family: "Fira Mono";
   @apply bg-background;
 }
 

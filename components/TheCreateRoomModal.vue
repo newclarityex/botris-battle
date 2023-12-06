@@ -12,6 +12,7 @@ const roomData = ref({
     ft: 3,
     maxPlayers: 2,
     public: false,
+    ppsCap: 3,
 });
 
 const disableCreate = ref(false);
@@ -44,20 +45,21 @@ async function createRoom(event: Event) {
                     <input type="text" id="room-id" class="bg-black/40" placeholder="ColdClear" required
                         v-model="roomData.roomId">
                 </div>
-                <!-- ft -->
                 <div class="flex flex-col">
                     <label for="room-ft">Room FT:</label>
                     <input type="number" id="room-ft" class="bg-black/40" required v-model="roomData.ft">
                 </div>
-                <!-- max-players -->
                 <div class="flex flex-col">
                     <label for="room-max-players">Max Players:</label>
                     <input type="number" id="room-max-players" class="bg-black/40" required v-model="roomData.maxPlayers">
                 </div>
-                <!-- public -->
                 <div class="flex flex-col">
                     <label for="room-public">Room Public:</label>
                     <input type="checkbox" id="room-public" class="bg-black/40" v-model="roomData.public">
+                </div>
+                <div class="flex flex-col">
+                    <label for="pps-cap">PPS Cap:</label>
+                    <input type="number" id="pps-cap" class="bg-black/40" required v-model="roomData.ppsCap">
                 </div>
                 <button class="disabled:opacity-50" :disabled="disableCreate">Submit</button>
             </form>
