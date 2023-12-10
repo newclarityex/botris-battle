@@ -24,14 +24,17 @@ async function createRoom(event: Event) {
 
     disableCreate.value = true;
 
+    console.log("CREATING ROOM")
     const room = await $fetch('/api/room/create', {
         method: 'POST',
         body: roomData.value,
     });
-
-    emit('update:modelValue', false);
+    console.log("CREATED ROOM, NAVIGATING TO", `/room/${room.roomId}`)
 
     navigateTo(`/room/${room.roomId}`);
+
+    console.log("EMITTING")
+    emit('update:modelValue', false);
 }
 </script>
 

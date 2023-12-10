@@ -16,7 +16,7 @@ async function handleRegister(event: Event) {
     const form = event.target as HTMLFormElement;
     if (!form.checkValidity()) return;
 
-    const profile = await $fetch("/api/profile", {
+    const profile = await $fetch("/api/self/profile", {
         method: "POST",
         body: {
             ...registerData.value,

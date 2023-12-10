@@ -1,11 +1,11 @@
 <script setup lang="ts">
 definePageMeta({ middleware: "auth" });
-const { data: tokens, refresh } = useFetch('/api/tokens');
+const { data: tokens, refresh } = useFetch('/api/self/tokens');
 
 const createTokenModal = ref(false);
 
 async function removeToken(token: string) {
-    await $fetch(`/api/token`, {
+    await $fetch(`/api/self/token`, {
         method: 'DELETE',
         body: {
             token,

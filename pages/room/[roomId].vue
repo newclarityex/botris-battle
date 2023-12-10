@@ -17,13 +17,31 @@ definePageMeta({
 const route = useRoute();
 const roomId = route.params.roomId;
 
-const publicRoomData = ref<PublicRoomData | null>(null);
+const initialRoomData = await $fetch(`/api/room/info`, {
+    query: {
+        roomId,
+    }
+}).catch((error) => {
+    console.error("Error", error);
+
+    return null;
+});
+
+if (!initialRoomData) {
+    throw createError({
+        statusCode: 404,
+        statusMessage: "Room not found",
+    })
+}
+
+
+const publicRoomData = ref<PublicRoomData>(initialRoomData);
 const ws = ref<WebSocket | null>(null);
 
 async function getToken() {
     if (status.value !== "authenticated") return null;
 
-    const { token } = await $fetch('/api/token/temp', {
+    const { token } = await $fetch('/api/self/token/temp', {
         method: 'POST',
     });
 
@@ -72,6 +90,18 @@ onMounted(async () => {
     // ws.value = new WebSocket(`ws://${location.host}/api/ws?${urlParams.toString()}`);
     ws.value = new WebSocket(`ws://localhost:8080/api/ws?${urlParams.toString()}`);
 
+    ws.value.addEventListener("close", (event) => {
+        switch (event.code) {
+            case 4004:
+                throw createError({
+                    statusCode: 404,
+                    statusMessage: "Room not found",
+                })
+            default:
+                break;
+        }
+    })
+
     ws.value.addEventListener("message", (event) => {
         const data = JSON.parse(event.data) as GeneralServerMessage;
 
@@ -103,24 +133,6 @@ onMounted(async () => {
 
                 publicRoomData.value.ongoing = false;
                 publicRoomData.value.players = data.payload.players;
-                break;
-            }
-            case 'player_ready': {
-                if (!publicRoomData.value) return console.error("no room info");
-
-                const { sessionId } = data.payload;
-                const player = publicRoomData.value.players.find((p) => p.sessionId === sessionId);
-                if (!player) return console.error("player not found");
-                player.ready = true;
-                break;
-            }
-            case 'player_unready': {
-                if (!publicRoomData.value) return console.error("no room info");
-
-                const { sessionId } = data.payload;
-                const player = publicRoomData.value.players.find((p) => p.sessionId === sessionId);
-                if (!player) return console.error("player not found");
-                player.ready = false;
                 break;
             }
             case 'player_joined': {
@@ -165,7 +177,7 @@ onMounted(async () => {
                         case 'piece_placed': {
                             const { final } = event.payload;
                             renderPlacedEffect(playerGraphics, final);
-                            AUDIO_SOURCES.place_piece.play();
+                            // AUDIO_SOURCES.place_piece.play();
                             break;
                         }
                         // case 'damage_tanked': {
@@ -182,9 +194,12 @@ onMounted(async () => {
                             } else if (clearData.allSpin) {
                                 AUDIO_SOURCES.all_spin_clear.play();
                             } else {
+                                if (newGameState.combo > 0) {
+                                    AUDIO_SOURCES.combo[newGameState.combo - 1].play();
+                                } else {
+                                    AUDIO_SOURCES.line_clear.play();
+                                }
                                 // const combo = Math.min(7, newGameState.combo);
-                                // AUDIO_SOURCES.combo[combo].play();
-                                AUDIO_SOURCES.line_clear.play();
                             }
                             break;
                         }
@@ -208,12 +223,6 @@ onMounted(async () => {
             }
         }
     });
-});
-
-const readyPlayers = computed(() => {
-    if (!publicRoomData.value) return 0;
-
-    return publicRoomData.value.players.filter((p) => p.ready).length;
 });
 
 function startGame() {
@@ -262,14 +271,11 @@ function banPlayer(userId: string) {
             <li v-for="player in publicRoomData.players">
                 <span>{{ player.info.bot }}</span>
                 <span>{{ player.info.creator }}</span>
-                <span v-if="player.ready">Ready</span>
-                <span v-else>Not Ready</span>
                 <button @click="kickPlayer(player.sessionId)">Kick</button>
                 <button @click="banPlayer(player.info.userId)">Ban</button>
             </li>
         </ul>
-        <button @click="startGame" class="disabled:opacity-50"
-            :disabled="readyPlayers < 2 || !publicRoomData || publicRoomData.ongoing">
+        <button @click="startGame" class="disabled:opacity-50" :disabled="!publicRoomData || publicRoomData.ongoing">
             Start Game
         </button>
         <button @click="resetGame" class="disabled:opacity-50" :disabled="!publicRoomData || !publicRoomData.ongoing">

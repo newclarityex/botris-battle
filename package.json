@@ -8,7 +8,8 @@
     "generate": "nuxt generate",
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare",
-    "test": "vitest"
+    "test": "vitest",
+    "typecheck": "nuxt typecheck"
   },
   "devDependencies": {
     "@nuxt/devtools": "latest",
@@ -35,6 +36,7 @@
     "@prisma/client": "^5.6.0",
     "howler": "^2.2.4",
     "libtris": "^0.0.23",
+    "nanoid": "^5.0.4",
     "octokit": "^3.1.2",
     "pixi-ease": "^3.0.7",
     "pixi.js": "^7.3.2",

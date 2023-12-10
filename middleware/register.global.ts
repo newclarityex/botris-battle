@@ -4,7 +4,7 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
   const { status } = useAuth();
   if (status.value !== 'authenticated') return;
 
-  const profile = await $fetch('/api/profile').catch(() => null);
+  const profile = await $fetch('/api/self/profile').catch(() => null);
   if (!profile && to.path !== '/register') return navigateTo('/register');
   if (profile && to.path === '/register') return navigateTo('/');
 

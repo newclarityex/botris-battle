@@ -1,15 +1,21 @@
 import { getPublicRoomData, rooms } from "@/server/utils/rooms";
+import { z } from "zod";
 
 export default defineEventHandler(async (event) => {
-    const roomId = event.context.params?.roomId;
-    if (!roomId) {
+    const query = getQuery(event);
+
+    const roomId = query.roomId;
+
+    const parsed = z.string().safeParse(roomId);
+
+    if (!parsed.success) {
         throw createError({
             statusCode: 400,
-            message: 'Invalid room id'
+            message: 'Invalid room ID'
         });
     }
 
-    const room = rooms.get(roomId);
+    const room = rooms.get(parsed.data);
 
     if (!room) {
         throw createError({

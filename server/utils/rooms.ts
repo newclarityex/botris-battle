@@ -9,19 +9,19 @@ export type PlayerInfo = {
 }
 
 
-type PlayerData = {
+export type PlayerData = {
     sessionId: string;
-    ready: boolean;
     playing: boolean;
     ws: WebSocket;
     wins: number;
     gameState: GameState | null;
     info: PlayerInfo;
+    moveRequested: boolean;
+    timeout: NodeJS.Timeout | null;
 }
 
 export type PublicPlayerData = {
     sessionId: string;
-    ready: boolean;
     playing: boolean;
     info: PlayerInfo;
     wins: number;
@@ -86,7 +86,6 @@ export type PublicRoomData = {
 export function getPublicPlayerData(player: PlayerData): PublicPlayerData {
     return {
         sessionId: player.sessionId,
-        ready: player.ready,
         playing: player.playing,
         info: player.info,
         wins: player.wins,

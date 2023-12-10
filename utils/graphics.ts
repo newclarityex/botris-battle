@@ -32,6 +32,7 @@ const QUEUE_DIMENSIONS = {
     height: BOARD_DIMENSIONS.height,
 };
 
+const TEXT_RESOLUTION = 4;
 
 export type PlayerGraphics = {
     mainContainer: PIXI.Container;
@@ -95,7 +96,7 @@ export function renderPlayers(pixiApp: PIXI.Application, playersContainer: PIXI.
             fontSize: 32,
             fontFamily: 'Fira Mono',
         });
-        heldText.resolution = 4;
+        heldText.resolution = TEXT_RESOLUTION;
         heldText.x = HELD_DIMENSIONS.width / 2 - heldText.width / 2;
         heldText.y = 24;
         heldContainer.addChild(heldText);
@@ -117,7 +118,7 @@ export function renderPlayers(pixiApp: PIXI.Application, playersContainer: PIXI.
             fontSize: 32,
             fontFamily: 'Fira Mono',
         });
-        queueText.resolution = 4;
+        queueText.resolution = TEXT_RESOLUTION;
         queueText.x = QUEUE_DIMENSIONS.width / 2 - queueText.width / 2;
         queueText.y = 24;
         queueContainer.addChild(queueText);
@@ -147,6 +148,7 @@ export function renderPlayers(pixiApp: PIXI.Application, playersContainer: PIXI.
             mainContainer.x = CONTAINER_OFFSET.x;
             mainContainer.y = CONTAINER_OFFSET.y;
         } else if (index === 1) {
+            // Right Align
             mainContainer.x = pixiApp.screen.width - CONTAINER_OFFSET.x - mainContainer.width;
             mainContainer.y = CONTAINER_OFFSET.y;
         }
@@ -436,7 +438,7 @@ export function renderAttackEffect(playerGraphics: PlayerGraphics, piece: PieceD
         fontFamily: 'Fira Mono',
     });
 
-    effectSprite.resolution = 4;
+    effectSprite.resolution = TEXT_RESOLUTION;
 
     effectSprite.x = (piece.x + x) * CELL_SIZE - effectSprite.width / 2;
     effectSprite.y = (BOARD_HEIGHT - piece.y - y + 1) * CELL_SIZE - effectSprite.height / 2;

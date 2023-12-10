@@ -54,33 +54,25 @@ export type ClientMessage =
 	| z.infer<typeof GeneralMessageSchema>
 	| z.infer<typeof AuthSchema>;
 
-export const PlayerMessageSchema = z.union([
-	z.object({
-		type: z.literal("ready"),
+export const PlayerMessageSchema = z.object({
+	type: z.literal("commands"),
+	payload: z.object({
+		commands: z
+			.union([
+				z.literal("move_left"),
+				z.literal("move_right"),
+				z.literal("sonic_left"),
+				z.literal("sonic_right"),
+				z.literal("drop"),
+				z.literal("sonic_drop"),
+				z.literal("hard_drop"),
+				z.literal("rotate_cw"),
+				z.literal("rotate_ccw"),
+				z.literal("hold"),
+			])
+			.array(),
 	}),
-	z.object({
-		type: z.literal("unready"),
-	}),
-	z.object({
-		type: z.literal("commands"),
-		payload: z.object({
-			commands: z
-				.union([
-					z.literal("move_left"),
-					z.literal("move_right"),
-					z.literal("sonic_left"),
-					z.literal("sonic_right"),
-					z.literal("drop"),
-					z.literal("sonic_drop"),
-					z.literal("hard_drop"),
-					z.literal("rotate_cw"),
-					z.literal("rotate_ccw"),
-					z.literal("hold"),
-				])
-				.array(),
-		}),
-	}),
-]);
+});
 
 export type PlayerMessage = z.infer<typeof PlayerMessageSchema>;
 
@@ -118,9 +110,6 @@ export type GeneralServerMessage =
 		};
 	}
 	| {
-		type: "all_ready";
-	}
-	| {
 		type: "game_started";
 	}
 	| {
@@ -149,27 +138,6 @@ export type GeneralServerMessage =
 		};
 	}
 	| {
-		type: "player_ready";
-		payload: {
-			sessionId: string;
-		};
-	}
-	| {
-		type: "player_unready";
-		payload: {
-			sessionId: string;
-		};
-	}
-	| {
-		type: "player_update";
-		payload: {
-			sessionId: string;
-			commands: string[];
-			newGameState: PublicGameState;
-			events: GameEvent[];
-		};
-	}
-	| {
 		type: "player_commands";
 		payload: {
 			sessionId: string;
@@ -189,7 +157,7 @@ export type GeneralServerMessage =
 	| {
 		type: "player_died";
 		payload: {
-			userId: string;
+			sessionId: string;
 		};
 	}
 	| {

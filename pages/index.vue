@@ -8,6 +8,7 @@ const avatar = ref(generateAvatar())
 
 <template>
     <div class="flex flex-col items-center">
+        <AvatarEditor v-model="avatar" />
         <main class="flex flex-col items-center">
             <h1 class="text-3xl text-primary py-2">
                 Botris 2024

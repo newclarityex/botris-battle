@@ -1,16 +1,13 @@
 import { z } from 'zod';
 import { rooms } from '~/server/utils/rooms'
-import { getServerSession } from '#auth';
-import { authOptions } from '../auth/[...]';
-import { Profile } from '@prisma/client';
 import { checkAuth } from '~/server/utils/auth';
 
 const CreateGameSchema = z.object({
     roomId: z.string(),
     public: z.boolean(),
-    ft: z.number(),
-    maxPlayers: z.number(),
-    ppsCap: z.number(),
+    ft: z.number().min(1).max(99),
+    maxPlayers: z.number().min(2).max(4),
+    ppsCap: z.number().gt(0).max(30),
 });
 
 

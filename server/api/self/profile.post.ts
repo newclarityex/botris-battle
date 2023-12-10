@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { prisma } from '@/server/utils/prisma';
 import { getServerSession, getServerToken } from "#auth"
-import { authOptions } from "./auth/[...]";
+import { authOptions } from "../auth/[...]";
 
 const RegisterSchema = z.object({
     avatar: z.union([

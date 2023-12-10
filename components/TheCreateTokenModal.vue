@@ -16,7 +16,7 @@ async function createToken(event: Event) {
     const form = event.target as HTMLFormElement;
     if (!form.checkValidity()) return;
 
-    const { token } = await $fetch('/api/token', {
+    const { token } = await $fetch('/api/self/token', {
         method: 'POST',
         body: {
             name: tokenName.value

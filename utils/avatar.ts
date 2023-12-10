@@ -43,6 +43,5 @@ export function generateAvatar() {
         line.push(...bottomRight[i])
         avatar.push(line)
     }
-    console.log('avatar', avatar)
     return avatar
 }
