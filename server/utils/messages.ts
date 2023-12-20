@@ -5,7 +5,8 @@ import { GameEvent, GameState, PublicGameState } from "libtris";
 export const AuthSchema = z.object({
 	type: z.literal("auth"),
 	payload: z.object({
-		token: z.string(),
+		userToken: z.string(),
+		roomToken: z.string(),
 	}),
 });
 
@@ -43,7 +44,7 @@ export const GeneralMessageSchema = z.union([
 	z.object({
 		type: z.literal("room_settings"),
 		payload: z.object({
-			public: z.boolean(),
+			private: z.boolean(),
 			ft: z.number(),
 			maxPlayers: z.number(),
 		}),
@@ -117,6 +118,7 @@ export type GeneralServerMessage =
 		payload: {
 			startsAt: number;
 			players: PublicPlayerData[];
+			roomData: PublicRoomData;
 		};
 	}
 	| {
@@ -170,5 +172,6 @@ export type GeneralServerMessage =
 		type: "game_over";
 		payload: {
 			winnerId: string;
+			roomData: PublicRoomData;
 		};
 	};

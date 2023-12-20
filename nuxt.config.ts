@@ -1,4 +1,5 @@
 import { resolve } from "node:path";
+import { isCustomElement, transformAssetUrls } from 'vue3-pixi'
 
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
@@ -37,7 +38,15 @@ export default defineNuxtConfig({
     cookie: resolve(__dirname, "node_modules/cookie"),
     jwt: resolve(__dirname, "node_modules/jwt"),
     crypto: resolve(__dirname, "node_modules/crypto"),
-  }
+  },
+  routeRules: {
+    '/room/**': { ssr: false },
+  },
+  vue: {
+    compilerOptions: {
+      isCustomElement,
+    }
+  },
 })
 
 

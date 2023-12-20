@@ -138,7 +138,7 @@ const btnColors = {
         </div>
 
 
-        <button @click='newBoard()'>new board</button>
+        <button @click='newBoard()' type="button">new board</button>
         <!-- ':' is the same as 'v-bind:' -->
         <canvas class="editor-avatar" @mousemove="handleMouseMove" @mousedown='handleMouseDown'
             @mouseleave="handleMouseLeave" ref="canvas" :width="CELL_SIZE * CELL_NUMBER"

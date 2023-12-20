@@ -4,12 +4,13 @@
 
 @font-face {
   font-family: "Fira Mono";
-  src: url("fonts/FiraMono-Regular.ttf");
+  src: url("/fonts/FiraMono-Regular.ttf");
 }
 
 body {
   font-family: "Fira Mono";
   @apply bg-background;
+  /* background-color: #2c481e; */
 }
 
 h1 {

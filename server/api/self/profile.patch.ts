@@ -13,7 +13,7 @@ const RegisterSchema = z.object({
         z.literal('Z'),
         z.literal('T'),
         z.literal(null),
-    ]).array().length(10).array().length(10),
+    ]).array().length(8).array().length(8),
     name: z.string(),
     creator: z.string(),
 });

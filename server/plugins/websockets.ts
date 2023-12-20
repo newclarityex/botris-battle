@@ -6,6 +6,7 @@ import type { Connection, PlayerData, RoomData } from "~/server/utils/rooms";
 import { checkAuthToken } from "../utils/auth";
 import {
     GeneralMessageSchema,
+    GeneralServerMessage,
     PlayerMessageSchema,
 } from "../utils/messages";
 import {
@@ -15,6 +16,7 @@ import {
     getPublicGameState,
     queueGarbage,
 } from "libtris";
+import { Block } from "~/utils/game";
 
 interface IDWebSocket extends WebSocket {
     id?: string;
@@ -22,23 +24,33 @@ interface IDWebSocket extends WebSocket {
 
 const MOVE_TIMEOUT = 5000;
 
-async function authenticateWs(ws: IDWebSocket, token: string, roomId: string) {
+async function authenticateWs(ws: IDWebSocket, roomId: string, userToken: string, roomKey: string) {
     if (!ws.id) return null;
 
-    const profile = await checkAuthToken(token);
+    const profile = await checkAuthToken(userToken);
 
     if (!profile) return null;
+
+    const key = await prisma.roomToken.findFirst({
+        where: {
+            token: roomKey,
+            roomId,
+        },
+    });
+
+    if (!key) return null;
 
     const connection: Connection = {
         id: ws.id,
         ws,
-        token,
+        token: userToken,
         status: "idle",
         roomId,
         info: {
             userId: profile.id,
             creator: profile.creator,
             bot: profile.name,
+            avatar: profile.avatar as Block[][],
         },
     };
 
@@ -96,16 +108,22 @@ async function startRound(room: RoomData) {
         player.moveRequested = false;
     }
 
+    const startsAt = Date.now() + 3000;
+
+    room.startedAt = startsAt;
+    room.endedAt = null;
+    room.ongoing = true;
+    room.allowInputs = false;
+
     sendRoom(room.id, {
         type: "round_started",
         payload: {
-            startsAt: Date.now() + 3000,
+            startsAt,
             players: getPublicPlayers(room.players),
+            roomData: getPublicRoomData(room),
         },
     });
 
-    room.ongoing = true;
-    room.allowInputs = false;
     setTimeout(() => {
         room.allowInputs = true;
         room.players.forEach((player) => {
@@ -164,6 +182,16 @@ async function handleGeneralMessage(data: RawData, connection: Connection) {
             break;
         }
         case "start_game": {
+            if (room.players.size < 2) {
+                connection.ws.send(
+                    JSON.stringify({
+                        type: "error",
+                        payload: "Not enough players",
+                    })
+                );
+                return;
+            }
+
             if (room.players.size > room.maxPlayers) {
                 connection.ws.send(
                     JSON.stringify({
@@ -231,7 +259,7 @@ async function handleGeneralMessage(data: RawData, connection: Connection) {
         case 'room_settings': {
             room.maxPlayers = messageData.payload.maxPlayers;
             room.ft = messageData.payload.ft;
-            room.public = messageData.payload.public;
+            room.private = messageData.payload.private;
             sendRoom(connection.roomId, {
                 type: 'settings_changed',
                 payload: {
@@ -358,10 +386,12 @@ async function handlePlayerMessage(data: RawData, connection: Connection) {
                 });
                 if (roundWinner.wins >= room.ft) {
                     room.ongoing = false;
+                    room.endedAt = Date.now();
                     sendRoom(connection.roomId, {
                         type: "game_over",
                         payload: {
                             winnerId: roundWinner.sessionId,
+                            roomData: getPublicRoomData(room),
                         },
                     });
                     sendRoom(connection.roomId, {
@@ -371,12 +401,23 @@ async function handlePlayerMessage(data: RawData, connection: Connection) {
                         }
                     });
                 } else {
-                    startRound(room);
+                    setTimeout(() => {
+                        startRound(room);
+                    }, 3000);
                 }
             }
             break;
         }
     }
+}
+
+async function deleteRoom(roomId: string) {
+    rooms.delete(roomId);
+    await prisma.roomToken.deleteMany({
+        where: {
+            roomId,
+        }
+    });
 }
 
 export default defineNitroPlugin((event) => {
@@ -433,9 +474,8 @@ export default defineNitroPlugin((event) => {
             room.players.delete(ws.id);
             room.spectators.delete(ws.id);
             if (room.players.size === 0 && room.spectators.size === 0) {
-                rooms.delete(roomId);
-            }
-            if (room.players.size === 1) {
+                deleteRoom(roomId)
+            } else if (room.players.size === 1) {
                 room.players.forEach((player) => {
                     player.gameState = null;
                     if (player.timeout) {
@@ -462,19 +502,20 @@ export default defineNitroPlugin((event) => {
             });
         }
 
-        const token = urlParams.get("token");
+        const userToken = urlParams.get("userToken");
+        const roomKey = urlParams.get("roomKey");
 
-
-        if (!token && !spectating) {
-            ws.close(4005, "Missing token");
+        if (!userToken || !roomKey) {
+            if (!spectating) {
+                ws.close(4005, "Missing userToken");
+            }
             return;
         }
-        if (!token) return;
 
-        const connection = await authenticateWs(ws, token, roomId);
+        const connection = await authenticateWs(ws, roomId, userToken, roomKey);
 
         if (!connection) {
-            ws.close(4004, "Invalid token");
+            ws.close(4004, "Failed to authenticate userToken or roomKey.");
             return;
         };
 

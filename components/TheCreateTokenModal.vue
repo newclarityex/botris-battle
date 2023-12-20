@@ -31,7 +31,7 @@ async function createToken(event: Event) {
 </script>
 
 <template>
-    <UModal @update:model-value="newValue => emit('update:modelValue', newValue)" :model-value="modelValue">
+    <UModal @update:model-value="(newValue: boolean) => emit('update:modelValue', newValue)" :model-value="modelValue">
         <div class="p-4">
             <h1>Create Room</h1>
             <form @submit.prevent="createToken">

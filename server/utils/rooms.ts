@@ -1,11 +1,13 @@
 import type { WebSocket } from "ws";
 import { getPublicGameState, type GameState, PublicGameState } from "libtris";
 import { GeneralServerMessage } from "./messages";
+import { Block } from "~/utils/game";
 
 export type PlayerInfo = {
     userId: string;
     creator: string;
     bot: string;
+    avatar: Block[][];
 }
 
 
@@ -31,11 +33,13 @@ export type PublicPlayerData = {
 export type RoomData = {
     id: string;
     host: PlayerInfo;
-    public: boolean;
+    private: boolean;
     ft: number;
     ppsCap: number;
     maxPlayers: number;
     ongoing: boolean;
+    startedAt: number | null;
+    endedAt: number | null;
     allowInputs: boolean;
     banned: Set<string>;
     players: Map<string, PlayerData>;
@@ -73,11 +77,13 @@ export function sendRoom(roomId: string, message: GeneralServerMessage) {
 export type PublicRoomData = {
     id: string;
     host: PlayerInfo;
-    public: boolean;
+    private: boolean;
     ft: number;
     ppsCap: number;
     maxPlayers: number;
     ongoing: boolean;
+    startedAt: number | null;
+    endedAt: number | null;
     allowInputs: boolean;
     players: PublicPlayerData[];
     banned: string[];
@@ -101,11 +107,13 @@ export function getPublicRoomData(roomData: RoomData): PublicRoomData {
     return {
         id: roomData.id,
         host: roomData.host,
-        public: roomData.public,
+        private: roomData.private,
         ft: roomData.ft,
         ppsCap: roomData.ppsCap,
         maxPlayers: roomData.maxPlayers,
         ongoing: roomData.ongoing,
+        startedAt: roomData.startedAt,
+        endedAt: roomData.endedAt,
         allowInputs: roomData.allowInputs,
         players: getPublicPlayers(roomData.players),
         banned: [...roomData.banned],

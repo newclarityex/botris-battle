@@ -8,7 +8,7 @@ const PIECE_BORDER_SIZE = 4;
 
 const CONTAINER_OFFSET = {
     x: 100,
-    y: 280,
+    y: 300,
 };
 
 const HELD_DIMENSIONS = {
@@ -32,132 +32,133 @@ const QUEUE_DIMENSIONS = {
     height: BOARD_DIMENSIONS.height,
 };
 
-const TEXT_RESOLUTION = 4;
+const TEXT_RESOLUTION = 8;
 
 export type PlayerGraphics = {
-    mainContainer: PIXI.Container;
-    held: {
-        container: PIXI.Container;
-        graphics: PIXI.Container;
-    };
-    board: {
-        container: PIXI.Container;
-        graphics: PIXI.Container;
-        effects: PIXI.Container;
-    };
-    queue: {
-        container: PIXI.Container;
-        graphics: PIXI.Container;
-    };
+    id: string;
+    name: string;
+    heldContainer: PIXI.Container | null;
+    boardContainer: PIXI.Container | null;
+    effectsContainer: PIXI.Container | null;
+    queueContainer: PIXI.Container | null;
 };
-export function renderPlayers(pixiApp: PIXI.Application, playersContainer: PIXI.Container, players: PublicPlayerData[]) {
-    playersContainer.removeChildren();
+// export function renderPlayers(pixiApp: PIXI.Application, playersContainer: PIXI.Container, players: PublicPlayerData[]) {
+//     playersContainer.removeChildren();
 
-    const allPlayerGraphics: Map<string, PlayerGraphics> = new Map();
-    for (const [index, player] of players.entries()) {
-        const mainContainer = new PIXI.Container();
+//     const allPlayerGraphics: Map<string, PlayerGraphics> = new Map();
+//     for (const [index, player] of players.entries()) {
+//         const mainContainer = new PIXI.Container();
 
-        const heldContainer = new PIXI.Container();
-        heldContainer.sortableChildren = true;
-        const heldGraphics = new PIXI.Container();
-        heldContainer.x = HELD_DIMENSIONS.x;
-        heldContainer.y = HELD_DIMENSIONS.y;
-        heldContainer.addChild(heldGraphics);
-        mainContainer.addChild(heldContainer);
+//         const heldContainer = new PIXI.Container();
+//         heldContainer.sortableChildren = true;
+//         const heldGraphics = new PIXI.Container();
+//         heldContainer.x = HELD_DIMENSIONS.x;
+//         heldContainer.y = HELD_DIMENSIONS.y;
+//         heldContainer.addChild(heldGraphics);
+//         mainContainer.addChild(heldContainer);
 
-        const boardContainer = new PIXI.Container();
-        boardContainer.sortableChildren = true;
-        const boardGraphics = new PIXI.Container();
-        boardGraphics.sortableChildren = true;
-        const boardEffects = new PIXI.Container();
-        boardEffects.zIndex = -1;
-        boardContainer.x = BOARD_DIMENSIONS.x;
-        boardContainer.y = BOARD_DIMENSIONS.y;
-        boardContainer.addChild(boardGraphics);
-        boardContainer.addChild(boardEffects);
-        mainContainer.addChild(boardContainer);
+//         const boardContainer = new PIXI.Container();
+//         boardContainer.sortableChildren = true;
+//         const boardGraphics = new PIXI.Container();
+//         boardGraphics.sortableChildren = true;
+//         const boardEffects = new PIXI.Container();
+//         boardEffects.zIndex = -1;
+//         boardContainer.x = BOARD_DIMENSIONS.x;
+//         boardContainer.y = BOARD_DIMENSIONS.y;
+//         boardContainer.addChild(boardGraphics);
+//         boardContainer.addChild(boardEffects);
+//         mainContainer.addChild(boardContainer);
 
-        const queueContainer = new PIXI.Container();
-        queueContainer.sortableChildren = true;
-        const queueGraphics = new PIXI.Container();
-        queueContainer.x = QUEUE_DIMENSIONS.x;
-        queueContainer.y = QUEUE_DIMENSIONS.y;
-        queueContainer.addChild(queueGraphics);
-        mainContainer.addChild(queueContainer);
+//         const avatarContainer = renderAvatar(player.info.avatar)
+//         avatarContainer.scale.set(0.5);
+//         const bounds = avatarContainer.getLocalBounds();
+//         avatarContainer.pivot.x = bounds.width / 2;
+//         avatarContainer.pivot.y = bounds.height;
+//         avatarContainer.x = BOARD_DIMENSIONS.width / 2;
+//         avatarContainer.y = -86;
+//         boardContainer.addChild(avatarContainer);
 
-        const heldBg = new PIXI.Graphics();
-        heldBg.beginFill(0x000000, 0.25);
-        heldBg.drawRect(0, 0, HELD_DIMENSIONS.width, HELD_DIMENSIONS.height);
-        heldBg.zIndex = -1;
-        heldContainer.addChild(heldBg);
+//         const queueContainer = new PIXI.Container();
+//         queueContainer.sortableChildren = true;
+//         const queueGraphics = new PIXI.Container();
+//         queueContainer.x = QUEUE_DIMENSIONS.x;
+//         queueContainer.y = QUEUE_DIMENSIONS.y;
+//         queueContainer.addChild(queueGraphics);
+//         mainContainer.addChild(queueContainer);
 
-        const heldText = new PIXI.Text('[held]', {
-            fill: 0xFFFFFF,
-            fontSize: 32,
-            fontFamily: 'Fira Mono',
-        });
-        heldText.resolution = TEXT_RESOLUTION;
-        heldText.x = HELD_DIMENSIONS.width / 2 - heldText.width / 2;
-        heldText.y = 24;
-        heldContainer.addChild(heldText);
+//         const heldBg = new PIXI.Graphics();
+//         heldBg.beginFill(0x000000, 0.25);
+//         heldBg.drawRect(0, 0, HELD_DIMENSIONS.width, HELD_DIMENSIONS.height);
+//         heldBg.zIndex = -1;
+//         heldContainer.addChild(heldBg);
 
-        const boardBg = new PIXI.Graphics();
-        boardBg.beginFill(0x000000, 0.5);
-        boardBg.drawRect(0, 0, BOARD_DIMENSIONS.width, BOARD_DIMENSIONS.height);
-        boardBg.zIndex = -2;
-        boardContainer.addChild(boardBg);
+//         const heldText = new PIXI.Text('[held]', {
+//             fill: 0xFFFFFF,
+//             fontSize: 32,
+//             fontFamily: 'Fira Mono',
+//         });
+//         heldText.resolution = TEXT_RESOLUTION;
+//         heldText.x = HELD_DIMENSIONS.width / 2 - heldText.width / 2;
+//         heldText.y = 24;
+//         heldContainer.addChild(heldText);
 
-        const queueBg = new PIXI.Graphics();
-        queueBg.beginFill(0x000000, 0.25);
-        queueBg.drawRect(0, 0, QUEUE_DIMENSIONS.width, QUEUE_DIMENSIONS.height);
-        queueBg.zIndex = -1;
-        queueContainer.addChild(queueBg);
+//         const boardBg = new PIXI.Graphics();
+//         boardBg.beginFill(0x000000, 0.5);
+//         boardBg.drawRect(0, 0, BOARD_DIMENSIONS.width, BOARD_DIMENSIONS.height);
+//         boardBg.zIndex = -2;
+//         boardContainer.addChild(boardBg);
 
-        const queueText = new PIXI.Text('[queue]', {
-            fill: 0xFFFFFF,
-            fontSize: 32,
-            fontFamily: 'Fira Mono',
-        });
-        queueText.resolution = TEXT_RESOLUTION;
-        queueText.x = QUEUE_DIMENSIONS.width / 2 - queueText.width / 2;
-        queueText.y = 24;
-        queueContainer.addChild(queueText);
+//         const queueBg = new PIXI.Graphics();
+//         queueBg.beginFill(0x000000, 0.25);
+//         queueBg.drawRect(0, 0, QUEUE_DIMENSIONS.width, QUEUE_DIMENSIONS.height);
+//         queueBg.zIndex = -1;
+//         queueContainer.addChild(queueBg);
 
-        playersContainer.addChild(mainContainer);
+//         const queueText = new PIXI.Text('[queue]', {
+//             fill: 0xFFFFFF,
+//             fontSize: 32,
+//             fontFamily: 'Fira Mono',
+//         });
+//         queueText.resolution = TEXT_RESOLUTION;
+//         queueText.x = QUEUE_DIMENSIONS.width / 2 - queueText.width / 2;
+//         queueText.y = 24;
+//         queueContainer.addChild(queueText);
 
-        const playerGraphics: PlayerGraphics = {
-            mainContainer,
-            held: {
-                container: heldContainer,
-                graphics: heldGraphics,
-            },
-            board: {
-                container: boardContainer,
-                graphics: boardGraphics,
-                effects: boardEffects,
-            },
-            queue: {
-                container: queueContainer,
-                graphics: queueGraphics,
-            },
-        };
+//         playersContainer.addChild(mainContainer);
 
-        renderState(playerGraphics, player.gameState);
+//         const playerGraphics: PlayerGraphics = {
+//             mainContainer,
+//             held: {
+//                 container: heldContainer,
+//                 graphics: heldGraphics,
+//             },
+//             board: {
+//                 container: boardContainer,
+//                 graphics: boardGraphics,
+//                 effects: boardEffects,
+//             },
+//             queue: {
+//                 container: queueContainer,
+//                 graphics: queueGraphics,
+//             },
+//         };
 
-        if (index === 0) {
-            mainContainer.x = CONTAINER_OFFSET.x;
-            mainContainer.y = CONTAINER_OFFSET.y;
-        } else if (index === 1) {
-            // Right Align
-            mainContainer.x = pixiApp.screen.width - CONTAINER_OFFSET.x - mainContainer.width;
-            mainContainer.y = CONTAINER_OFFSET.y;
-        }
+//         renderState(playerGraphics, player.gameState);
 
-        allPlayerGraphics.set(player.sessionId, playerGraphics);
-    }
+//         if (index === 0) {
+//             mainContainer.x = CONTAINER_OFFSET.x;
+//             mainContainer.y = CONTAINER_OFFSET.y;
+//         } else if (index === 1) {
+//             // Right Align
+//             mainContainer.x = pixiApp.screen.width - CONTAINER_OFFSET.x - mainContainer.width;
+//             mainContainer.y = CONTAINER_OFFSET.y;
+//         }
 
-    return allPlayerGraphics;
-}
+//         allPlayerGraphics.set(player.sessionId, playerGraphics);
+//     }
+
+//     return allPlayerGraphics;
+// }
 
 type Block = "I" | "J" | "L" | "O" | "S" | "T" | "Z" | "G" | null;
 
@@ -224,21 +225,48 @@ export function renderBlock(matrix: Block[][], x: number, y: number) {
     return cellGraphics;
 }
 
-export function renderState(playerGraphics: PlayerGraphics, gameState: PublicGameState | null) {
-    const { held: heldRenderer, board: boardRenderer, queue: queueRenderer } = playerGraphics;
+export function renderAvatar(avatar: Block[][]) {
+    const avatarContainer = new PIXI.Container();
+    avatarContainer.sortableChildren = true;
 
-    heldRenderer.graphics.removeChildren();
-    boardRenderer.graphics.removeChildren();
-    queueRenderer.graphics.removeChildren();
+    for (let y = 0; y < avatar.length; y++) {
+        const row = avatar[y];
+        for (let x = 0; x < row.length; x++) {
+            const cell = row[x];
+            if (cell === null) continue;
+
+            const graphics = renderBlock(avatar, x, y);
+
+            if (graphics) {
+                graphics.x = x * CELL_SIZE;
+                graphics.y = y * CELL_SIZE;
+                avatarContainer.addChild(graphics);
+            }
+        }
+    }
+
+    const avatarBg = new PIXI.Graphics();
+    avatarBg.beginFill(0x000000, 0.2);
+    avatarBg.drawRect(0, 0, avatar[0].length * CELL_SIZE, avatar.length * CELL_SIZE);
+    avatarBg.zIndex = -1;
+    avatarContainer.addChild(avatarBg);
+
+    return avatarContainer;
+}
+
+export function renderState(playerGraphics: PlayerGraphics, gameState: PublicGameState | null) {
+    const { heldContainer, boardContainer, queueContainer } = playerGraphics
+
+    if (heldContainer === null || boardContainer === null || queueContainer === null) {
+        console.error('Player graphics not initialized!');
+        return;
+    };
+
+    heldContainer.removeChildren();
+    boardContainer.removeChildren();
+    queueContainer.removeChildren();
 
     if (gameState === null) return;
-
-    const damageBar = new PIXI.Graphics();
-    damageBar.beginFill(0xff0000, 0.5);
-    damageBar.drawRect(0, 0, 8, CELL_SIZE * gameState.garbageQueued);
-    damageBar.zIndex = 2;
-    damageBar.y = (BOARD_HEIGHT - gameState.garbageQueued) * CELL_SIZE;
-    boardRenderer.graphics.addChild(damageBar);
 
     // Render Board
     const { board, current, queue, held } = gameState;
@@ -254,7 +282,7 @@ export function renderState(playerGraphics: PlayerGraphics, gameState: PublicGam
             if (graphics) {
                 graphics.x = x * CELL_SIZE;
                 graphics.y = (y + (BOARD_HEIGHT - board.length)) * CELL_SIZE;
-                boardRenderer.graphics.addChild(graphics);
+                boardContainer.addChild(graphics);
             }
         }
     }
@@ -272,7 +300,7 @@ export function renderState(playerGraphics: PlayerGraphics, gameState: PublicGam
             if (graphics) {
                 graphics.x = (current.x + x) * CELL_SIZE;
                 graphics.y = (y + BOARD_HEIGHT - current.y - 1) * CELL_SIZE;
-                boardRenderer.graphics.addChild(graphics);
+                boardContainer.addChild(graphics);
             }
         }
     }
@@ -301,7 +329,7 @@ export function renderState(playerGraphics: PlayerGraphics, gameState: PublicGam
         heldPieceContainer.y = 96;
         if (held === 'I') heldPieceContainer.y -= CELL_SIZE / 2;
 
-        heldRenderer.graphics.addChild(heldPieceContainer);
+        heldContainer.addChild(heldPieceContainer);
     }
 
     // Render Queue
@@ -326,17 +354,27 @@ export function renderState(playerGraphics: PlayerGraphics, gameState: PublicGam
         }
 
         pieceContainer.y = index * 3 * CELL_SIZE + 96;
-        pieceContainer.x = queueRenderer.container.width / 2 - pieceContainer.width / 2;
+        // 100 = Queue width / 2
+        pieceContainer.x = 100 - pieceContainer.width / 2;
         if (piece === 'I') pieceContainer.y -= CELL_SIZE / 2;
 
-        queueRenderer.graphics.addChild(pieceContainer);
+        queueContainer.addChild(pieceContainer);
     }
+
+    const damageBar = new PIXI.Graphics();
+    damageBar.beginFill(0xff0000, 0.75);
+    damageBar.drawRect(0, 0, 8, CELL_SIZE * gameState.garbageQueued);
+    damageBar.zIndex = 2;
+    damageBar.y = (BOARD_HEIGHT - gameState.garbageQueued) * CELL_SIZE;
+    boardContainer.addChild(damageBar);
 }
 
 // import placedEffect from "@/public/images/placedEffect.png";
 import { ease } from 'pixi-ease';
+import type { PublicRoomData } from '~/server/utils/rooms';
 export function renderPlacedEffect(playerGraphics: PlayerGraphics, piece: PieceData) {
-    const effectsContainer = playerGraphics.board.effects;
+    const { effectsContainer } = playerGraphics;
+    if (effectsContainer === null) return;
 
     const pieceMatrix = getPieceMatrix(piece.piece, piece.rotation);
     for (let y = 0; y < pieceMatrix.length; y++) {
@@ -383,7 +421,9 @@ export function renderClearEffect(playerGraphics: PlayerGraphics, lines: {
     height: number;
     blocks: Block[];
 }[]) {
-    const effectsContainer = playerGraphics.board.effects;
+    const { effectsContainer } = playerGraphics;
+
+    if (effectsContainer === null) return;
 
     for (const line of lines) {
         const { height: y, blocks } = line;
@@ -426,7 +466,9 @@ export function renderClearEffect(playerGraphics: PlayerGraphics, lines: {
 }
 
 export function renderAttackEffect(playerGraphics: PlayerGraphics, piece: PieceData, damage: number) {
-    const effectsContainer = playerGraphics.board.effects;
+    const { effectsContainer } = playerGraphics;
+
+    if (effectsContainer === null) return;
 
     const pieceMatrix = getPieceMatrix(piece.piece, piece.rotation);
     const x = pieceMatrix[0].length / 2;
@@ -437,8 +479,6 @@ export function renderAttackEffect(playerGraphics: PlayerGraphics, piece: PieceD
         fontSize: 32,
         fontFamily: 'Fira Mono',
     });
-
-    effectSprite.resolution = TEXT_RESOLUTION;
 
     effectSprite.x = (piece.x + x) * CELL_SIZE - effectSprite.width / 2;
     effectSprite.y = (BOARD_HEIGHT - piece.y - y + 1) * CELL_SIZE - effectSprite.height / 2;
@@ -454,4 +494,53 @@ export function renderAttackEffect(playerGraphics: PlayerGraphics, piece: PieceD
     fade.on("complete", () => {
         effectsContainer.removeChild(effectSprite);
     });
+}
+
+export function renderScoreboard(pixiApp: PIXI.Application, roomData: PublicRoomData) {
+    const scoreboardContainer = new PIXI.Container();
+
+    const scoreboardBg = new PIXI.Graphics();
+    scoreboardBg.beginFill(0x000000, 0.2);
+    scoreboardBg.drawRect(0, 0, 650, 100);
+    scoreboardBg.endFill();
+    const bgBounds = scoreboardBg.getLocalBounds();
+    scoreboardBg.pivot.x = bgBounds.width / 2;
+    scoreboardBg.pivot.y = bgBounds.height / 2;
+    scoreboardContainer.addChild(scoreboardBg);
+    scoreboardContainer.x = pixiApp.screen.width / 2;
+    scoreboardContainer.y = 150;
+
+    const waitingText = new PIXI.Text('Waiting for players...', {
+        fill: 0xFFFFFF,
+        fontSize: 32,
+        fontFamily: 'Fira Mono',
+    });
+    waitingText.resolution = TEXT_RESOLUTION;
+    const waitingBounds = waitingText.getLocalBounds();
+    waitingText.pivot.x = waitingBounds.width / 2;
+    waitingText.pivot.y = waitingBounds.height / 2;
+    scoreboardContainer.addChild(waitingText);
+
+    const ftText = new PIXI.Text('win@' + roomData.ft, {
+        fill: 0xFFFFFF,
+        fontSize: 32,
+        fontFamily: 'Fira Mono',
+    });
+    ftText.resolution = TEXT_RESOLUTION;
+    const ftBounds = ftText.getLocalBounds();
+    ftText.pivot.x = ftBounds.width / 2;
+    ftText.pivot.y = ftBounds.height / 2;
+    scoreboardContainer.addChild(ftText);
+
+    if (roomData.players.length > 1) {
+        waitingText.visible = false;
+        ftText.visible = true;
+    } else {
+        waitingText.visible = true;
+        ftText.visible = false;
+    }
+
+    pixiApp.stage.addChild(scoreboardContainer);
+
+    return scoreboardContainer;
 }

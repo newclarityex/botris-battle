@@ -13,7 +13,7 @@ const RegisterSchema = z.object({
         z.literal('Z'),
         z.literal('T'),
         z.literal(null),
-    ]).array().length(10).array().length(10).optional(),
+    ]).array().length(8).array().length(8).optional(),
     name: z.string(),
     creator: z.string(),
 });
@@ -21,7 +21,7 @@ const RegisterSchema = z.object({
 const PIECES = ['I', 'O', 'L', 'J', 'S', 'Z', 'T', null];
 function generateLine() {
     const line = [];
-    for (let i = 0; i < 10; i++) {
+    for (let i = 0; i < 8; i++) {
         line.push(PIECES[Math.floor(Math.random() * PIECES.length)])
     }
     return line;
@@ -29,7 +29,7 @@ function generateLine() {
 
 function generateAvatar() {
     const avatar = [];
-    for (let i = 0; i < 10; i++) {
+    for (let i = 0; i < 8; i++) {
         avatar.push(generateLine())
     }
     return avatar;

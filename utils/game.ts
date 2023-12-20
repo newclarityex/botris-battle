@@ -1,0 +1,1 @@
+export type Block = "I" | "J" | "L" | "O" | "S" | "T" | "Z" | "G" | null;
