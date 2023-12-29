@@ -559,8 +559,9 @@ async function showMasterKey() {
                 </div>
             </div>
         </div> -->
-        <dialog ref="gameMenu" v-if="publicRoomData && session && publicRoomData.host.userId === session.user?.id">
-            <div class="bg-black/30 p-4 flex flex-col gap-4 w-[500px]">
+        <dialog ref="gameMenu" v-if="publicRoomData && session && publicRoomData.host.userId === session.user?.id"
+            class="bg-black/20">
+            <div class="p-8 flex flex-col gap-4 w-[500px]">
                 <div class="text-white/60 text-center">
                     Press ESC to toggle menu
                 </div>
@@ -587,6 +588,26 @@ async function showMasterKey() {
                 <div class="flex justify-between">
                     <label>Private:</label>
                     <input type="checkbox" v-model="roomOptions.private" />
+                </div>
+                <div class="flex justify-between">
+                    <label>Players:</label>
+                    <button class="underline">
+                        Manage
+                    </button>
+                </div>
+                <div class="flex justify-between">
+                    <label>Banned:</label>
+                    <button class="underline">
+                        Manage
+                    </button>
+                </div>
+                <div class="flex justify-evenly">
+                    <button class="underline">
+                        Reset Game
+                    </button>
+                    <button class="underline">
+                        Start Game
+                    </button>
                 </div>
             </div>
         </dialog>
