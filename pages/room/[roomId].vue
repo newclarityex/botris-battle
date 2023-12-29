@@ -102,7 +102,7 @@ onMounted(() => {
     }
 });
 
-const ws = ref<WebSocket | null>(null);
+let ws: WebSocket | null = null;
 
 async function getUserToken() {
     if (status.value !== "authenticated") return null;
@@ -208,9 +208,9 @@ onMounted(async () => {
     if (roomKey) urlParams.append("roomKey", roomKey);
 
     // ws.value = new WebSocket(`ws://${location.host}/api/ws?${urlParams.toString()}`);
-    ws.value = new WebSocket(`ws://localhost:8080/api/ws?${urlParams.toString()}`);
+    ws = new WebSocket(`ws://localhost:8080/api/ws?${urlParams.toString()}`);
 
-    ws.value.addEventListener("close", (event) => {
+    ws.addEventListener("close", (event) => {
         switch (event.code) {
             case 4004:
                 throw createError({
@@ -222,7 +222,7 @@ onMounted(async () => {
         }
     })
 
-    ws.value.addEventListener("message", (event) => {
+    ws.addEventListener("message", (event) => {
         const data = JSON.parse(event.data) as GeneralServerMessage;
 
         switch (data.type) {
@@ -327,18 +327,18 @@ onMounted(async () => {
                                 renderAttackEffect(playerGraphics, clearData.piece, clearData.attack);
                             }
 
-                            if (clearData.pc) {
-                                AUDIO_SOURCES.all_clear.play();
-                            } else if (clearData.allSpin) {
-                                AUDIO_SOURCES.all_spin_clear.play();
-                            } else {
-                                if (newGameState.combo > 0) {
-                                    AUDIO_SOURCES.combo[newGameState.combo - 1].play();
-                                } else {
-                                    AUDIO_SOURCES.line_clear.play();
-                                }
-                                // const combo = Math.min(7, newGameState.combo);
-                            }
+                            // if (clearData.pc) {
+                            //     AUDIO_SOURCES.all_clear.play();
+                            // } else if (clearData.allSpin) {
+                            //     AUDIO_SOURCES.all_spin_clear.play();
+                            // } else {
+                            //     if (newGameState.combo > 0) {
+                            //         AUDIO_SOURCES.combo[newGameState.combo - 1].play();
+                            //     } else {
+                            //         AUDIO_SOURCES.line_clear.play();
+                            //     }
+                            //     // const combo = Math.min(7, newGameState.combo);
+                            // }
                             break;
                         }
                     }
@@ -363,28 +363,36 @@ onMounted(async () => {
     });
 });
 
-function startGame() {
-    if (!ws.value) return;
+onUnmounted(() => {
+    if (!ws) return;
 
-    sendClientMessage(ws.value, { type: "start_game" });
+    ws.close();
+});
+
+function startGame() {
+    if (!ws) return;
+
+    gameMenu.value?.close();
+
+    sendClientMessage(ws, { type: "start_game" });
 }
 
 function resetGame() {
-    if (!ws.value) return;
+    if (!ws) return;
 
-    sendClientMessage(ws.value, { type: "reset_game" });
+    sendClientMessage(ws, { type: "reset_game" });
 }
 
 function kickPlayer(sessionId: string) {
-    if (!ws.value) return;
+    if (!ws) return;
 
-    sendClientMessage(ws.value, { type: "kick", payload: { sessionId } });
+    sendClientMessage(ws, { type: "kick", payload: { sessionId } });
 }
 
 function banPlayer(userId: string) {
-    if (!ws.value) return;
+    if (!ws) return;
 
-    sendClientMessage(ws.value, { type: "ban", payload: { userId } });
+    sendClientMessage(ws, { type: "ban", payload: { userId } });
 }
 
 const playerCount = 2
@@ -560,7 +568,7 @@ async function showMasterKey() {
             </div>
         </div> -->
         <dialog ref="gameMenu" v-if="publicRoomData && session && publicRoomData.host.userId === session.user?.id"
-            class="bg-black/20">
+            class="bg-black/40">
             <div class="p-8 flex flex-col gap-4 w-[500px]">
                 <div class="text-white/60 text-center">
                     Press ESC to toggle menu
@@ -602,10 +610,12 @@ async function showMasterKey() {
                     </button>
                 </div>
                 <div class="flex justify-evenly">
-                    <button class="underline">
+                    <button class="underline disabled:opacity-50" @click="resetGame"
+                        :disabled="!publicRoomData || !publicRoomData.ongoing">
                         Reset Game
                     </button>
-                    <button class="underline">
+                    <button class="underline disabled:opacity-50" @click="startGame"
+                        :disabled="!publicRoomData || publicRoomData.ongoing || publicRoomData.players.length < 2">
                         Start Game
                     </button>
                 </div>
@@ -623,12 +633,6 @@ async function showMasterKey() {
                     <button @click="banPlayer(player.info.userId)">Ban</button>
                 </li>
             </ul>
-            <button @click="startGame" class="disabled:opacity-50" :disabled="!publicRoomData || publicRoomData.ongoing">
-                Start Game
-            </button>
-            <button @click="resetGame" class="disabled:opacity-50" :disabled="!publicRoomData || !publicRoomData.ongoing">
-                Reset Game
-            </button>
         </div>
         {{ JSON.stringify(playerStats) }}
         <br>

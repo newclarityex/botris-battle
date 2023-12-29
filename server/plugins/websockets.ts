@@ -436,9 +436,22 @@ export default defineNitroPlugin((event) => {
         }
         const urlParams = new URLSearchParams(urlArr[1]);
 
-        const roomId = urlParams.get("roomId");
-        if (!roomId) {
-            ws.close(4000, "Invalid URL");
+        const roomKey = urlParams.get("roomKey");
+        let roomId = urlParams.get("roomId");
+
+        if (roomKey) {
+            let room = await prisma.roomToken.findFirst({
+                where: {
+                    token: roomKey,
+                },
+            });
+            if (!room) {
+                ws.close(4004, "Room not found");
+                return;
+            }
+            roomId = room.roomId;
+        } else if (!roomId) {
+            ws.close(4000, "Missing roomId or roomKey");
             return;
         }
 
@@ -463,7 +476,7 @@ export default defineNitroPlugin((event) => {
         ws.on("close", () => {
             if (!ws.id) return;
             if (room.players.get(ws.id)) {
-                sendRoom(roomId, {
+                sendRoom(room.id, {
                     type: "player_left",
                     payload: {
                         sessionId: ws.id,
@@ -474,7 +487,7 @@ export default defineNitroPlugin((event) => {
             room.players.delete(ws.id);
             room.spectators.delete(ws.id);
             if (room.players.size === 0 && room.spectators.size === 0) {
-                deleteRoom(roomId)
+                deleteRoom(room.id)
             } else if (room.players.size === 1) {
                 room.players.forEach((player) => {
                     player.gameState = null;
@@ -484,7 +497,7 @@ export default defineNitroPlugin((event) => {
                     }
                 });
                 room.ongoing = false;
-                sendRoom(roomId, {
+                sendRoom(room.id, {
                     type: "game_reset",
                     payload: {
                         players: getPublicPlayers(room.players),
@@ -503,7 +516,6 @@ export default defineNitroPlugin((event) => {
         }
 
         const userToken = urlParams.get("userToken");
-        const roomKey = urlParams.get("roomKey");
 
         if (!userToken || !roomKey) {
             if (!spectating) {
