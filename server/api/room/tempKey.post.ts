@@ -1,51 +1,58 @@
-import { getPublicRoomData, rooms } from "@/server/utils/rooms";
+import {
+	createRoomToken,
+	getPublicRoomData,
+	rooms,
+} from "@/server/utils/rooms";
 import { z } from "zod";
-import { getServerSession, getServerToken } from "#auth"
+import { getServerSession, getServerToken } from "#auth";
 import { authOptions } from "../auth/[...]";
 
 export default defineEventHandler(async (event) => {
-    const session = await getServerSession(event, authOptions)
-    if (!session?.user?.id) {
-        throw createError({
-            statusCode: 401,
-            message: 'You must be sign in to view your profile.'
-        });
-    }
+	const session = await getServerSession(event, authOptions);
+	if (!session?.user?.id) {
+		throw createError({
+			statusCode: 401,
+			message: "You must be sign in to view your profile.",
+		});
+	}
 
-    const body = await readBody(event);
-    const parsed = z.object({
-        roomId: z.string(),
-    }).safeParse(body);
+	const body = await readBody(event);
+	const parsed = z
+		.object({
+			roomId: z.string(),
+		})
+		.safeParse(body);
 
-    if (!parsed.success) {
-        throw createError({
-            statusCode: 400,
-            message: 'Invalid room ID'
-        });
-    }
+	if (!parsed.success) {
+		throw createError({
+			statusCode: 400,
+			message: "Invalid room ID",
+		});
+	}
 
-    const room = rooms.get(parsed.data.roomId);
+	const room = rooms.get(parsed.data.roomId);
 
-    if (!room) {
-        throw createError({
-            statusCode: 404,
-            message: 'Room not found'
-        });
-    }
+	if (!room) {
+		throw createError({
+			statusCode: 404,
+			message: "Room not found",
+		});
+	}
 
-    if (room.host.userId !== session.user.id) {
-        throw createError({
-            statusCode: 403,
-            message: 'You are not the owner of this room'
-        });
-    }
+	if (room.host.userId !== session.user.id) {
+		throw createError({
+			statusCode: 403,
+			message: "You are not the owner of this room",
+		});
+	}
 
-    const token = await prisma.roomToken.findFirst({
-        where: {
-            roomId: room.id,
-            singleUse: false,
-        }
-    });
+	const token = await prisma.roomToken.create({
+		data: {
+			token: createRoomToken(),
+			roomId: room.id,
+			singleUse: true,
+		},
+	});
 
-    return token;
-})
+	return token;
+});

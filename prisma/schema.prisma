@@ -75,7 +75,7 @@ model ApiToken {
 }
 
 model RoomToken {
-  token     String  @id @default(uuid())
+  token     String  @id
   singleUse Boolean @default(false)
   roomId    String
 }
