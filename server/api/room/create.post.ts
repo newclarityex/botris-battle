@@ -47,7 +47,7 @@ export default defineEventHandler(async (event) => {
 		ongoing: false,
 		startedAt: null,
 		endedAt: null,
-		banned: new Set() as Set<string>,
+		banned: new Map(),
 		players: new Map(),
 		spectators: new Map(),
 	};

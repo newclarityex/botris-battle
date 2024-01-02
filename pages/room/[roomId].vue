@@ -157,43 +157,21 @@ const pixiApp = computed(() => pixiInst.value?.app ?? null);
 const { width, height } = useWindowSize();
 
 const scaledContainer = ref<PIXI.Container | null>(null);
-const playersContainer = ref<PIXI.Container | null>(null);
-const scoreboardContainer = ref<PIXI.Container | null>(null);
-
-const scoreboardText = ref({
-    left: "left",
-    right: "right",
-    center: "Waiting For Players...",
-});
 
 function scoreStr(wins: number, ft: number) {
     if (ft < 4) {
-        return "[*]".repeat(wins) + "[ ]".repeat(ft - wins);
+        return "[*]".repeat(Math.min(ft, wins)) + "[ ]".repeat(Math.max(ft - wins, 0));
     } else {
-        return "[*]×" + wins;
+        return "[*]×" + Math.min(ft, wins);
     }
 }
 
-watchEffect(() => {
-    if (!publicRoomData.value || publicRoomData.value.players.length < 2) {
-        scoreboardText.value = {
-            left: "",
-            right: "",
-            center: "Waiting For Players...",
-        };
-        return;
-    }
+const winStrs = computed(() => {
+    if (!publicRoomData.value) return [];
 
-    const { players } = publicRoomData.value;
+    const { players, ft } = publicRoomData.value;
 
-    const leftPlayer = players[0];
-    const rightPlayer = players[1];
-
-    scoreboardText.value = {
-        left: scoreStr(leftPlayer.wins, publicRoomData.value.ft),
-        right: scoreStr(rightPlayer.wins, publicRoomData.value.ft),
-        center: `win@${publicRoomData.value.ft}`,
-    };
+    return players.map((player) => scoreStr(player.wins, ft));
 });
 
 const RESOLUTION = {
@@ -252,15 +230,6 @@ onMounted(async () => {
         switch (data.type) {
             case "room_info": {
                 publicRoomData.value = data.payload.publicRoomData;
-
-                if (!pixiApp.value || !playersContainer.value)
-                    return console.error("no pixi app");
-
-                scoreboardContainer.value = renderScoreboard(
-                    pixiApp.value as PIXI.Application,
-                    publicRoomData.value
-                );
-
                 break;
             }
             case "round_started": {
@@ -412,9 +381,20 @@ onMounted(async () => {
             }
             case "settings_changed": {
                 const roomData = data.payload.publicRoomData;
+                publicRoomData.value = roomData;
                 roomOptions.value.ft = roomData.ft;
                 roomOptions.value.ppsCap = roomData.ppsCap;
                 roomOptions.value.private = roomData.private;
+                break;
+            }
+            case "player_banned": {
+                publicRoomData.value.banned.push(data.payload);
+                break;
+            }
+            case "player_unbanned": {
+                publicRoomData.value.banned = publicRoomData.value.banned.filter(
+                    (banned) => banned.userId !== data.payload.userId
+                );
                 break;
             }
         }
@@ -451,6 +431,12 @@ function banPlayer(userId: string) {
     if (!ws) return;
 
     sendClientMessage(ws, { type: "ban", payload: { userId } });
+}
+
+function unBanPlayer(userId: string) {
+    if (!ws) return;
+
+    sendClientMessage(ws, { type: "unban", payload: { userId } });
 }
 
 const playerCount = 2;
@@ -491,7 +477,7 @@ onKeyStroke("Escape", (e) => {
     } else {
         gameMenu.value.showModal();
     }
-});
+}, { dedupe: true });
 
 const roomOptions = ref({
     ft: initialRoomData.ft,
@@ -507,7 +493,11 @@ const { data: masterKey } = useFetch('/api/room/masterKey', {
 
 const showMasterKey = ref(false);
 
+const loadingTempKey = ref(false);
 async function generateTempKey() {
+    if (loadingTempKey.value) return;
+
+    loadingTempKey.value = true;
     const temp = await $fetch("/api/room/tempKey", {
         method: "POST",
         body: {
@@ -516,255 +506,219 @@ async function generateTempKey() {
     });
 
     alert(`token: ${temp.token}`);
+    loadingTempKey.value = false;
 }
 
-watch(roomOptions, (newOptions) => {
-    console.log("nows")
+function saveSettings() {
     if (!ws) return;
 
-    console.log("Updating settings")
+    let ft: string | number = roomOptions.value.ft;
+    if (typeof ft === 'number') {
+        ft = Math.floor(ft);
+    } else {
+        ft = parseInt(ft);
+    }
+    if (isNaN(ft)) {
+        ft = 3;
+    }
+    if (ft < 1) {
+        ft = 1;
+    }
+    if (ft > 99) {
+        ft = 99;
+    }
+
+    let ppsCap: string | number = roomOptions.value.ppsCap;
+    if (typeof ppsCap === 'string') {
+        ppsCap = parseFloat(ppsCap);
+    }
+    if (isNaN(ppsCap)) {
+        ppsCap = 3;
+    }
+    if (ppsCap < 0.1) {
+        ppsCap = 0.1;
+    }
+    if (ppsCap > 30) {
+        ppsCap = 30;
+    }
 
     sendClientMessage(ws, {
         type: 'room_settings',
-        payload: newOptions
-    })
-})
+        payload: {
+            ft, ppsCap,
+            private: roomOptions.value.private,
+        },
+    });
+};
+
+// function validateFt() {
+//     const value = parseInt(input.value);
+
+//     if (isNaN(value)) event.preventDefault();
+
+//     if (value < 1) event.preventDefault();
+
+//     if (value > 99) event.preventDefault();
+// }
 </script>
 
 <template>
     <div class="w-full h-full">
         <div class="absolute w-full h-full overflow-hidden -z-10">
             <Application :backgroundAlpha="0" ref="pixiInst" :antialias="true">
-                <tiling-sprite
-                    texture="/images/tiling.png"
-                    :width="width"
-                    :height="height"
-                    :tile-scale="8 * scale"
+                <tiling-sprite texture="/images/tiling.png" :width="width" :height="height" :tile-scale="8 * scale"
                     :tilePosition="[
                         backgroundOffset * scale,
                         backgroundOffset * scale,
-                    ]"
-                />
-                <container
-                    :x="width / 2"
-                    :y="height / 2"
-                    :scale="scale"
-                    ref="scaledContainer"
-                >
-                    <container ref="scoreboardContainer" :y="-425">
-                        <graphics
-                            :pivotX="650 / 2"
-                            :pivotY="100 / 2"
-                            @render="
-                                (graphics) => {
-                                    graphics.clear();
-                                    graphics.beginFill(0x000000, 0.2);
-                                    graphics.drawRect(0, 0, 650, 100);
-                                    graphics.endFill();
-                                }
-                            "
-                        />
-                        <text
-                            :anchor="0.5"
-                            :x="0"
-                            :y="0"
-                            :style="{
+                    ]" />
+                <container :x="width / 2" :y="height / 2" :scale="scale" ref="scaledContainer">
+                    <container :y="-425">
+                        <graphics :pivotX="650 / 2" :pivotY="100 / 2" @render="(graphics) => {
+                            graphics.clear();
+                            graphics.beginFill(0x000000, 0.2);
+                            graphics.drawRect(0, 0, 650, 100);
+                            graphics.endFill();
+                        }
+                            " />
+                        <text :anchor="0.5" :x="0" :y="0" :style="{
+                            fill: 'white',
+                            fontSize: '32px',
+                            fontFamily: 'Fira Mono',
+                        }" v-if="publicRoomData.players.length === 0">
+                            Waiting For Players...
+                        </text>
+                        <template v-else>
+                            <text :anchor="0.5" :x="0" :y="-12" :style="{
+                                fill: 'white',
+                                fontSize: '30px',
+                                fontFamily: 'Fira Mono',
+                            }">
+                                win@{{ publicRoomData.ft }}
+                            </text>
+                            <text :anchor="0.5" :x="0" :y="20" :style="{
+                                fill: 'white',
+                                fontSize: '20px',
+                                fontFamily: 'Fira Mono',
+                            }">
+                                {{ publicRoomData.ppsCap.toFixed(1) }} PPS
+                            </text>
+                            <text :anchorX="0" :anchorY="0.5" :x="-650 / 2 + 24" :y="0" :style="{
                                 fill: 'white',
                                 fontSize: '32px',
                                 fontFamily: 'Fira Mono',
-                            }"
-                        >
-                            {{ scoreboardText.center }}
-                        </text>
-                        <text
-                            :anchorX="0"
-                            :anchorY="0.5"
-                            :x="-650 / 2 + 24"
-                            :y="0"
-                            :style="{
+                            }">
+                                {{ winStrs[0] }}
+                            </text>
+                            <text :anchorX="1" :anchorY="0.5" :x="650 / 2 - 24" :y="0" :style="{
                                 fill: 'white',
                                 fontSize: '32px',
                                 fontFamily: 'Fira Mono',
-                            }"
-                        >
-                            {{ scoreboardText.left }}
-                        </text>
-                        <text
-                            :anchorX="1"
-                            :anchorY="0.5"
-                            :x="650 / 2 - 24"
-                            :y="0"
-                            :style="{
-                                fill: 'white',
-                                fontSize: '32px',
-                                fontFamily: 'Fira Mono',
-                            }"
-                        >
-                            {{ scoreboardText.right }}
-                        </text>
+                            }">
+                                {{ winStrs[1] }}
+                            </text>
+                        </template>
                     </container>
                     <container :y="75">
-                        <container
-                            v-for="(board, index) in allPlayerGraphics"
-                            :key="board.id"
-                            :x="currentConfig.offsets[index]"
-                            :scale="currentConfig.scale"
-                            :pivotY="(21 * CELL_SIZE) / 2"
-                        >
+                        <container v-for="(board, index) in allPlayerGraphics" :key="board.id"
+                            :x="currentConfig.offsets[index]" :scale="currentConfig.scale" :pivotY="(21 * CELL_SIZE) / 2">
                             <container :pivotX="5 * CELL_SIZE" :pivotY="0">
-                                <graphics
-                                    :pivotX="0"
-                                    :pivotY="0"
-                                    @render="
-                                        (graphics) => {
-                                            graphics.clear();
-                                            graphics.beginFill(0x000000, 0.5);
-                                            graphics.drawRect(
-                                                0,
-                                                0,
-                                                10 * CELL_SIZE,
-                                                21 * CELL_SIZE
-                                            );
-                                            graphics.endFill();
-                                        }
-                                    "
-                                />
+                                <graphics :pivotX="0" :pivotY="0" @render="(graphics) => {
+                                    graphics.clear();
+                                    graphics.beginFill(0x000000, 0.5);
+                                    graphics.drawRect(
+                                        0,
+                                        0,
+                                        10 * CELL_SIZE,
+                                        21 * CELL_SIZE
+                                    );
+                                    graphics.endFill();
+                                }
+                                    " />
                                 <!-- Effects Container -->
-                                <container
-                                    :ref="(el: any) => board.effectsContainer = el"
-                                />
+                                <container :ref="(el: any) => board.effectsContainer = el" />
                                 <!-- Board Container -->
-                                <container
-                                    :ref="(el: any) => board.boardContainer = el"
-                                />
+                                <container :ref="(el: any) => board.boardContainer = el" />
                             </container>
                             <container :y="21 * CELL_SIZE + 12">
-                                <graphics
-                                    :pivotX="(10 * CELL_SIZE) / 2"
-                                    @render="
-                                        (graphics) => {
-                                            graphics.clear();
-                                            graphics.beginFill(0x000000, 0.25);
-                                            graphics.drawRect(
-                                                0,
-                                                0,
-                                                10 * CELL_SIZE,
-                                                50
-                                            );
-                                            graphics.endFill();
-                                        }
-                                    "
-                                />
-                                <text
-                                    :x="0"
-                                    :y="0"
-                                    :anchorX="0.5"
-                                    :style="{
-                                        fill: 'white',
-                                        fontFamily: 'Fira Mono',
-                                        fontSize: 24,
-                                        lineHeight: 50,
-                                    }"
-                                >
+                                <graphics :pivotX="(10 * CELL_SIZE) / 2" @render="(graphics) => {
+                                    graphics.clear();
+                                    graphics.beginFill(0x000000, 0.25);
+                                    graphics.drawRect(
+                                        0,
+                                        0,
+                                        10 * CELL_SIZE,
+                                        50
+                                    );
+                                    graphics.endFill();
+                                }
+                                    " />
+                                <text :x="0" :y="0" :anchorX="0.5" :style="{
+                                    fill: 'white',
+                                    fontFamily: 'Fira Mono',
+                                    fontSize: 24,
+                                    lineHeight: 50,
+                                }">
                                     {{ board.name }}
                                 </text>
                             </container>
-                            <container
-                                :x="-5 * CELL_SIZE - 20"
-                                :pivotX="200"
-                                :pivotY="0"
-                            >
-                                <graphics
-                                    :pivot="0"
-                                    @render="
-                                        (graphics) => {
-                                            graphics.clear();
-                                            graphics.beginFill(0x000000, 0.25);
-                                            graphics.drawRect(0, 0, 200, 200);
-                                            graphics.endFill();
-                                        }
-                                    "
-                                />
+                            <container :x="-5 * CELL_SIZE - 20" :pivotX="200" :pivotY="0">
+                                <graphics :pivot="0" @render="(graphics) => {
+                                    graphics.clear();
+                                    graphics.beginFill(0x000000, 0.25);
+                                    graphics.drawRect(0, 0, 200, 200);
+                                    graphics.endFill();
+                                }
+                                    " />
                                 <!-- <text :anchorX="0.5" :x="200 / 2" :y="24"
                                     :style="{ fill: 'white', fontSize: '32px', fontFamily: 'Fira Mono' }">
                                     [held]
                                 </text> -->
-                                <sprite
-                                    :anchorX="0.5"
-                                    :x="200 / 2"
-                                    :y="24"
-                                    texture="/images/held.svg"
-                                    :cacheAsBitmapResolution="4"
-                                />
+                                <sprite :anchorX="0.5" :x="200 / 2" :y="24" texture="/images/held.svg"
+                                    :cacheAsBitmapResolution="4" />
                                 <!-- Held Container -->
-                                <container
-                                    :ref="(el: any) => board.heldContainer = el"
-                                />
+                                <container :ref="(el: any) => board.heldContainer = el" />
                                 <template v-if="playerStats[index]">
-                                    <container
-                                        v-for="(stat, statIndex) in playerStats[
-                                            index
-                                        ]"
-                                        :y="224 + 112 * statIndex"
-                                    >
-                                        <text
-                                            :style="{
-                                                fill: '#FFFFFFBB',
-                                                fontFamily: 'Fira Mono',
-                                                fontSize: 24,
-                                            }"
-                                        >
+                                    <container v-for="(stat, statIndex) in playerStats[
+                                        index
+                                    ]" :y="224 + 112 * statIndex">
+                                        <text :style="{
+                                            fill: '#FFFFFFBB',
+                                            fontFamily: 'Fira Mono',
+                                            fontSize: 24,
+                                        }">
                                             {{ stat.title }}
                                         </text>
-                                        <text
-                                            :style="{
-                                                fill: 'white',
-                                                fontFamily: 'Fira Mono',
-                                                fontSize: 36,
-                                            }"
-                                            :y="36"
-                                        >
+                                        <text :style="{
+                                            fill: 'white',
+                                            fontFamily: 'Fira Mono',
+                                            fontSize: 36,
+                                        }" :y="36">
                                             {{ stat.value.toFixed(2) }}
                                         </text>
                                     </container>
                                 </template>
                             </container>
-                            <container
-                                :x="5 * CELL_SIZE + 20"
-                                :pivotX="0"
-                                :pivotY="0"
-                            >
-                                <graphics
-                                    :pivot="0"
-                                    @render="
-                                        (graphics) => {
-                                            graphics.clear();
-                                            graphics.beginFill(0x000000, 0.25);
-                                            graphics.drawRect(
-                                                0,
-                                                0,
-                                                200,
-                                                21 * CELL_SIZE
-                                            );
-                                            graphics.endFill();
-                                        }
-                                    "
-                                />
+                            <container :x="5 * CELL_SIZE + 20" :pivotX="0" :pivotY="0">
+                                <graphics :pivot="0" @render="(graphics) => {
+                                    graphics.clear();
+                                    graphics.beginFill(0x000000, 0.25);
+                                    graphics.drawRect(
+                                        0,
+                                        0,
+                                        200,
+                                        21 * CELL_SIZE
+                                    );
+                                    graphics.endFill();
+                                }
+                                    " />
                                 <!-- <text :anchorX="0.5" :x="200 / 2" :y="24"
                                     :style="{ fill: 'white', fontSize: '32px', fontFamily: 'Fira Mono' }">
                                     [queue]
                                 </text> -->
-                                <sprite
-                                    :anchorX="0.5"
-                                    :x="200 / 2"
-                                    :y="24"
-                                    texture="/images/queue.svg"
-                                    :cacheAsBitmapResolution="4"
-                                />
+                                <sprite :anchorX="0.5" :x="200 / 2" :y="24" texture="/images/queue.svg"
+                                    :cacheAsBitmapResolution="4" />
                                 <!-- Queue Container -->
-                                <container
-                                    :ref="(el: any) => board.queueContainer = el"
-                                />
+                                <container :ref="(el: any) => board.queueContainer = el" />
                             </container>
                         </container>
                     </container>
@@ -784,54 +738,98 @@ watch(roomOptions, (newOptions) => {
                 </div>
             </div>
         </div> -->
-        <dialog
-            ref="gameMenu"
-            v-if="
-                publicRoomData &&
-                session &&
-                publicRoomData.host.userId === session.user?.id
-            "
-            class="bg-black/25"
-        >
-            <div class="p-8 flex flex-col gap-4 w-[500px]">
-                <div class="text-white/60 text-center">
+        <dialog ref="gameMenu" v-if="publicRoomData &&
+            session &&
+            publicRoomData.host.userId === session.user?.id
+            " class="bg-black/40 backdrop:bg-black/20 backdrop:backdrop-blur-sm">
+            <div class="p-8 flex flex-col gap-4 w-[540px]">
+                <div class="text-white text-center text-xl">
                     Press ESC to toggle menu
                 </div>
-                <div class="flex justify-between">
-                    <div>Master Key:</div>
-                    <div class="relative">
-                        <button class="h-full w-full absolute bg-black" @click="showMasterKey = true" v-if="!showMasterKey">
-                        </button>
+                <div class="p-4 bg-white/10 flex flex-col gap-2">
+                    <div class="flex justify-between">
+                        <div>Room ID:</div>
                         <div>
-                            {{ masterKey?.token }}
+                            {{ publicRoomData.id }}
                         </div>
                     </div>
+                    <div class="flex justify-between">
+                        <div>Master Key:</div>
+                        <div class="relative">
+                            <button class="h-full w-full absolute bg-stone-950/80 z-10" @click="showMasterKey = true"
+                                v-if="!showMasterKey">
+                            </button>
+                            <div class="px-1" :class="{
+                                'opacity-0': !showMasterKey
+                            }">
+                                {{ masterKey?.token }}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex justify-between">
+                        <div>Single Use Key:</div>
+                        <button class="underline disabled:opacity-50" @click="generateTempKey"
+                            :disabled="loadingTempKey">Generate</button>
+                    </div>
                 </div>
-                <div class="flex justify-between">
-                    <div>Single Use Key:</div>
-                    <button class="underline" @click="generateTempKey">Generate</button>
+                <div class="p-4 bg-white/10 flex flex-col gap-2">
+                    <div class="flex justify-between items-center">
+                        <label>FT:</label>
+                        <input type="text" v-model.number="roomOptions.ft" class="w-12 px-1 bg-white/20 text-right" />
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <label>PPS Cap:</label>
+                        <input type="text" v-model.number="roomOptions.ppsCap" class="w-12 px-1 bg-white/20 text-right" />
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <label>Private:</label>
+                        <input type="checkbox" v-model.number="roomOptions.private" class="w-4 h-4" />
+                    </div>
+                    <div class="flex justify-center">
+                        <button class="bg-white/10 w-full py-1 hover:bg-white/20" @click="saveSettings">
+                            Save
+                        </button>
+                    </div>
+                </div>
+                <div class="p-4 bg-white/10 flex flex-col gap-2">
+                    <h2 class="text-xl">Players</h2>
+                    <div v-if="publicRoomData.players.length === 0 && publicRoomData.banned.length === 0"
+                        class="italic opacity-50">
+                        No Players Joined
+                    </div>
+                    <ul v-else class="flex flex-col gap-2">
+                        <li class="flex justify-between" v-for=" player  in  publicRoomData.players ">
+                            <div>
+                                {{ player.info.bot }}
+                                <span class="opacity-50">
+                                    {{ player.info.creator }}
+                                </span>
+                            </div>
+                            <div class="flex gap-2">
+                                <button class="underline" @click="kickPlayer(player.info.userId)">
+                                    Kick
+                                </button>
+                                <button class="underline" @click="banPlayer(player.info.userId)">
+                                    Ban
+                                </button>
+                            </div>
+                        </li>
+                        <li class="flex justify-between" v-for=" player  in  publicRoomData.banned ">
+                            <div class="text-red-400">
+                                {{ player.bot }}
+                                <span class="opacity-50">
+                                    {{ player.creator }}
+                                </span>
+                            </div>
+                            <div class="flex gap-2">
+                                <button class="underline" @click="unBanPlayer(player.userId)">
+                                    Unban
+                                </button>
+                            </div>
+                        </li>
+                    </ul>
                 </div>
                 <!-- <div class="flex justify-between">
-                    <label>FT:</label>
-                    <input
-                        type="number"
-                        v-model="roomOptions.ft"
-                        class="w-12 px-1"
-                    />
-                </div>
-                <div class="flex justify-between">
-                    <label>PPS Cap:</label>
-                    <input
-                        type="number"
-                        v-model="roomOptions.ppsCap"
-                        class="w-12 px-1"
-                    />
-                </div>
-                <div class="flex justify-between">
-                    <label>Private:</label>
-                    <input type="checkbox" v-model="roomOptions.private" />
-                </div> -->
-                <div class="flex justify-between">
                     <label>Room Settings:</label>
                     <button class="underline">Manage</button>
                 </div>
@@ -842,55 +840,34 @@ watch(roomOptions, (newOptions) => {
                 <div class="flex justify-between">
                     <label>Banned:</label>
                     <button class="underline">Manage</button>
-                </div>
+                </div> -->
                 <div class="flex justify-evenly">
-                    <button
-                        class="underline disabled:opacity-50"
-                        @click="resetGame"
-                        :disabled="!publicRoomData || !publicRoomData.ongoing"
-                    >
+                    <button class="underline disabled:opacity-60 text-xl" @click="resetGame"
+                        :disabled="!publicRoomData || !publicRoomData.ongoing">
                         Reset Game
                     </button>
-                    <button
-                        class="underline disabled:opacity-50"
-                        @click="startGame"
-                        :disabled="
-                            !publicRoomData ||
-                            publicRoomData.ongoing ||
-                            publicRoomData.players.length < 2
-                        "
-                    >
+                    <button class="underline disabled:opacity-60 text-xl" @click="startGame" :disabled="!publicRoomData ||
+                        publicRoomData.ongoing ||
+                        publicRoomData.players.length < 2
+                        ">
                         Start Game
                     </button>
                 </div>
             </div>
         </dialog>
-        <div v-if="!publicRoomData.ongoing">
+        <!-- <div v-if="!publicRoomData.ongoing">
             <Countdown v-if="roundStartTime" :startsAt="roundStartTime" />
             scale: {{ scale }}
-            <h2>Players:</h2>
-            <ul v-if="publicRoomData">
-                <li v-for="player in publicRoomData.players">
-                    <span>{{ player.info.bot }}</span>
-                    <span>{{ player.info.creator }}</span>
-                    <button @click="kickPlayer(player.sessionId)">Kick</button>
-                    <button @click="banPlayer(player.info.userId)">Ban</button>
-                </li>
-            </ul>
+            {{ publicRoomData }}
         </div>
         {{ JSON.stringify(playerStats) }}
         <br />
-        startedAt: {{ publicRoomData.startedAt }}, {{ publicRoomData.endedAt }}
+        startedAt: {{ publicRoomData.startedAt }}, {{ publicRoomData.endedAt }} -->
         <!-- {{ publicRoomData }} -->
     </div>
 </template>
 
 <style scoped>
-::backdrop {
-    background: black;
-    opacity: 0.25;
-}
-
 dialog {
     outline: none;
 }

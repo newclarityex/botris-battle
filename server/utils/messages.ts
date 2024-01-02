@@ -45,8 +45,8 @@ export const GeneralMessageSchema = z.union([
 		type: z.literal("room_settings"),
 		payload: z.object({
 			private: z.boolean(),
-			ft: z.number(),
-			ppsCap: z.number(),
+			ft: z.number().int().gt(0).max(99),
+			ppsCap: z.number().min(0.1).max(30),
 		}),
 	}),
 ]);
@@ -79,99 +79,105 @@ export type PlayerMessage = z.infer<typeof PlayerMessageSchema>;
 
 export type GeneralServerMessage =
 	| {
-			type: "request_move";
-			payload: {
-				gameState: PublicGameState;
-				players: PublicPlayerData[];
-			};
-	  }
+		type: "request_move";
+		payload: {
+			gameState: PublicGameState;
+			players: PublicPlayerData[];
+		};
+	}
 	| {
-			type: "game_info";
-			payload: {
-				publicRoomData: PublicRoomData;
-				players: PublicPlayerData[];
-			};
-	  }
+		type: "game_info";
+		payload: {
+			publicRoomData: PublicRoomData;
+			players: PublicPlayerData[];
+		};
+	}
 	| {
-			type: "room_info";
-			payload: {
-				publicRoomData: PublicRoomData;
-			};
-	  }
+		type: "room_info";
+		payload: {
+			publicRoomData: PublicRoomData;
+		};
+	}
 	| {
-			type: "settings_changed";
-			payload: {
-				publicRoomData: PublicRoomData;
-			};
-	  }
+		type: "settings_changed";
+		payload: {
+			publicRoomData: PublicRoomData;
+		};
+	}
 	| {
-			type: "host_changed";
-			payload: {
-				hostInfo: PlayerInfo;
-			};
-	  }
+		type: "host_changed";
+		payload: {
+			hostInfo: PlayerInfo;
+		};
+	}
 	| {
-			type: "game_started";
-	  }
+		type: "game_started";
+	}
 	| {
-			type: "round_started";
-			payload: {
-				startsAt: number;
-				players: PublicPlayerData[];
-				roomData: PublicRoomData;
-			};
-	  }
+		type: "round_started";
+		payload: {
+			startsAt: number;
+			players: PublicPlayerData[];
+			roomData: PublicRoomData;
+		};
+	}
 	| {
-			type: "game_reset";
-			payload: {
-				players: PublicPlayerData[];
-			};
-	  }
+		type: "game_reset";
+		payload: {
+			players: PublicPlayerData[];
+		};
+	}
 	| {
-			type: "player_joined";
-			payload: {
-				playerData: PublicPlayerData;
-			};
-	  }
+		type: "player_joined";
+		payload: {
+			playerData: PublicPlayerData;
+		};
+	}
 	| {
-			type: "player_left";
-			payload: {
-				sessionId: string;
-			};
-	  }
+		type: "player_left";
+		payload: {
+			sessionId: string;
+		};
+	} | {
+		type: "player_banned";
+		payload: PlayerInfo;
+	} | {
+		type: "player_unbanned";
+		payload: PlayerInfo;
+	}
 	| {
-			type: "player_commands";
-			payload: {
-				sessionId: string;
-				commands: string[];
-				newGameState: PublicGameState;
-				events: GameEvent[];
-			};
-	  }
+		type: "player_commands";
+		payload: {
+			sessionId: string;
+			commands: string[];
+			newGameState: PublicGameState;
+			events: GameEvent[];
+		};
+	}
 	| {
-			type: "player_damage_received";
-			payload: {
-				sessionId: string;
-				damage: number;
-				newGameState: PublicGameState;
-			};
-	  }
+		type: "player_damage_received";
+		payload: {
+			sessionId: string;
+			damage: number;
+			newGameState: PublicGameState;
+		};
+	}
 	| {
-			type: "player_died";
-			payload: {
-				sessionId: string;
-			};
-	  }
+		type: "player_died";
+		payload: {
+			sessionId: string;
+		};
+	}
 	| {
-			type: "round_over";
-			payload: {
-				winnerId: string;
-			};
-	  }
+		type: "round_over";
+		payload: {
+			winnerId: string;
+		};
+	}
 	| {
-			type: "game_over";
-			payload: {
-				winnerId: string;
-				roomData: PublicRoomData;
-			};
-	  };
+		type: "game_over";
+		payload: {
+			winnerId: string;
+			roomData: PublicRoomData;
+		};
+	};
