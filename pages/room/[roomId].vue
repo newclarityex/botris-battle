@@ -637,7 +637,7 @@ function saveSettings() {
                                 <!-- Effects Container -->
                                 <container :ref="(el: any) => board.effectsContainer = el" />
                                 <!-- Board Container -->
-                                <container :ref="(el: any) => board.boardContainer = el" />
+                                <container :ref="(el: any) => board.boardContainer = el" :sortable-children="true" />
                             </container>
                             <container :y="21 * CELL_SIZE + 12">
                                 <graphics :pivotX="(10 * CELL_SIZE) / 2" @render="(graphics) => {

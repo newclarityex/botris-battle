@@ -300,6 +300,7 @@ export function renderState(playerGraphics: PlayerGraphics, gameState: PublicGam
             if (graphics) {
                 graphics.x = (current.x + x) * CELL_SIZE;
                 graphics.y = (y + BOARD_HEIGHT - current.y - 1) * CELL_SIZE;
+                graphics.zIndex = 2;
                 boardContainer.addChild(graphics);
             }
         }
