@@ -42,6 +42,7 @@ export type RoomData = {
 	roundOngoing: boolean;
 	startedAt: number | null;
 	endedAt: number | null;
+	lastWinner: string | null;
 	banned: Map<string, PlayerInfo>;
 	players: Map<string, PlayerData>;
 	spectators: Map<string, WebSocket>;
@@ -86,6 +87,7 @@ export type PublicRoomData = {
 	roundOngoing: boolean;
 	startedAt: number | null;
 	endedAt: number | null;
+	lastWinner: string | null;
 	players: PublicPlayerData[];
 	banned: PlayerInfo[];
 };
@@ -120,6 +122,7 @@ export function getPublicRoomData(roomData: RoomData): PublicRoomData {
 		roundOngoing: roomData.roundOngoing,
 		startedAt: roomData.startedAt,
 		endedAt: roomData.endedAt,
+		lastWinner: roomData.lastWinner,
 		players: getPublicPlayers(roomData.players),
 		banned: [...roomData.banned].map(([, player]) => player),
 	};

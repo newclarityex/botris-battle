@@ -254,7 +254,7 @@ onMounted(async () => {
                 break;
             }
             case "round_over": {
-                publicRoomData.value.roundOngoing = false;
+                publicRoomData.value = data.payload.roomData;
                 break;
             }
             case "game_over": {
@@ -665,8 +665,7 @@ onMounted(() => {
                                         21 * CELL_SIZE
                                     );
                                     graphics.endFill();
-                                }
-                                    " />
+                                }" />
                                 <!-- Effects Container -->
                                 <container :ref="(el: any) => board.effectsContainer = el" />
                                 <!-- Board Container -->
@@ -677,6 +676,14 @@ onMounted(() => {
                                     fontFamily: 'Fira Mono',
                                 }">
                                     {{ displayTime }}
+                                </text>
+                                <text v-if="publicRoomData.lastWinner === board.id" :anchorX="0.5" :anchorY="0.5"
+                                    :x="10 * CELL_SIZE / 2" :y="200" :style="{
+                                        fill: 'white',
+                                        fontSize: '36px',
+                                        fontFamily: 'Fira Mono',
+                                    }">
+                                    winner
                                 </text>
                             </container>
                             <container :y="21 * CELL_SIZE + 12">

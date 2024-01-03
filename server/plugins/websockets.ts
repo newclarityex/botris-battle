@@ -136,6 +136,7 @@ async function startRound(room: RoomData) {
     room.endedAt = null;
     room.gameOngoing = true;
     room.roundOngoing = false;
+    room.lastWinner = null;
 
     sendRoom(room.id, {
         type: "round_started",
@@ -423,10 +424,12 @@ async function handlePlayerMessage(data: RawData, connection: Connection) {
                 const roundWinner = playersAlive[0];
                 roundWinner.wins++;
                 room.roundOngoing = false;
+                room.lastWinner = roundWinner.sessionId;
                 sendRoom(connection.roomId, {
                     type: "round_over",
                     payload: {
                         winnerId: roundWinner.sessionId,
+                        roomData: getPublicRoomData(room),
                     },
                 });
                 if (roundWinner.wins >= room.ft) {

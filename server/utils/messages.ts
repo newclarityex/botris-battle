@@ -172,6 +172,7 @@ export type GeneralServerMessage =
 		type: "round_over";
 		payload: {
 			winnerId: string;
+			roomData: PublicRoomData;
 		};
 	}
 	| {
