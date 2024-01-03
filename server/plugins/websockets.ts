@@ -134,8 +134,8 @@ async function startRound(room: RoomData) {
 
     room.startedAt = startsAt;
     room.endedAt = null;
-    room.ongoing = true;
-    room.allowInputs = false;
+    room.gameOngoing = true;
+    room.roundOngoing = false;
 
     sendRoom(room.id, {
         type: "round_started",
@@ -147,7 +147,7 @@ async function startRound(room: RoomData) {
     });
 
     setTimeout(() => {
-        room.allowInputs = true;
+        room.roundOngoing = true;
         room.players.forEach((player) => {
             requestMove(player, room);
         });
@@ -245,7 +245,7 @@ async function handleGeneralMessage(data: RawData, connection: Connection) {
                 );
                 return;
             }
-            if (room.ongoing) {
+            if (room.gameOngoing) {
                 connection.ws.send(
                     JSON.stringify({
                         type: "error",
@@ -269,7 +269,7 @@ async function handleGeneralMessage(data: RawData, connection: Connection) {
             break;
         }
         case "reset_game": {
-            if (!room.ongoing) {
+            if (!room.gameOngoing) {
                 connection.ws.send(
                     JSON.stringify({
                         type: "error",
@@ -278,8 +278,8 @@ async function handleGeneralMessage(data: RawData, connection: Connection) {
                 );
                 return;
             }
-            room.ongoing = false;
-            room.allowInputs = false;
+            room.gameOngoing = false;
+            room.roundOngoing = false;
             sendRoom(connection.roomId, {
                 type: "game_reset",
                 payload: {
@@ -331,7 +331,7 @@ async function handlePlayerMessage(data: RawData, connection: Connection) {
         case "commands": {
             const player = room.players.get(connection.id);
             if (!player) return;
-            if (!room.ongoing) {
+            if (!room.gameOngoing) {
                 connection.ws.send(
                     JSON.stringify({
                         type: "error",
@@ -339,7 +339,7 @@ async function handlePlayerMessage(data: RawData, connection: Connection) {
                     })
                 );
             }
-            if (!room.allowInputs) {
+            if (!room.roundOngoing) {
                 connection.ws.send(
                     JSON.stringify({
                         type: "error",
@@ -422,7 +422,7 @@ async function handlePlayerMessage(data: RawData, connection: Connection) {
             if (playersAlive.length < 2) {
                 const roundWinner = playersAlive[0];
                 roundWinner.wins++;
-                room.allowInputs = false;
+                room.roundOngoing = false;
                 sendRoom(connection.roomId, {
                     type: "round_over",
                     payload: {
@@ -430,7 +430,7 @@ async function handlePlayerMessage(data: RawData, connection: Connection) {
                     },
                 });
                 if (roundWinner.wins >= room.ft) {
-                    room.ongoing = false;
+                    room.gameOngoing = false;
                     room.endedAt = Date.now();
                     sendRoom(connection.roomId, {
                         type: "game_over",
@@ -541,7 +541,7 @@ export default defineNitroPlugin((event) => {
                         player.timeout = null;
                     }
                 });
-                room.ongoing = false;
+                room.gameOngoing = false;
                 sendRoom(room.id, {
                     type: "game_reset",
                     payload: {

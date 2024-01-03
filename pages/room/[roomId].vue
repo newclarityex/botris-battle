@@ -113,6 +113,7 @@ function getPlayerStats() {
 
 const playerStats = ref(getPlayerStats());
 useIntervalFn(() => {
+    if (!publicRoomData.value.roundOngoing) return;
     playerStats.value = getPlayerStats();
 }, 1000 / 60);
 
@@ -246,6 +247,14 @@ onMounted(async () => {
 
                     renderState(playerGraphics, player.gameState);
                 }
+
+                setTimeout(() => {
+                    publicRoomData.value.roundOngoing = true;
+                }, data.payload.startsAt - Date.now());
+                break;
+            }
+            case "round_over": {
+                publicRoomData.value.roundOngoing = false;
                 break;
             }
             case "game_over": {
@@ -257,7 +266,7 @@ onMounted(async () => {
 
                 roundStartTime.value = null;
 
-                publicRoomData.value.ongoing = false;
+                publicRoomData.value.gameOngoing = false;
                 publicRoomData.value.players = data.payload.players;
                 break;
             }
@@ -560,6 +569,30 @@ function saveSettings() {
 
 //     if (value > 99) event.preventDefault();
 // }
+const displayTime = ref<number | null>(null);
+
+onMounted(() => {
+    const interval = setInterval(() => {
+        if (!publicRoomData.value.startedAt) {
+            displayTime.value = null;
+            return;
+        }
+
+        const now = Date.now();
+        const timeLeft = publicRoomData.value.startedAt - now;
+
+        if (timeLeft < 0) {
+            displayTime.value = null;
+            return;
+        }
+
+        displayTime.value = Math.ceil((timeLeft) / 1000);
+    }, 1000 / 60);
+
+    return () => {
+        clearInterval(interval);
+    }
+}); 
 </script>
 
 <template>
@@ -638,6 +671,13 @@ function saveSettings() {
                                 <container :ref="(el: any) => board.effectsContainer = el" />
                                 <!-- Board Container -->
                                 <container :ref="(el: any) => board.boardContainer = el" :sortable-children="true" />
+                                <text :anchorX="0.5" :anchorY="0.5" :x="10 * CELL_SIZE / 2" :y="200" :style="{
+                                    fill: 'white',
+                                    fontSize: '48px',
+                                    fontFamily: 'Fira Mono',
+                                }">
+                                    {{ displayTime }}
+                                </text>
                             </container>
                             <container :y="21 * CELL_SIZE + 12">
                                 <graphics :pivotX="(10 * CELL_SIZE) / 2" @render="(graphics) => {
@@ -843,11 +883,11 @@ function saveSettings() {
                 </div> -->
                 <div class="flex justify-evenly">
                     <button class="underline disabled:opacity-60 text-xl" @click="resetGame"
-                        :disabled="!publicRoomData || !publicRoomData.ongoing">
+                        :disabled="!publicRoomData || !publicRoomData.gameOngoing">
                         Reset Game
                     </button>
                     <button class="underline disabled:opacity-60 text-xl" @click="startGame" :disabled="!publicRoomData ||
-                        publicRoomData.ongoing ||
+                        publicRoomData.gameOngoing ||
                         publicRoomData.players.length < 2
                         ">
                         Start Game
@@ -855,7 +895,7 @@ function saveSettings() {
                 </div>
             </div>
         </dialog>
-        <!-- <div v-if="!publicRoomData.ongoing">
+        <!-- <div v-if="!publicRoomData.gameOngoing">
             <Countdown v-if="roundStartTime" :startsAt="roundStartTime" />
             scale: {{ scale }}
             {{ publicRoomData }}
