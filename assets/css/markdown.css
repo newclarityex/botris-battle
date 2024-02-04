@@ -1,0 +1,39 @@
+h1 {
+  @apply text-3xl text-primary py-4 text-center;
+}
+
+h2 {
+  @apply text-2xl text-subheader py-2;
+}
+
+h3 {
+  @apply text-xl text-subheader py-2;
+}
+
+p {
+  @apply text-lg text-content max-w-5xl py-2;
+}
+
+.code {
+  @apply bg-black/20 p-4 whitespace-pre-wrap block text-white;
+}
+
+/* pre {
+  @apply bg-black/20 p-4 whitespace-pre-wrap;
+} */
+
+ul {
+  @apply text-white pl-12 list-disc;
+}
+
+.link {
+  @apply underline;
+}
+
+.type-link {
+  @apply text-content;
+}
+
+.comment {
+  @apply opacity-50;
+}

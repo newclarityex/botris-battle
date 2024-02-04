@@ -1,65 +1,231 @@
 # API Documentation
 
-## Create Match
+## Authorization
 
-Create a match by making a POST request to `/api/match/create` with the following JSON data:
+Create an authorization token by going to [Dashboard](/dashboard){.link}! -> Create Token.
 
-- **token** (str): Your assigned token for authorization.
+## Rooms
+
+### Create Room
+
+Create a room online by going to [View Rooms](/rooms){.link} -> Create Room.
+
+<!-- Create a room programmatically by making a POST request to `/api/room/create` with the following JSON data:
+
+- **token** (str): A generated authorization token.
 - **roomId** (str): Room ID used to connect to the room.
 - **public** (bool): Whether the room will show up in the room list.
 - **ft** (int): The amount of wins it takes for the game to complete. Minimum value 1, maximum value 99.
-- **maxPlayers** (int): The maximum amount of players.
+- **maxPlayers** (int): The maximum amount of players. -->
 
-Each player can only hold 1 match at once.
+Each user can only hold 1 room at a time.
 
-## Join Match
+### Spectate Room
 
-Connect to `/api/ws` using a websocket connection, and join a match by sending the following through the websocket connection:
+Spectate a room online by going to [View Rooms](/rooms){.link} and selecting a room from the list, or following a shared room link.
 
-- **type** (str): 'join' | 'spectate'
-- **payload** (json):
-  - **token**(str): Your assigned token for authorization, token is optional if you are a spectator.
-  - **roomId**(str): Room ID used to connect to the room.
+### Join Room
+
+Connect to `/api/ws` using a websocket connection, and join a room by sending the following through the websocket connection:
+
+<pre class='code'>
+{
+    type: 'join';
+    payload: {
+        <span class="comment">// Your generated authorization token</span>
+        token: string;
+        <span class="comment">// Host provided room key</span>
+        roomKey: string;
+    }
+}
+</pre>
 
 \
 The server will respond with:
 
 - **type** (str): 'room_info'
-- **payload** (json):
-  - **roomId**(str): Room ID used to connect to the room.
-  - **public**(bool): Whether the room will show up in the room list.
-  - **ft**(int): The amount of wins it takes for the game to complete. Minimum value 1, maximum value 99.
-  - **maxPlayers** (int): The maximum amount of players.
-  - **players**(PlayerInfo[]): The list of participating players.
+- **payload** (json): [RoomData](#roomdata){ .link }
 
 <br />
 
-```ts
-type PlayerInfo = {
+
+The game can also be spectated at `/room/{roomId}`.
+
+## WS Messages
+
+### Ingame
+When the game starts, the server will send:
+<pre class='code'>
+{
+    type: 'game_started';
+}
+</pre>
+
+When a round is about to start, the server will send:
+<pre class='code'>
+{
+    type: 'game_started';
+    payload: {
+        startTime: number;
+        boardState: <a href="#boardstate" class="type-link">BoardState</a>;
+    }
+}
+</pre>
+
+\
+A command is represented as:
+
+<pre class='code'>
+type Command = 'move_left' | 'move_right' | 'rotate_left' |
+    'rotate_right' | 'rotate_180' | 'drop' | 'sonic_drop' | 'hard_drop';
+</pre>
+
+\
+Actions are sent from a client to a server to perform commands. An action can be sent to the server using:
+
+<pre class='code'>
+{
+    type: 'action';
+    payload: {
+        commands: Command[];
+    }
+}
+</pre>
+
+\
+Whenever a player performs an action, the server will send:
+
+<pre class='code'>
+{
+    type: 'player_update';
+    payload: {
+        timestamp: number;
+        commands: Command[];
+        initialState: BoardState;
+        newState: BoardState;
+    }
+}
+</pre>
+
+\
+Whenever a player performs an action, the server will send:
+
+<pre class='code'>
+{
+    type: 'player_update';
+    payload: {
+        timestamp: number;
+        commands: Command[];
+        initialState: BoardState;
+        newState: BoardState;
+    }
+}
+</pre>
+
+\
+When a round is over, the winner's `botId` is sent using:
+
+<pre class='code'>
+{
+    type: 'round_over';
+    payload: {
+        winner: string;
+    }
+}
+</pre>
+
+\
+When the game is over, the winner's `botId` is sent using:
+
+<pre class='code'>
+{
+    type: 'game_over';
+    payload: {
+        winner: string;
+    }
+}
+</pre>
+
+## Types
+
+### PlayerInfo
+
+<pre class='code'>
+{
     botId: string;
     creator: string;
     bot: string;
 }
-```
+</pre>
 
-The game can also be spectated at `/api/match/{roomId}`
+### Piece
 
-\
-When ready, send this to the server:
+<pre class='code'>
+'I' | 'O' | 'J' | 'L' | 'S' | 'Z' | 'T'
+</pre>
 
-```ts
+### Block
+<pre class='code'>
+<a href="#piece" class="type-link">Piece</a> | null
+</pre>
+
+### BoardState
+
+<pre class='code'>
 {
-    type: 'ready';
+    board: <a href="#piece" class="type-link">Piece</a>[][];
+    queue: <a href="#piece" class="type-link">Piece</a>[];
+    held: <a href="#piece" class="type-link">Piece</a> | null;
+    current: {
+        piece: <a href="#piece" class="type-link">Piece</a>;
+        x: number;
+        y: number;
+        rotation: 0 | 1 | 2 | 3;
+    };
 }
-```
+</pre>
 
-## Ingame
+### Command
 
-A player's boardstate is represented as:
+<pre class='code'>
+'move_left' | 'move_right' | 'rotate_left' | 'rotate_right' | 'rotate_180' | 'drop' | 'sonic_drop' | 'hard_drop'
+</pre>
 
-```ts
-type Piece = 'I' | 'O' | 'J' | 'L' | 'S' | 'Z' | 'T';
+## Types
+### RoomData
+<pre class='code'>
+{
+	id: string;
+	host: PlayerInfo;
 
+    private: boolean;
+	ft: number;
+	ppsCap: number;
+	maxPlayers: number;
+	
+    gameOngoing: boolean;
+	roundOngoing: boolean;
+
+	startedAt: number | null;
+	endedAt: number | null;
+	lastWinner: string | null;
+	players: PlayerData[];
+	banned: PlayerInfo[];
+};
+</pre>
+
+### PlayerInfo
+<pre class='code'>
+type PlayerInfo = {
+	userId: string;
+	creator: string;
+	bot: string;
+	avatar: Block[][];
+};
+</pre>
+
+### BoardState
+<pre class='code'>
 type BoardState = {
     board: Piece[][];
     queue: Piece[];
@@ -71,129 +237,4 @@ type BoardState = {
         roation: 0 | 1 | 2 | 3;
     };
 }
-```
-
-When the game is about to start, the server will send:
-
-```ts
-{
-    type: 'game_started';
-    payload: {
-        startTime: number;
-        boardState: BoardState;
-    }
-}
-```
-
-\
-A command is represented as:
-
-```ts
-type Command = 'move_left' | 'move_right' | 'rotate_left' | 'rotate_right' | 'rotate_180' | 'drop' | 'sonic_drop' | 'hard_drop';
-```
-
-\
-Actions are sent from a client to a server to perform commands. An action can be sent to the server using:
-
-```ts
-{
-    type: 'action';
-    payload: {
-        commands: Command[];
-    }
-}
-```
-
-\
-Whenever a player performs an action, the server will send:
-
-```ts
-{
-    type: 'player_update';
-    payload: {
-        timestamp: number;
-        commands: Command[];
-        initialState: BoardState;
-        newState: BoardState;
-    }
-}
-```
-
-\
-Whenever a player performs an action, the server will send:
-
-```ts
-{
-    type: 'player_update';
-    payload: {
-        timestamp: number;
-        commands: Command[];
-        initialState: BoardState;
-        newState: BoardState;
-    }
-}
-```
-
-\
-When a round is over, the winner's `botId` is sent using:
-
-```ts
-{
-    type: 'round_over';
-    payload: {
-        winner: string;
-    }
-}
-```
-
-\
-When the game is over, the winner's `botId` is sent using:
-
-```ts
-{
-    type: 'game_over';
-    payload: {
-        winner: string;
-    }
-}
-```
-
-## Reference
-
-### PlayerInfo
-
-```ts
-type PlayerInfo = {
-    botId: string;
-    creator: string;
-    bot: string;
-}
-```
-
-### Piece
-
-```ts
-type Piece = 'I' | 'O' | 'J' | 'L' | 'S' | 'Z' | 'T';
-```
-
-### BoardState
-
-```ts
-type BoardState = {
-    board: Piece[][];
-    queue: Piece[];
-    held: Piece | null;
-    current: {
-        piece: Piece;
-        x: number;
-        y: number;
-        rotation: 0 | 1 | 2 | 3;
-    };
-}
-```
-
-### Command
-
-```ts
-type Command = 'move_left' | 'move_right' | 'rotate_left' | 'rotate_right' | 'rotate_180' | 'drop' | 'sonic_drop' | 'hard_drop';
-```
+</pre>

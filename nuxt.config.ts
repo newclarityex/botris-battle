@@ -13,6 +13,12 @@ export default defineNuxtConfig({
     "@hebilicious/authjs-nuxt",
     '@nuxt/ui'
   ],
+  content: {
+    highlight: {
+      theme: "dark-plus",
+      preload: ['typescript']
+    }
+  },
   postcss: {
     plugins: {
       tailwindcss: {},

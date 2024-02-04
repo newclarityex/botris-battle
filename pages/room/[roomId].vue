@@ -230,7 +230,7 @@ onMounted(async () => {
 
         switch (data.type) {
             case "room_info": {
-                publicRoomData.value = data.payload.publicRoomData;
+                publicRoomData.value = data.payload;
                 break;
             }
             case "round_started": {
@@ -304,12 +304,12 @@ onMounted(async () => {
             case "player_commands": {
                 if (!publicRoomData.value) return console.error("no room info");
 
-                const { sessionId, newGameState, events } = data.payload;
+                const { sessionId, gameState, events } = data.payload;
                 const player = publicRoomData.value.players.find(
                     (p) => p.sessionId === sessionId
                 );
                 if (!player) return console.error("player not found");
-                player.gameState = newGameState;
+                player.gameState = gameState;
 
                 playerStats.value = getPlayerStats();
 
@@ -373,12 +373,12 @@ onMounted(async () => {
             case "player_damage_received": {
                 if (!publicRoomData.value) return console.error("no room info");
 
-                const { sessionId, newGameState } = data.payload;
+                const { sessionId, gameState } = data.payload;
                 const player = publicRoomData.value.players.find(
                     (p) => p.sessionId === sessionId
                 );
                 if (!player) return console.error("player not found");
-                player.gameState = newGameState;
+                player.gameState = gameState;
 
                 const playerGraphics = allPlayerGraphics.value.find(
                     (p) => p.id === sessionId
@@ -389,7 +389,7 @@ onMounted(async () => {
                 break;
             }
             case "settings_changed": {
-                const roomData = data.payload.publicRoomData;
+                const roomData = data.payload;
                 publicRoomData.value = roomData;
                 roomOptions.value.ft = roomData.ft;
                 roomOptions.value.ppsCap = roomData.ppsCap;

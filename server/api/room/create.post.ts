@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { createRoomToken, rooms } from "~/server/utils/rooms";
+import { createRoomKey, rooms } from "~/server/utils/rooms";
 import { checkAuth } from "~/server/utils/auth";
 import { customAlphabet, nanoid } from "nanoid";
 import { numbers, lowercase } from "nanoid-dictionary";
@@ -55,9 +55,9 @@ export default defineEventHandler(async (event) => {
 
 	rooms.set(roomId, match);
 
-	await prisma.roomToken.create({
+	await prisma.roomKey.create({
 		data: {
-			token: createRoomToken(),
+			key: createRoomKey(),
 			roomId,
 			singleUse: false,
 		},

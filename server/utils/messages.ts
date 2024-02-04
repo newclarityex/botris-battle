@@ -88,21 +88,17 @@ export type GeneralServerMessage =
 	| {
 		type: "game_info";
 		payload: {
-			publicRoomData: PublicRoomData;
+			roomData: PublicRoomData;
 			players: PublicPlayerData[];
 		};
 	}
 	| {
 		type: "room_info";
-		payload: {
-			publicRoomData: PublicRoomData;
-		};
+		payload: PublicRoomData;
 	}
 	| {
 		type: "settings_changed";
-		payload: {
-			publicRoomData: PublicRoomData;
-		};
+		payload: PublicRoomData;
 	}
 	| {
 		type: "host_changed";
@@ -150,7 +146,7 @@ export type GeneralServerMessage =
 		payload: {
 			sessionId: string;
 			commands: string[];
-			newGameState: PublicGameState;
+			gameState: PublicGameState;
 			events: GameEvent[];
 		};
 	}
@@ -159,7 +155,7 @@ export type GeneralServerMessage =
 		payload: {
 			sessionId: string;
 			damage: number;
-			newGameState: PublicGameState;
+			gameState: PublicGameState;
 		};
 	}
 	| {

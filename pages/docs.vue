@@ -1,10 +1,11 @@
 <script setup lang="ts">
+import '~/assets/css/markdown.css'
 const route = useRoute();
 </script>
 
 <template>
-    <div class="flex flex-col items-center">
-        <main class="flex flex-col items-center">
+    <div>
+        <main class="px-8">
             <ContentDoc path="/docs" />
         </main>
     </div>

@@ -128,4 +128,4 @@ export function getPublicRoomData(roomData: RoomData): PublicRoomData {
 	};
 }
 
-export const createRoomToken = customAlphabet(numbers + lowercase, 24);
+export const createRoomKey = customAlphabet(numbers + lowercase, 24);

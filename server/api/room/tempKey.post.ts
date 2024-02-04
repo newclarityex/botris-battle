@@ -1,5 +1,5 @@
 import {
-	createRoomToken,
+	createRoomKey,
 	getPublicRoomData,
 	rooms,
 } from "@/server/utils/rooms";
@@ -46,9 +46,9 @@ export default defineEventHandler(async (event) => {
 		});
 	}
 
-	const token = await prisma.roomToken.create({
+	const token = await prisma.roomKey.create({
 		data: {
-			token: createRoomToken(),
+			key: createRoomKey(),
 			roomId: room.id,
 			singleUse: true,
 		},

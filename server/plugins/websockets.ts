@@ -32,20 +32,20 @@ const MOVE_TIMEOUT = 5000;
 async function authenticateWs(
     ws: IDWebSocket,
     roomId: string,
-    userToken: string,
+    token: string,
     roomKey: string | null
 ) {
     if (!ws.id) return null;
 
-    const profile = await checkAuthToken(userToken);
+    const profile = await checkAuthToken(token);
 
     if (!profile) return null;
 
     // roomKey can be null when room is public.
     if (roomKey) {
-        const key = await prisma.roomToken.findFirst({
+        const key = await prisma.roomKey.findFirst({
             where: {
-                token: roomKey,
+                key: roomKey,
                 roomId,
             },
         });
@@ -53,9 +53,9 @@ async function authenticateWs(
         if (!key) return null;
 
         if (key?.singleUse) {
-            await prisma.roomToken.delete({
+            await prisma.roomKey.delete({
                 where: {
-                    token: key.token,
+                    key: roomKey,
                 },
             });
         }
@@ -64,7 +64,7 @@ async function authenticateWs(
     const connection: Connection = {
         id: ws.id,
         ws,
-        token: userToken,
+        token,
         status: "idle",
         roomId,
         info: {
@@ -307,9 +307,7 @@ async function handleGeneralMessage(data: RawData, connection: Connection) {
             room.private = messageData.payload.private;
             sendRoom(connection.roomId, {
                 type: "settings_changed",
-                payload: {
-                    publicRoomData: getPublicRoomData(room),
-                },
+                payload: getPublicRoomData(room),
             });
             break;
         }
@@ -397,7 +395,7 @@ async function handlePlayerMessage(data: RawData, connection: Connection) {
                             payload: {
                                 sessionId: player.sessionId,
                                 damage: amount,
-                                newGameState: getPublicGameState(
+                                gameState: getPublicGameState(
                                     player.gameState
                                 ),
                             },
@@ -410,7 +408,7 @@ async function handlePlayerMessage(data: RawData, connection: Connection) {
                 payload: {
                     sessionId: connection.id,
                     commands: messageData.payload.commands,
-                    newGameState: getPublicGameState(newGameState),
+                    gameState: getPublicGameState(newGameState),
                     events,
                 },
             });
@@ -461,7 +459,7 @@ async function handlePlayerMessage(data: RawData, connection: Connection) {
 
 async function deleteRoom(roomId: string) {
     rooms.delete(roomId);
-    await prisma.roomToken.deleteMany({
+    await prisma.roomKey.deleteMany({
         where: {
             roomId,
         },
@@ -475,7 +473,6 @@ export default defineNitroPlugin((event) => {
 
     wss.on("connection", async function connection(ws: IDWebSocket, req) {
         ws.id = uuid();
-        console.log("WS connection from ", ws.id);
         const urlArr = req.url!.split("?");
 
         if (urlArr.length < 2) {
@@ -488,9 +485,9 @@ export default defineNitroPlugin((event) => {
         let roomId = urlParams.get("roomId");
 
         if (roomKey) {
-            const foundKey = await prisma.roomToken.findFirst({
+            const foundKey = await prisma.roomKey.findFirst({
                 where: {
-                    token: roomKey,
+                    key: roomKey,
                 },
             });
             if (!foundKey) {
@@ -518,7 +515,7 @@ export default defineNitroPlugin((event) => {
 
         sendClient(ws, {
             type: "room_info",
-            payload: { publicRoomData: getPublicRoomData(room) },
+            payload: getPublicRoomData(room),
         });
 
         ws.on("close", () => {
@@ -563,11 +560,11 @@ export default defineNitroPlugin((event) => {
             });
         }
 
-        const userToken = urlParams.get("userToken");
+        const token = urlParams.get("token");
 
-        if (!userToken) {
+        if (!token) {
             if (!spectating) {
-                ws.close(4005, "Missing userToken");
+                ws.close(4005, "Missing token");
             }
             return;
         }
@@ -577,10 +574,10 @@ export default defineNitroPlugin((event) => {
             return;
         }
 
-        const connection = await authenticateWs(ws, roomId, userToken, roomKey);
+        const connection = await authenticateWs(ws, roomId, token, roomKey);
 
         if (!connection) {
-            ws.close(4004, "Failed to authenticate userToken or roomKey.");
+            ws.close(4004, "Failed to authenticate token or roomKey.");
             return;
         }
 

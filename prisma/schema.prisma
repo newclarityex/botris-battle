@@ -74,8 +74,8 @@ model ApiToken {
   expires   DateTime?
 }
 
-model RoomToken {
-  token     String  @id
+model RoomKey {
+  key     String  @id
   singleUse Boolean @default(false)
   roomId    String
 }
