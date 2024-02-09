@@ -43,8 +43,14 @@ Connect to `/api/ws` using a websocket connection, and join a room by sending th
 \
 The server will respond with:
 
-- **type** (str): 'room_info'
-- **payload** (json): [RoomData](#roomdata){ .link }
+<pre class='code'>
+{
+    type: 'room_info';
+    payload: {
+        roomData: <a href="#roomdata" class="type-link">RoomData</a>
+    }
+}
+</pre>
 
 <br />
 

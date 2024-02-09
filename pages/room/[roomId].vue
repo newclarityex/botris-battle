@@ -17,6 +17,7 @@ import { Application, useApplication } from "vue3-pixi";
 import type { ApplicationInst } from "vue3-pixi";
 import { getBoardBumpiness, getBoardAvgHeight } from "libtris";
 import FontFaceObserver from "fontfaceobserver";
+import { Text } from "pixi.js";
 
 const { status, session } = useAuth();
 
@@ -147,7 +148,7 @@ async function getRoomKey(roomId: string) {
         query: { roomId },
     });
 
-    return res?.token;
+    return res?.key;
 }
 
 const roundStartTime = ref<number | null>(null);
@@ -190,8 +191,12 @@ const scale = computed(() => {
 const documentVisible = useDocumentVisibility();
 
 function resizeRenderer() {
-    if (!pixiApp.value) return;
+    if (!pixiApp.value) {
+        console.log("NO PIXI APP")
+        return;
+    };
 
+    pixiApp.value.renderer.resolution = 1 / scale.value;
     pixiApp.value.renderer.resize(width.value, height.value);
     pixiApp.value.render();
 }
@@ -514,7 +519,7 @@ async function generateTempKey() {
         }
     });
 
-    alert(`token: ${temp.token}`);
+    alert(`token: ${temp.key}`);
     loadingTempKey.value = false;
 }
 
@@ -720,8 +725,7 @@ onMounted(() => {
                                     :style="{ fill: 'white', fontSize: '32px', fontFamily: 'Fira Mono' }">
                                     [held]
                                 </text> -->
-                                <sprite :anchorX="0.5" :x="200 / 2" :y="24" texture="/images/held.svg"
-                                    :cacheAsBitmapResolution="4" />
+                                <sprite :anchorX="0.5" :x="200 / 2" :y="24" texture="/images/held.svg"/>
                                 <!-- Held Container -->
                                 <container :ref="(el: any) => board.heldContainer = el" />
                                 <template v-if="playerStats[index]">
@@ -762,8 +766,7 @@ onMounted(() => {
                                     :style="{ fill: 'white', fontSize: '32px', fontFamily: 'Fira Mono' }">
                                     [queue]
                                 </text> -->
-                                <sprite :anchorX="0.5" :x="200 / 2" :y="24" texture="/images/queue.svg"
-                                    :cacheAsBitmapResolution="4" />
+                                <sprite :anchorX="0.5" :x="200 / 2" :y="24" texture="/images/queue.svg" />
                                 <!-- Queue Container -->
                                 <container :ref="(el: any) => board.queueContainer = el" />
                             </container>
@@ -809,7 +812,7 @@ onMounted(() => {
                             <div class="px-1" :class="{
                                 'opacity-0': !showMasterKey
                             }">
-                                {{ masterKey?.token }}
+                                {{ masterKey?.key }}
                             </div>
                         </div>
                     </div>

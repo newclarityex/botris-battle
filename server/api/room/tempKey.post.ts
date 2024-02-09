@@ -46,7 +46,7 @@ export default defineEventHandler(async (event) => {
 		});
 	}
 
-	const token = await prisma.roomKey.create({
+	const roomKey = await prisma.roomKey.create({
 		data: {
 			key: createRoomKey(),
 			roomId: room.id,
@@ -54,5 +54,5 @@ export default defineEventHandler(async (event) => {
 		},
 	});
 
-	return token;
+	return roomKey;
 });

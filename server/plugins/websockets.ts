@@ -265,6 +265,8 @@ async function handleGeneralMessage(data: RawData, connection: Connection) {
                 type: "game_started",
             });
 
+            console.log("Starting Game")
+
             startRound(room);
 
             break;

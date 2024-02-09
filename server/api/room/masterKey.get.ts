@@ -40,12 +40,12 @@ export default defineEventHandler(async (event) => {
         });
     }
 
-    const token = await prisma.roomToken.findFirst({
+    const roomKey = await prisma.roomKey.findFirst({
         where: {
             roomId: room.id,
             singleUse: false,
         }
     });
 
-    return token;
+    return roomKey;
 })

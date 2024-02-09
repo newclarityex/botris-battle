@@ -21,7 +21,7 @@ async function removeToken(token: string) {
     <div class="flex justify-center">
         <div>
             <h1>Dashboard</h1>
-            <h2>API Keys</h2>
+            <h2>API Tokens</h2>
             <ul class="list-none p-0 flex flex-col gap-2">
                 <li v-for="token in tokens" class="bg-white/20 p-4 flex">
                     <div class="w-40">{{ token.name }}</div>
