@@ -60,16 +60,16 @@ export default defineNuxtConfig({
       isCustomElement,
     }
   },
-  // ignore: [
-  //   'pages/docs.vue',
-  //   'pages/dashboard.vue',
-  //   'pages/rooms',
-  //   'pages/room/**',
-  //   'pages/rooms/testing.vue',
+  ignore: [
+    'pages/docs.vue',
+    'pages/dashboard.vue',
+    'pages/rooms',
+    'pages/room/**',
+    'pages/rooms/testing.vue',
 
-  //   'api/room/**',
-  //   'api/rooms/**',
-  // ]
+    'api/room/**',
+    'api/rooms/**',
+  ]
 })
 
 
