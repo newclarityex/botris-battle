@@ -10,14 +10,6 @@ Create an authorization token by going to [Dashboard](/dashboard){.link}! -> Cre
 
 Create a room online by going to [View Rooms](/rooms){.link} -> Create Room.
 
-<!-- Create a room programmatically by making a POST request to `/api/room/create` with the following JSON data:
-
-- **token** (str): A generated authorization token.
-- **roomId** (str): Room ID used to connect to the room.
-- **public** (bool): Whether the room will show up in the room list.
-- **ft** (int): The amount of wins it takes for the game to complete. Minimum value 1, maximum value 99.
-- **maxPlayers** (int): The maximum amount of players. -->
-
 Each user can only hold 1 room at a time.
 
 ### Spectate Room

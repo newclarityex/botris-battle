@@ -3,6 +3,12 @@ import { isCustomElement, transformAssetUrls } from 'vue3-pixi'
 
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
+  app: {
+    head: {
+      title: "Botris Battle",
+      link: [{ rel: 'icon', type: 'image/png', href: '/favicon.png' }],
+    },
+  },
   experimental: {
     asyncContext: true
   },
@@ -27,6 +33,7 @@ export default defineNuxtConfig({
   },
   runtimeConfig: {
     authJs: {
+      verifyClientOnEveryRequest: true,
       secret: process.env.NUXT_NEXTAUTH_SECRET // You can generate one with `openssl rand -base64 32`
     },
     github: {
@@ -53,6 +60,16 @@ export default defineNuxtConfig({
       isCustomElement,
     }
   },
+  // ignore: [
+  //   'pages/docs.vue',
+  //   'pages/dashboard.vue',
+  //   'pages/rooms',
+  //   'pages/room/**',
+  //   'pages/rooms/testing.vue',
+
+  //   'api/room/**',
+  //   'api/rooms/**',
+  // ]
 })
 
 

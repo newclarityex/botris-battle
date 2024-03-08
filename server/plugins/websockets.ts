@@ -157,8 +157,10 @@ async function startRound(room: RoomData) {
 
 const jsonSchema = zu.stringToJSON();
 async function handleGeneralMessage(data: RawData, connection: Connection) {
+    console.log(":(")
     const message = jsonSchema.safeParse(data.toString());
     if (!message.success) return;
+    console.log("msg", message)
 
     const parsed = GeneralMessageSchema.safeParse(message.data);
     if (!parsed.success) return;
@@ -169,6 +171,8 @@ async function handleGeneralMessage(data: RawData, connection: Connection) {
     if (!room) return;
 
     if (connection.info.userId !== room.host.userId) return;
+
+    console.log("Handling General Message")
 
     switch (messageData.type) {
         case "kick": {

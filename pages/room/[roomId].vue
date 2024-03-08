@@ -606,144 +606,146 @@ onMounted(() => {
             <Application :backgroundAlpha="0" ref="pixiInst" :antialias="true">
                 <tiling-sprite texture="/images/tiling.png" :width="width" :height="height" :tile-scale="8 * scale"
                     :tilePosition="[
-                        backgroundOffset * scale,
-                        backgroundOffset * scale,
-                    ]" />
+                backgroundOffset * scale,
+                backgroundOffset * scale,
+            ]" />
                 <container :x="width / 2" :y="height / 2" :scale="scale" ref="scaledContainer">
                     <container :y="-425">
                         <graphics :pivotX="650 / 2" :pivotY="100 / 2" @render="(graphics) => {
-                            graphics.clear();
-                            graphics.beginFill(0x000000, 0.2);
-                            graphics.drawRect(0, 0, 650, 100);
-                            graphics.endFill();
-                        }
-                            " />
+                graphics.clear();
+                graphics.beginFill(0x000000, 0.2);
+                graphics.drawRect(0, 0, 650, 100);
+                graphics.endFill();
+            }
+                " />
                         <text :anchor="0.5" :x="0" :y="0" :style="{
-                            fill: 'white',
-                            fontSize: '32px',
-                            fontFamily: 'Fira Mono',
-                        }" v-if="publicRoomData.players.length === 0">
+                fill: 'white',
+                fontSize: '32px',
+                fontFamily: 'Fira Mono',
+            }" v-if="publicRoomData.players.length === 0">
                             Waiting For Players...
                         </text>
                         <template v-else>
                             <text :anchor="0.5" :x="0" :y="-12" :style="{
-                                fill: 'white',
-                                fontSize: '30px',
-                                fontFamily: 'Fira Mono',
-                            }">
+                fill: 'white',
+                fontSize: '30px',
+                fontFamily: 'Fira Mono',
+            }">
                                 win@{{ publicRoomData.ft }}
                             </text>
                             <text :anchor="0.5" :x="0" :y="20" :style="{
-                                fill: 'white',
-                                fontSize: '20px',
-                                fontFamily: 'Fira Mono',
-                            }">
+                fill: 'white',
+                fontSize: '20px',
+                fontFamily: 'Fira Mono',
+            }">
                                 {{ publicRoomData.ppsCap.toFixed(1) }} PPS
                             </text>
                             <text :anchorX="0" :anchorY="0.5" :x="-650 / 2 + 24" :y="0" :style="{
-                                fill: 'white',
-                                fontSize: '32px',
-                                fontFamily: 'Fira Mono',
-                            }">
+                fill: 'white',
+                fontSize: '32px',
+                fontFamily: 'Fira Mono',
+            }">
                                 {{ winStrs[0] }}
                             </text>
                             <text :anchorX="1" :anchorY="0.5" :x="650 / 2 - 24" :y="0" :style="{
-                                fill: 'white',
-                                fontSize: '32px',
-                                fontFamily: 'Fira Mono',
-                            }">
+                fill: 'white',
+                fontSize: '32px',
+                fontFamily: 'Fira Mono',
+            }">
                                 {{ winStrs[1] }}
                             </text>
                         </template>
                     </container>
                     <container :y="75">
                         <container v-for="(board, index) in allPlayerGraphics" :key="board.id"
-                            :x="currentConfig.offsets[index]" :scale="currentConfig.scale" :pivotY="(21 * CELL_SIZE) / 2">
+                            :x="currentConfig.offsets[index]" :scale="currentConfig.scale"
+                            :pivotY="(21 * CELL_SIZE) / 2">
                             <container :pivotX="5 * CELL_SIZE" :pivotY="0">
                                 <graphics :pivotX="0" :pivotY="0" @render="(graphics) => {
-                                    graphics.clear();
-                                    graphics.beginFill(0x000000, 0.5);
-                                    graphics.drawRect(
-                                        0,
-                                        0,
-                                        10 * CELL_SIZE,
-                                        21 * CELL_SIZE
-                                    );
-                                    graphics.endFill();
-                                }" />
+                graphics.clear();
+                graphics.beginFill(0x000000, 0.5);
+                graphics.drawRect(
+                    0,
+                    0,
+                    10 * CELL_SIZE,
+                    21 * CELL_SIZE
+                );
+                graphics.endFill();
+            }" />
                                 <!-- Effects Container -->
                                 <container :ref="(el: any) => board.effectsContainer = el" />
                                 <!-- Board Container -->
                                 <container :ref="(el: any) => board.boardContainer = el" :sortable-children="true" />
                                 <text :anchorX="0.5" :anchorY="0.5" :x="10 * CELL_SIZE / 2" :y="200" :style="{
-                                    fill: 'white',
-                                    fontSize: '48px',
-                                    fontFamily: 'Fira Mono',
-                                }">
+                fill: 'white',
+                fontSize: '48px',
+                fontFamily: 'Fira Mono',
+            }">
                                     {{ displayTime }}
                                 </text>
                                 <text v-if="publicRoomData.lastWinner === board.id" :anchorX="0.5" :anchorY="0.5"
                                     :x="10 * CELL_SIZE / 2" :y="200" :style="{
-                                        fill: 'white',
-                                        fontSize: '36px',
-                                        fontFamily: 'Fira Mono',
-                                    }">
+                fill: 'white',
+                fontSize: '36px',
+                fontFamily: 'Fira Mono',
+            }">
                                     winner
                                 </text>
                             </container>
                             <container :y="21 * CELL_SIZE + 12">
                                 <graphics :pivotX="(10 * CELL_SIZE) / 2" @render="(graphics) => {
-                                    graphics.clear();
-                                    graphics.beginFill(0x000000, 0.25);
-                                    graphics.drawRect(
-                                        0,
-                                        0,
-                                        10 * CELL_SIZE,
-                                        50
-                                    );
-                                    graphics.endFill();
-                                }
-                                    " />
+                graphics.clear();
+                graphics.beginFill(0x000000, 0.25);
+                graphics.drawRect(
+                    0,
+                    0,
+                    10 * CELL_SIZE,
+                    50
+                );
+                graphics.endFill();
+            }
+                " />
                                 <text :x="0" :y="0" :anchorX="0.5" :style="{
-                                    fill: 'white',
-                                    fontFamily: 'Fira Mono',
-                                    fontSize: 24,
-                                    lineHeight: 50,
-                                }">
+                fill: 'white',
+                fontFamily: 'Fira Mono',
+                fontSize: 24,
+                lineHeight: 50,
+            }">
                                     {{ board.name }}
                                 </text>
                             </container>
                             <container :x="-5 * CELL_SIZE - 20" :pivotX="200" :pivotY="0">
                                 <graphics :pivot="0" @render="(graphics) => {
-                                    graphics.clear();
-                                    graphics.beginFill(0x000000, 0.25);
-                                    graphics.drawRect(0, 0, 200, 200);
-                                    graphics.endFill();
-                                }
-                                    " />
+                graphics.clear();
+                graphics.beginFill(0x000000, 0.25);
+                graphics.drawRect(0, 0, 200, 200);
+                graphics.endFill();
+            }
+                " />
                                 <!-- <text :anchorX="0.5" :x="200 / 2" :y="24"
                                     :style="{ fill: 'white', fontSize: '32px', fontFamily: 'Fira Mono' }">
                                     [held]
                                 </text> -->
-                                <sprite :anchorX="0.5" :x="200 / 2" :y="24" texture="/images/held.svg"/>
+                                <sprite :anchorX="0.5" :x="200 / 2" :y="24" texture="/images/held.svg" />
                                 <!-- Held Container -->
                                 <container :ref="(el: any) => board.heldContainer = el" />
+
                                 <template v-if="playerStats[index]">
                                     <container v-for="(stat, statIndex) in playerStats[
-                                        index
-                                    ]" :y="224 + 112 * statIndex">
+                index
+            ]" :y="224 + 112 * statIndex">
                                         <text :style="{
-                                            fill: '#FFFFFFBB',
-                                            fontFamily: 'Fira Mono',
-                                            fontSize: 24,
-                                        }">
+                fill: '#FFFFFFBB',
+                fontFamily: 'Fira Mono',
+                fontSize: 24,
+            }">
                                             {{ stat.title }}
                                         </text>
                                         <text :style="{
-                                            fill: 'white',
-                                            fontFamily: 'Fira Mono',
-                                            fontSize: 36,
-                                        }" :y="36">
+                fill: 'white',
+                fontFamily: 'Fira Mono',
+                fontSize: 36,
+            }" :y="36">
                                             {{ stat.value.toFixed(2) }}
                                         </text>
                                     </container>
@@ -751,17 +753,17 @@ onMounted(() => {
                             </container>
                             <container :x="5 * CELL_SIZE + 20" :pivotX="0" :pivotY="0">
                                 <graphics :pivot="0" @render="(graphics) => {
-                                    graphics.clear();
-                                    graphics.beginFill(0x000000, 0.25);
-                                    graphics.drawRect(
-                                        0,
-                                        0,
-                                        200,
-                                        21 * CELL_SIZE
-                                    );
-                                    graphics.endFill();
-                                }
-                                    " />
+                graphics.clear();
+                graphics.beginFill(0x000000, 0.25);
+                graphics.drawRect(
+                    0,
+                    0,
+                    200,
+                    21 * CELL_SIZE
+                );
+                graphics.endFill();
+            }
+                " />
                                 <!-- <text :anchorX="0.5" :x="200 / 2" :y="24"
                                     :style="{ fill: 'white', fontSize: '32px', fontFamily: 'Fira Mono' }">
                                     [queue]
@@ -789,9 +791,9 @@ onMounted(() => {
             </div>
         </div> -->
         <dialog ref="gameMenu" v-if="publicRoomData &&
-            session &&
-            publicRoomData.host.userId === session.user?.id
-            " class="bg-black/40 backdrop:bg-black/20 backdrop:backdrop-blur-sm">
+                session &&
+                publicRoomData.host.userId === session.user?.id
+                " class="bg-black/40 backdrop:bg-black/20 backdrop:backdrop-blur-sm">
             <div class="p-8 flex flex-col gap-4 w-[540px]">
                 <div class="text-white text-center text-xl">
                     Press ESC to toggle menu
@@ -810,8 +812,8 @@ onMounted(() => {
                                 v-if="!showMasterKey">
                             </button>
                             <div class="px-1" :class="{
-                                'opacity-0': !showMasterKey
-                            }">
+                'opacity-0': !showMasterKey
+            }">
                                 {{ masterKey?.key }}
                             </div>
                         </div>
@@ -829,7 +831,8 @@ onMounted(() => {
                     </div>
                     <div class="flex justify-between items-center">
                         <label>PPS Cap:</label>
-                        <input type="text" v-model.number="roomOptions.ppsCap" class="w-12 px-1 bg-white/20 text-right" />
+                        <input type="text" v-model.number="roomOptions.ppsCap"
+                            class="w-12 px-1 bg-white/20 text-right" />
                     </div>
                     <div class="flex justify-between items-center">
                         <label>Private:</label>
@@ -897,9 +900,9 @@ onMounted(() => {
                         Reset Game
                     </button>
                     <button class="underline disabled:opacity-60 text-xl" @click="startGame" :disabled="!publicRoomData ||
-                        publicRoomData.gameOngoing ||
-                        publicRoomData.players.length < 2
-                        ">
+                publicRoomData.gameOngoing ||
+                publicRoomData.players.length < 2
+                ">
                         Start Game
                     </button>
                 </div>

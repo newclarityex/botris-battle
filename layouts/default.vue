@@ -9,10 +9,14 @@ const { signIn, signOut, status } = useAuth();
             <NuxtLink to="/" :class="{
                 'underline text-secondary': route.path !== '/'
             }">Info</NuxtLink>
-            <NuxtLink to="/docs" :class="{
+            <!-- <NuxtLink to="/rules" :class="{
+                'underline text-secondary': route.path !== '/rules'
+            }">Rules</NuxtLink> -->
+            <NuxtLink to="https://discord.gg/47AhNAs25M" class="underline text-secondary">Discord</NuxtLink>
+            <!-- <NuxtLink to="/docs" :class="{
                 'underline text-secondary': route.path !== '/docs'
-            }">API Documentation</NuxtLink>
-            <NuxtLink to="/rooms" :class="{
+            }">API Documentation</NuxtLink> -->
+            <!-- <NuxtLink to="/rooms" :class="{
                 'underline text-secondary': route.path !== '/rooms'
             }">View Rooms</NuxtLink>
             <button class="bg-white/20 p-2" @click="signIn('github')" v-if="status === 'unauthenticated'">
@@ -20,12 +24,12 @@ const { signIn, signOut, status } = useAuth();
             </button>
             <template v-if="status === 'authenticated'">
                 <NuxtLink to="/dashboard" :class="{
-                    'underline text-secondary': route.path !== '/dashboard'
-                }">Dashboard</NuxtLink>
+                'underline text-secondary': route.path !== '/dashboard'
+            }">Dashboard</NuxtLink>
                 <button class="bg-white/20 p-2" @click="signOut">
                     Sign Out
                 </button>
-            </template>
+            </template> -->
         </div>
         <slot />
     </div>
