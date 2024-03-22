@@ -32,6 +32,7 @@ export default defineNuxtConfig({
     },
   },
   runtimeConfig: {
+    build: false,
     authJs: {
       verifyClientOnEveryRequest: true,
       secret: process.env.NUXT_NEXTAUTH_SECRET // You can generate one with `openssl rand -base64 32`
