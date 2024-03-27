@@ -15,8 +15,8 @@ export default defineNuxtConfig({
   devtools: { enabled: true },
   css: ['~/assets/css/main.css'],
   modules: [
+    '@pinia/nuxt',
     '@nuxt/content',
-    "@hebilicious/authjs-nuxt",
     '@nuxt/ui'
   ],
   content: {
@@ -33,15 +33,17 @@ export default defineNuxtConfig({
   },
   runtimeConfig: {
     build: false,
+    secret: process.env.NUXT_SECRET,
     authJs: {
+      // baseUrl: "localhost:3000/api/auth",
       verifyClientOnEveryRequest: true,
-      secret: process.env.NUXT_NEXTAUTH_SECRET // You can generate one with `openssl rand -base64 32`
     },
     github: {
       clientId: process.env.NUXT_GITHUB_CLIENT_ID,
       clientSecret: process.env.NUXT_GITHUB_CLIENT_SECRET
     },
     public: {
+      environment: process.env.NUXT_ENVIRONMENT,
       authJs: {
         baseUrl: process.env.NUXT_NEXTAUTH_URL, // The URL of your deployed app (used for origin Check in production)
         verifyClientOnEveryRequest: true // whether to hit the /auth/session endpoint on every client request
@@ -54,6 +56,7 @@ export default defineNuxtConfig({
     crypto: resolve(__dirname, "node_modules/crypto"),
   },
   routeRules: {
+    '/**': { ssr: false },
     '/room/**': { ssr: false },
   },
   vue: {
@@ -62,14 +65,14 @@ export default defineNuxtConfig({
     }
   },
   ignore: [
-    'pages/docs.vue',
-    'pages/dashboard.vue',
-    'pages/rooms',
-    'pages/room/**',
-    'pages/rooms/testing.vue',
+    // 'pages/docs.vue',
+    // 'pages/dashboard.vue',
+    // 'pages/rooms',
+    // 'pages/room/**',
+    // 'pages/rooms/testing.vue',
 
-    'api/room/**',
-    'api/rooms/**',
+    // 'api/room/**',
+    // 'api/rooms/**',
   ]
 })
 

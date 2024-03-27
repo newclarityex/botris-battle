@@ -1,5 +1,6 @@
 <script setup lang="ts">
-const { status } = useAuth()
+import { useAuthStore } from '~/stores/auth';
+const { status } = useAuthStore();
 const { data: rooms, refresh } = useFetch('/api/rooms');
 
 const createRoomModal = ref(false);

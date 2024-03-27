@@ -15,7 +15,7 @@ const CreateGameSchema = z.object({
 });
 
 export default defineEventHandler(async (event) => {
-	const profile = await checkAuth(event);
+	const profile = await checkAuth(event.context.user);
 	if (!profile) {
 		throw createError({
 			statusCode: 401,

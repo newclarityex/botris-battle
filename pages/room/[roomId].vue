@@ -215,8 +215,10 @@ onMounted(async () => {
     if (userToken) urlParams.append("userToken", userToken);
     if (roomKey) urlParams.append("roomKey", roomKey);
 
-    // ws.value = new WebSocket(`ws://${location.host}/api/ws?${urlParams.toString()}`);
-    ws = new WebSocket(`ws://localhost:8080/api/ws?${urlParams.toString()}`);
+    const runtimeConfig = useRuntimeConfig();
+
+    const wsUrl = runtimeConfig.public.environment === "production" ? `wss://${location.host}/api/ws?${urlParams.toString()}` :`ws://localhost:8080/api/ws?${urlParams.toString()}`;
+    ws = new WebSocket(wsUrl);
 
     ws.addEventListener("close", (event) => {
         switch (event.code) {

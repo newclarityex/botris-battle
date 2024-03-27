@@ -1,11 +1,11 @@
 #0 building with "desktop-linux" instance using docker driver
 
 #1 [server internal] load build definition from Dockerfile
-#1 transferring dockerfile: 3.17kB done
+#1 transferring dockerfile: 944B done
 #1 DONE 0.0s
 
 #2 [server] resolve image config for docker.io/docker/dockerfile:1
-#2 DONE 0.2s
+#2 DONE 0.3s
 
 #3 [server] docker-image://docker.io/docker/dockerfile:1@sha256:ac85f380a63b13dfcefa89046420e1781752bab202122f8f50032edf31be0021
 #3 CACHED
@@ -21,389 +21,529 @@
 #6 DONE 0.0s
 
 #7 [server internal] load build context
-#7 transferring context: 145.09kB 0.1s done
-#7 DONE 0.1s
+#7 transferring context: 130.24kB 0.0s done
+#7 DONE 0.0s
 
-#8 [server base 2/2] WORKDIR /usr/src/app
+#8 [server base 2/2] WORKDIR /src
 #8 CACHED
 
-#9 [server deps 1/1] RUN --mount=type=bind,source=package.json,target=package.json     --mount=type=bind,source=yarn.lock,target=yarn.lock     --mount=type=cache,target=/root/.yarn     yarn install --production --frozen-lockfile
-#9 CACHED
+#9 [server build 1/4] COPY --link . .
+#9 DONE 0.3s
 
-#10 [server build 1/4] RUN --mount=type=bind,source=package.json,target=package.json     --mount=type=bind,source=yarn.lock,target=yarn.lock     --mount=type=cache,target=/root/.yarn     yarn install --frozen-lockfile
-#10 CACHED
+#10 [server build 2/4] RUN yarn
+#10 0.244 yarn install v1.22.19
+#10 0.308 [1/4] Resolving packages...
+#10 0.538 [2/4] Fetching packages...
+#10 55.56 warning vscode-languageclient@7.0.0: The engine "vscode" appears to be invalid.
+#10 55.56 [3/4] Linking dependencies...
+#10 55.57 warning "@nuxt/devtools > @nuxt/devtools-kit@1.1.3" has unmet peer dependency "vite@*".
+#10 55.57 warning " > @nuxt/devtools@1.1.3" has unmet peer dependency "vite@*".
+#10 55.57 warning "@nuxt/devtools > vite-plugin-inspect@0.8.3" has unmet peer dependency "vite@^3.1.0 || ^4.0.0 || ^5.0.0-0".
+#10 55.57 warning "@nuxt/devtools > vite-plugin-vue-inspector@4.0.2" has unmet peer dependency "vite@^3.0.0-0 || ^4.0.0-0 || ^5.0.0-0".
+#10 55.57 warning "@nuxt/devtools > @vue/devtools-applet > @vue/devtools-ui@7.0.20" has unmet peer dependency "@unocss/reset@>=0.50.0-0".
+#10 55.57 warning "@nuxt/devtools > @vue/devtools-applet > @vue/devtools-ui@7.0.20" has unmet peer dependency "floating-vue@>=2.0.0-0".
+#10 55.57 warning "@nuxt/devtools > @vue/devtools-applet > @vue/devtools-ui@7.0.20" has unmet peer dependency "unocss@>=0.50.0-0".
+#10 55.57 warning "@nuxt/devtools > @vue/devtools-core > vite-hot-client@0.2.3" has unmet peer dependency "vite@^2.6.0 || ^3.0.0 || ^4.0.0 || ^5.0.0-0".
+#10 55.57 warning " > @nuxt/test-utils@3.12.0" has unmet peer dependency "h3@*".
+#10 55.57 warning " > @nuxt/test-utils@3.12.0" has unmet peer dependency "vite@*".
+#10 57.87 [4/4] Building fresh packages...
+#10 62.69 $ nuxt prepare
+#10 64.34 [nuxt:tailwindcss] ℹ Using default Tailwind CSS file
+#10 64.82 ✔ Types generated in .nuxt
+#10 64.84 Done in 64.60s.
+#10 DONE 65.1s
 
-#11 [server build 2/4] COPY . .
-#11 DONE 0.2s
+#11 [server build 3/4] RUN npx prisma generate
+#11 0.883 Prisma schema loaded from prisma/schema.prisma
+#11 1.245 
+#11 1.245 ✔ Generated Prisma Client (v5.11.0) to ./node_modules/@prisma/client in 78ms
+#11 1.245 
+#11 1.245 Start using Prisma Client in Node.js (See: https://pris.ly/d/client)
+#11 1.245 ```
+#11 1.245 import { PrismaClient } from '@prisma/client'
+#11 1.245 const prisma = new PrismaClient()
+#11 1.245 ```
+#11 1.245 or start using Prisma Client at the edge (See: https://pris.ly/d/accelerate)
+#11 1.245 ```
+#11 1.245 import { PrismaClient } from '@prisma/client/edge'
+#11 1.245 const prisma = new PrismaClient()
+#11 1.245 ```
+#11 1.245 
+#11 1.245 See other ways of importing Prisma Client: http://pris.ly/d/importing-client
+#11 1.245 
+#11 1.245 ┌─────────────────────────────────────────────────────────────┐
+#11 1.245 │  Deploying your app to serverless or edge functions?        │
+#11 1.245 │  Try Prisma Accelerate for connection pooling and caching.  │
+#11 1.245 │  https://pris.ly/cli/accelerate                             │
+#11 1.245 └─────────────────────────────────────────────────────────────┘
+#11 1.245 
+#11 1.439 npm notice 
+#11 1.439 npm notice New minor version of npm available! 10.2.3 -> 10.5.0
+#11 1.439 npm notice Changelog: <https://github.com/npm/cli/releases/tag/v10.5.0>
+#11 1.439 npm notice Run `npm install -g npm@10.5.0` to update!
+#11 1.439 npm notice 
+#11 DONE 1.5s
 
-#12 [server build 3/4] RUN npx prisma generate
-#12 0.964 Prisma schema loaded from prisma/schema.prisma
-#12 1.447 
-#12 1.447 ✔ Generated Prisma Client (v5.6.0) to ./node_modules/@prisma/client in 116ms
-#12 1.447 
-#12 1.447 Start using Prisma Client in Node.js (See: https://pris.ly/d/client)
-#12 1.447 ```
-#12 1.447 import { PrismaClient } from '@prisma/client'
-#12 1.447 const prisma = new PrismaClient()
-#12 1.447 ```
-#12 1.447 or start using Prisma Client at the edge (See: https://pris.ly/d/accelerate)
-#12 1.447 ```
-#12 1.447 import { PrismaClient } from '@prisma/client/edge'
-#12 1.447 const prisma = new PrismaClient()
-#12 1.447 ```
-#12 1.447 
-#12 1.447 See other ways of importing Prisma Client: http://pris.ly/d/importing-client
-#12 1.447 
-#12 1.469 npm notice 
-#12 1.469 npm notice New minor version of npm available! 10.2.3 -> 10.5.0
-#12 1.469 npm notice Changelog: <https://github.com/npm/cli/releases/tag/v10.5.0>
-#12 1.469 npm notice Run `npm install -g npm@10.5.0` to update!
-#12 1.469 npm notice 
-#12 DONE 1.5s
+#12 [server build 4/4] RUN yarn build
+#12 1.317 yarn run v1.22.19
+#12 1.345 $ nuxt build
+#12 1.544 Nuxt 3.11.1 with Nitro 2.9.4
+#12 2.798 [nuxt:tailwindcss] ℹ Using default Tailwind CSS file
+#12 3.777 ℹ Building client...
+#12 3.787 ℹ vite v5.2.4 building for production...
+#12 3.807 ℹ transforming...
+#12 7.727 
+#12 7.727  WARN 
+#12 7.727 /fonts/FiraMono-Regular.ttf referenced in /src/assets/css/main.css didn't resolve at build time, it will remain unchanged to be resolved at runtime
+#12 7.727 
+#12 11.72 ℹ ✓ 901 modules transformed.
+#12 11.93 Inspect report generated at /src/.nuxt/analyze/.vite-inspect
+#12 12.14 ℹ rendering chunks...
+#12 12.30 ℹ computing gzip size...
+#12 12.32 ℹ .nuxt/dist/client/manifest.json                 22.89 kB │ gzip:   2.32 kB
+#12 12.32 ℹ .nuxt/dist/client/_nuxt/_roomId_.XTc2zCWc.css    0.04 kB │ gzip:   0.06 kB
+#12 12.32 ℹ .nuxt/dist/client/_nuxt/ProsePre.CchFRBtv.css    0.05 kB │ gzip:   0.07 kB
+#12 12.32 ℹ .nuxt/dist/client/_nuxt/Icon.8lQfE3Ql.css        0.07 kB │ gzip:   0.09 kB
+#12 12.32 ℹ .nuxt/dist/client/_nuxt/index.i7zL5ROX.css       0.08 kB │ gzip:   0.09 kB
+#12 12.32 ℹ .nuxt/dist/client/_nuxt/default.B4p_o70T.css     0.23 kB │ gzip:   0.15 kB
+#12 12.32 ℹ .nuxt/dist/client/_nuxt/IconCSS.Z2BAHt_z.css     0.26 kB │ gzip:   0.17 kB
+#12 12.32 ℹ .nuxt/dist/client/_nuxt/docs.CnQdyrdo.css        0.94 kB │ gzip:   0.39 kB
+#12 12.32 ℹ .nuxt/dist/client/_nuxt/DMzhbyxd.js              0.08 kB │ gzip:   0.09 kB
+#12 12.32 ℹ .nuxt/dist/client/_nuxt/CLldLySq.js              0.14 kB │ gzip:   0.12 kB
+#12 12.32 ℹ .nuxt/dist/client/_nuxt/DnBLZA3e.js              0.14 kB │ gzip:   0.15 kB
+#12 12.32 ℹ .nuxt/dist/client/_nuxt/BOWboNah.js              0.15 kB │ gzip:   0.15 kB
+#12 12.32 ℹ .nuxt/dist/client/_nuxt/BbyCHkDH.js              0.15 kB │ gzip:   0.15 kB
+#12 12.32 ℹ .nuxt/dist/client/_nuxt/DOyyG5u8.js              0.18 kB │ gzip:   0.16 kB
+#12 12.33 ℹ .nuxt/dist/client/_nuxt/B2yxc2LK.js              0.18 kB │ gzip:   0.17 kB
+#12 12.33 ℹ .nuxt/dist/client/_nuxt/layao_q4.js              0.18 kB │ gzip:   0.17 kB
+#12 12.33 ℹ .nuxt/dist/client/_nuxt/CUKeTiqb.js              0.18 kB │ gzip:   0.17 kB
+#12 12.33 ℹ .nuxt/dist/client/_nuxt/wCyS96Pl.js              0.18 kB │ gzip:   0.17 kB
+#12 12.33 ℹ .nuxt/dist/client/_nuxt/C5F_MUFv.js              0.18 kB │ gzip:   0.17 kB
+#12 12.33 ℹ .nuxt/dist/client/_nuxt/B2UjEVG1.js              0.18 kB │ gzip:   0.17 kB
+#12 12.33 ℹ .nuxt/dist/client/_nuxt/D9Q1qJAm.js              0.18 kB │ gzip:   0.17 kB
+#12 12.33 ℹ .nuxt/dist/client/_nuxt/DO-qjVE5.js              0.18 kB │ gzip:   0.17 kB
+#12 12.33 ℹ .nuxt/dist/client/_nuxt/BoHx5QG-.js              0.18 kB │ gzip:   0.17 kB
+#12 12.33 ℹ .nuxt/dist/client/_nuxt/BsGt45UM.js              0.18 kB │ gzip:   0.17 kB
+#12 12.33 ℹ .nuxt/dist/client/_nuxt/OF52jOjM.js              0.18 kB │ gzip:   0.17 kB
+#12 12.33 ℹ .nuxt/dist/client/_nuxt/DuRkZqoL.js              0.18 kB │ gzip:   0.17 kB
+#12 12.33 ℹ .nuxt/dist/client/_nuxt/DJxK6dBR.js              0.18 kB │ gzip:   0.17 kB
+#12 12.33 ℹ .nuxt/dist/client/_nuxt/CWHuMhQd.js              0.19 kB │ gzip:   0.17 kB
+#12 12.33 ℹ .nuxt/dist/client/_nuxt/onBOYp9e.js              0.28 kB │ gzip:   0.24 kB
+#12 12.33 ℹ .nuxt/dist/client/_nuxt/Cl5UHEQR.js              0.31 kB │ gzip:   0.25 kB
+#12 12.33 ℹ .nuxt/dist/client/_nuxt/B57UQv57.js              0.32 kB │ gzip:   0.22 kB
+#12 12.33 ℹ .nuxt/dist/client/_nuxt/65G6_uIZ.js              0.38 kB │ gzip:   0.27 kB
+#12 12.33 ℹ .nuxt/dist/client/_nuxt/Bg9mmouh.js              0.44 kB │ gzip:   0.32 kB
+#12 12.33 ℹ .nuxt/dist/client/_nuxt/0I2s95S0.js              0.44 kB │ gzip:   0.30 kB
+#12 12.33 ℹ .nuxt/dist/client/_nuxt/DE3GJzSu.js              0.44 kB │ gzip:   0.32 kB
+#12 12.33 ℹ .nuxt/dist/client/_nuxt/BjJEgcnU.js              0.44 kB │ gzip:   0.32 kB
+#12 12.33 ℹ .nuxt/dist/client/_nuxt/wdvYCyxI.js              0.44 kB │ gzip:   0.32 kB
+#12 12.33 ℹ .nuxt/dist/client/_nuxt/Cu6q1ujD.js              0.44 kB │ gzip:   0.32 kB
+#12 12.33 ℹ .nuxt/dist/client/_nuxt/CJ_ZQ3sE.js              0.44 kB │ gzip:   0.32 kB
+#12 12.33 ℹ .nuxt/dist/client/_nuxt/D1y6A37r.js              0.47 kB │ gzip:   0.32 kB
+#12 12.33 ℹ .nuxt/dist/client/_nuxt/BgT0SaOr.js              0.48 kB │ gzip:   0.31 kB
+#12 12.33 ℹ .nuxt/dist/client/_nuxt/B02H_siU.js              0.50 kB │ gzip:   0.33 kB
+#12 12.33 ℹ .nuxt/dist/client/_nuxt/DVOfhiCb.js              0.62 kB │ gzip:   0.37 kB
+#12 12.34 ℹ .nuxt/dist/client/_nuxt/BosuxZz1.js              0.69 kB │ gzip:   0.38 kB
+#12 12.34 ℹ .nuxt/dist/client/_nuxt/AL1_Pl_S.js              0.72 kB │ gzip:   0.38 kB
+#12 12.34 ℹ .nuxt/dist/client/_nuxt/BsYmvPZw.js              0.75 kB │ gzip:   0.42 kB
+#12 12.34 ℹ .nuxt/dist/client/_nuxt/DPrp6B0n.js              0.91 kB │ gzip:   0.50 kB
+#12 12.34 ℹ .nuxt/dist/client/_nuxt/BLuN0uWu.js              1.05 kB │ gzip:   0.62 kB
+#12 12.34 ℹ .nuxt/dist/client/_nuxt/pYw4lx4C.js              1.24 kB │ gzip:   0.70 kB
+#12 12.34 ℹ .nuxt/dist/client/_nuxt/CTWdP3GM.js              1.24 kB │ gzip:   0.62 kB
+#12 12.34 ℹ .nuxt/dist/client/_nuxt/DGbHpU8B.js              1.40 kB │ gzip:   0.78 kB
+#12 12.34 ℹ .nuxt/dist/client/_nuxt/PNn9yPgg.js              1.43 kB │ gzip:   0.81 kB
+#12 12.34 ℹ .nuxt/dist/client/_nuxt/BlTLQCA0.js              1.93 kB │ gzip:   1.00 kB
+#12 12.34 ℹ .nuxt/dist/client/_nuxt/DoGVK5_U.js              1.94 kB │ gzip:   0.91 kB
+#12 12.34 ℹ .nuxt/dist/client/_nuxt/BK7HB-PV.js              2.03 kB │ gzip:   0.95 kB
+#12 12.34 ℹ .nuxt/dist/client/_nuxt/qsMMcMsd.js              2.16 kB │ gzip:   1.01 kB
+#12 12.34 ℹ .nuxt/dist/client/_nuxt/CwwLlaV6.js              2.21 kB │ gzip:   1.10 kB
+#12 12.34 ℹ .nuxt/dist/client/_nuxt/BAJ68vSl.js              2.52 kB │ gzip:   1.04 kB
+#12 12.34 ℹ .nuxt/dist/client/_nuxt/C3fcygkf.js              2.99 kB │ gzip:   1.23 kB
+#12 12.34 ℹ .nuxt/dist/client/_nuxt/JE_vBpDQ.js              3.17 kB │ gzip:   1.48 kB
+#12 12.34 ℹ .nuxt/dist/client/_nuxt/DVC12J5O.js              4.33 kB │ gzip:   1.80 kB
+#12 12.34 ℹ .nuxt/dist/client/_nuxt/pFwjczHk.js              4.59 kB │ gzip:   2.16 kB
+#12 12.34 ℹ .nuxt/dist/client/_nuxt/Bk2Den3t.js              5.01 kB │ gzip:   2.26 kB
+#12 12.34 ℹ .nuxt/dist/client/_nuxt/Yy5oBIjC.js              5.02 kB │ gzip:   2.10 kB
+#12 12.34 ℹ .nuxt/dist/client/_nuxt/DvDH6DOc.js              8.40 kB │ gzip:   3.50 kB
+#12 12.34 ℹ .nuxt/dist/client/_nuxt/B8VCvghd.js             17.99 kB │ gzip:   5.91 kB
+#12 12.34 ℹ .nuxt/dist/client/_nuxt/IItV-1Fx.js             18.94 kB │ gzip:   6.67 kB
+#12 12.34 ℹ .nuxt/dist/client/_nuxt/CJV2u69C.js             20.76 kB │ gzip:   8.63 kB
+#12 12.34 ℹ .nuxt/dist/client/_nuxt/BZTMlcTO.js             21.93 kB │ gzip:   8.28 kB
+#12 12.34 ℹ .nuxt/dist/client/_nuxt/Cf9sbFvP.js             23.92 kB │ gzip:   8.51 kB
+#12 12.34 ℹ .nuxt/dist/client/_nuxt/BqtDbovP.js             28.08 kB │ gzip:   9.52 kB
+#12 12.35 ℹ .nuxt/dist/client/_nuxt/Con9_Tm1.js             38.08 kB │ gzip:  13.50 kB
+#12 12.35 ℹ .nuxt/dist/client/_nuxt/C6WK3Id2.js            199.65 kB │ gzip:  74.33 kB
+#12 12.35 ℹ .nuxt/dist/client/_nuxt/BKT7kNcI.js            468.71 kB │ gzip: 141.24 kB
+#12 12.35 ℹ ✓ built in 8.56s
+#12 12.35 ✔ Client built in 8570ms
+#12 12.35 ℹ Building server...
+#12 12.36 ℹ vite v5.2.4 building SSR bundle for production...
+#12 13.58 ℹ transforming...
+#12 15.21 
+#12 15.21  WARN 
+#12 15.21 /fonts/FiraMono-Regular.ttf referenced in /src/assets/css/main.css?inline&used didn't resolve at build time, it will remain unchanged to be resolved at runtime
+#12 15.21 
+#12 17.58 
+#12 17.58  WARN 
+#12 17.58 /fonts/FiraMono-Regular.ttf referenced in /src/assets/css/main.css didn't resolve at build time, it will remain unchanged to be resolved at runtime
+#12 17.58 
+#12 20.61 ℹ ✓ 367 modules transformed.
+#12 20.86 Inspect report generated at /src/.nuxt/analyze/.vite-inspect
+#12 20.94 ℹ rendering chunks...
+#12 21.20 ℹ .nuxt/dist/server/_nuxt/docs-styles.DeGrfALB.mjs                 0.08 kB
+#12 21.20 ℹ .nuxt/dist/server/_nuxt/Icon-styles.D_CRgw4L.mjs                 0.08 kB
+#12 21.20 ℹ .nuxt/dist/server/_nuxt/index-styles.BFPNyKTs.mjs                0.08 kB
+#12 21.20 ℹ .nuxt/dist/server/_nuxt/IconCSS-styles.D5ci0eBM.mjs              0.08 kB
+#12 21.20 ℹ .nuxt/dist/server/_nuxt/ProsePre-styles.CQChdepm.mjs             0.08 kB
+#12 21.20 ℹ .nuxt/dist/server/_nuxt/_roomId_-styles.DN5DBZ4-.mjs             0.08 kB
+#12 21.20 ℹ .nuxt/dist/server/_nuxt/ProseCode-styles.BaOCvZyF.mjs            0.08 kB
+#12 21.20 ℹ .nuxt/dist/server/_nuxt/AvatarEditor-styles.lCoAu7OW.mjs         0.09 kB
+#12 21.20 ℹ .nuxt/dist/server/_nuxt/entry-styles.C-yUvAfi.mjs                0.21 kB
+#12 21.20 ℹ .nuxt/dist/server/styles.mjs                                     2.33 kB
+#12 21.20 ℹ .nuxt/dist/server/_nuxt/ProsePre-styles-1.mjs-OKMw-DEf.js        0.22 kB │ map:   0.12 kB
+#12 21.20 ℹ .nuxt/dist/server/_nuxt/ProseCode-styles-1.mjs-DFfQzxqQ.js       0.23 kB │ map:   0.12 kB
+#12 21.20 ℹ .nuxt/dist/server/_nuxt/_roomId_-styles-1.mjs-ChiGRXR3.js        0.25 kB │ map:   0.12 kB
+#12 21.20 ℹ .nuxt/dist/server/_nuxt/Icon-styles-1.mjs-B5ToH8ZB.js            0.26 kB │ map:   0.11 kB
+#12 21.20 ℹ .nuxt/dist/server/_nuxt/index-styles-1.mjs-CXVp8wa5.js           0.28 kB │ map:   0.11 kB
+#12 21.20 ℹ .nuxt/dist/server/_nuxt/entry-styles-3.mjs-BEfn7lnG.js           0.33 kB │ map:   0.11 kB
+#12 21.20 ℹ .nuxt/dist/server/_nuxt/asyncContext-BGt7WPOs.js                 0.40 kB │ map:   0.67 kB
+#12 21.20 ℹ .nuxt/dist/server/_nuxt/ssr-0HvVNPIT.js                          0.40 kB │ map:   2.04 kB
+#12 21.20 ℹ .nuxt/dist/server/_nuxt/AvatarEditor-styles-1.mjs-CrgST6Lk.js    0.45 kB │ map:   0.12 kB
+#12 21.20 ℹ .nuxt/dist/server/_nuxt/IconCSS-styles-1.mjs-BhY6DqE4.js         0.46 kB │ map:   0.11 kB
+#12 21.20 ℹ .nuxt/dist/server/_nuxt/DocumentDrivenNotFound-4pTrsASA.js       0.62 kB │ map:   0.55 kB
+#12 21.20 ℹ .nuxt/dist/server/_nuxt/DocumentDrivenEmpty-CVfz7tly.js          0.80 kB │ map:   0.94 kB
+#12 21.20 ℹ .nuxt/dist/server/_nuxt/auth-DjBYFaaF.js                         0.90 kB │ map:   1.71 kB
+#12 21.20 ℹ .nuxt/dist/server/_nuxt/Markdown-DyICXKoB.js                     0.99 kB │ map:   0.13 kB
+#12 21.20 ℹ .nuxt/dist/server/_nuxt/ingame-nFnQbLAt.js                       1.05 kB │ map:   0.24 kB
+#12 21.20 ℹ .nuxt/dist/server/_nuxt/login-Bnzl4woW.js                        1.05 kB │ map:   0.73 kB
+#12 21.20 ℹ .nuxt/dist/server/_nuxt/docs-styles-1.mjs-BPj28W5w.js            1.06 kB │ map:   0.11 kB
+#12 21.20 ℹ .nuxt/dist/server/_nuxt/ProseHr-BjRhxm_C.js                      1.07 kB │ map:   0.31 kB
+#12 21.20 ℹ .nuxt/dist/server/_nuxt/ProseCode-pTmlp-wa.js                    1.09 kB │ map:   0.14 kB
+#12 21.20 ℹ .nuxt/dist/server/_nuxt/ProseScript-D0R07iM6.js                  1.12 kB │ map:   0.65 kB
+#12 21.20 ℹ .nuxt/dist/server/_nuxt/ProseP-2OThYMZS.js                       1.17 kB │ map:   0.44 kB
+#12 21.21 ℹ .nuxt/dist/server/_nuxt/ProseUl-DdcfhcIn.js                      1.17 kB │ map:   0.45 kB
+#12 21.21 ℹ .nuxt/dist/server/_nuxt/ProseTr-CDkynQvu.js                      1.17 kB │ map:   0.45 kB
+#12 21.21 ℹ .nuxt/dist/server/_nuxt/ProseLi-CHTeBEyi.js                      1.17 kB │ map:   0.44 kB
+#12 21.21 ℹ .nuxt/dist/server/_nuxt/ProseOl-DEKjdw6x.js                      1.17 kB │ map:   0.45 kB
+#12 21.21 ℹ .nuxt/dist/server/_nuxt/ProseTd-CPf__V92.js                      1.17 kB │ map:   0.45 kB
+#12 21.21 ℹ .nuxt/dist/server/_nuxt/ProseEm-DVWZ1QiD.js                      1.17 kB │ map:   0.45 kB
+#12 21.21 ℹ .nuxt/dist/server/_nuxt/ProseTh-9r9odBUq.js                      1.17 kB │ map:   0.45 kB
+#12 21.21 ℹ .nuxt/dist/server/_nuxt/ProseTable-CBFTkvlx.js                   1.19 kB │ map:   0.46 kB
+#12 21.21 ℹ .nuxt/dist/server/_nuxt/ProseThead-B6m2vut-.js                   1.19 kB │ map:   0.46 kB
+#12 21.21 ℹ .nuxt/dist/server/_nuxt/ProseTbody-DZ-8_bDQ.js                   1.19 kB │ map:   0.46 kB
+#12 21.21 ℹ .nuxt/dist/server/_nuxt/ProseStrong-BEtqwBfJ.js                  1.20 kB │ map:   0.47 kB
+#12 21.21 ℹ .nuxt/dist/server/_nuxt/ProseCodeInline-VvTvPvyl.js              1.21 kB │ map:   0.46 kB
+#12 21.21 ℹ .nuxt/dist/server/_nuxt/ProseBlockquote-IOdQZvUi.js              1.22 kB │ map:   0.48 kB
+#12 21.21 ℹ .nuxt/dist/server/_nuxt/docs-uhJ5-b8Y.js                         1.66 kB │ map:   0.43 kB
+#12 21.21 ℹ .nuxt/dist/server/_nuxt/ProseH1-DI1npYb1.js                      1.79 kB │ map:   0.81 kB
+#12 21.21 ℹ .nuxt/dist/server/_nuxt/ProseH6-Bs09c_-e.js                      1.80 kB │ map:   0.82 kB
+#12 21.21 ℹ .nuxt/dist/server/_nuxt/ProseH2-dh03fOEf.js                      1.80 kB │ map:   0.82 kB
+#12 21.21 ℹ .nuxt/dist/server/_nuxt/ProseH4-C6hnatv7.js                      1.80 kB │ map:   0.82 kB
+#12 21.21 ℹ .nuxt/dist/server/_nuxt/ProseH5-BY2BB4p4.js                      1.80 kB │ map:   0.82 kB
+#12 21.21 ℹ .nuxt/dist/server/_nuxt/ProseH3-Cgjigz3j.js                      1.80 kB │ map:   0.82 kB
+#12 21.21 ℹ .nuxt/dist/server/_nuxt/ProseA-DGcHqAdY.js                       1.85 kB │ map:   0.16 kB
+#12 21.21 ℹ .nuxt/dist/server/_nuxt/ProseImg-BRDRILd9.js                     2.04 kB │ map:   1.46 kB
+#12 21.21 ℹ .nuxt/dist/server/_nuxt/ProsePre-B0teryc4.js                     2.24 kB │ map:   0.17 kB
+#12 21.21 ℹ .nuxt/dist/server/_nuxt/graphics-DhEhMiu2.js                     2.44 kB │ map:  19.68 kB
+#12 21.21 ℹ .nuxt/dist/server/_nuxt/preview-CJHQt5NQ.js                      2.64 kB │ map:   9.03 kB
+#12 21.21 ℹ .nuxt/dist/server/_nuxt/index-DmJTZe-0.js                        2.77 kB │ map:   4.71 kB
+#12 21.21 ℹ .nuxt/dist/server/_nuxt/ContentList-Ca9vWCMt.js                  2.86 kB │ map:   2.94 kB
+#12 21.21 ℹ .nuxt/dist/server/_nuxt/fetch-Ch0zJOiL.js                        3.01 kB │ map:   5.68 kB
+#12 21.21 ℹ .nuxt/dist/server/_nuxt/IconCSS-DYqd_0wi.js                      3.01 kB │ map:   3.04 kB
+#12 21.21 ℹ .nuxt/dist/server/_nuxt/index-B2J_3ytU.js                        3.13 kB │ map:   2.52 kB
+#12 21.21 ℹ .nuxt/dist/server/_nuxt/ContentRenderer-CEGYhulI.js              3.27 kB │ map:   3.53 kB
+#12 21.21 ℹ .nuxt/dist/server/_nuxt/ContentNavigation-Dfd3gHRO.js            4.22 kB │ map:   5.90 kB
+#12 21.21 ℹ .nuxt/dist/server/_nuxt/testing-DJ_MISAo.js                      4.79 kB │ map:  15.02 kB
+#12 21.21 ℹ .nuxt/dist/server/_nuxt/ContentSlot-DY7LiAz9.js                  4.85 kB │ map:   8.09 kB
+#12 21.21 ℹ .nuxt/dist/server/_nuxt/asyncData-ej6YIrod.js                    5.31 kB │ map:  12.64 kB
+#12 21.21 ℹ .nuxt/dist/server/_nuxt/dashboard-DIyUsNfo.js                    5.31 kB │ map:   3.36 kB
+#12 21.21 ℹ .nuxt/dist/server/_nuxt/Icon-Bofo4cZR.js                         5.92 kB │ map:   5.75 kB
+#12 21.21 ℹ .nuxt/dist/server/_nuxt/ContentQuery-YfFaoKGz.js                 6.40 kB │ map:   9.03 kB
+#12 21.21 ℹ .nuxt/dist/server/_nuxt/nuxt-link-B7NZEOMA.js                    6.97 kB │ map:  15.28 kB
+#12 21.21 ℹ .nuxt/dist/server/_nuxt/ContentDoc-BTgHAQFv.js                   7.68 kB │ map:  10.91 kB
+#12 21.21 ℹ .nuxt/dist/server/_nuxt/rooms-CMaOJkuD.js                        8.56 kB │ map:   4.80 kB
+#12 21.21 ℹ .nuxt/dist/server/_nuxt/query-C1tSZivq.js                        8.76 kB │ map:  19.54 kB
+#12 21.22 ℹ .nuxt/dist/server/_nuxt/default-DARjDmyM.js                     12.43 kB │ map:  12.46 kB
+#12 21.22 ℹ .nuxt/dist/server/_nuxt/ContentRendererMarkdown-YalWej_J.js     14.29 kB │ map:  21.96 kB
+#12 21.22 ℹ .nuxt/dist/server/_nuxt/client-db-CDMA30NH.js                   16.10 kB │ map:  29.39 kB
+#12 21.22 ℹ .nuxt/dist/server/_nuxt/_roomId_-e9DkwjqV.js                    30.50 kB │ map:  38.39 kB
+#12 21.22 ℹ .nuxt/dist/server/_nuxt/Modal-DLqTH9O2.js                       64.24 kB │ map: 112.00 kB
+#12 21.22 ℹ .nuxt/dist/server/server.mjs                                   102.04 kB │ map: 255.12 kB
+#12 21.22 ℹ .nuxt/dist/server/_nuxt/entry-styles-1.mjs-C7iMNpWN.js         303.84 kB │ map:   0.11 kB
+#12 21.22 ℹ .nuxt/dist/server/_nuxt/entry-styles-2.mjs-D6En0LdV.js         329.15 kB │ map:   0.11 kB
+#12 21.22 ℹ ✓ built in 8.86s
+#12 21.24 ✔ Server built in 8885ms
+#12 21.25 [nitro] ℹ Initializing prerenderer
+#12 23.01 
+#12 23.01  WARN  "file:///src/node_modules/nuxt/dist/core/runtime/nitro/cache-driver.js" is imported by " virtual:#internal/nitro/virtual/storage", but could not be resolved – treating it as an external dependency.
+#12 23.01 
+#12 24.04 [nitro] ℹ Prerendering 1 routes
+#12 24.12 [nitro]   ├─ /api/_content/cache.1711250800276.json (74ms)
+#12 24.12 [nitro] ℹ Prerendered 1 routes in 2.829 seconds
+#12 24.15 [nitro] ✔ Generated public .output/public
+#12 24.17 [nitro] ℹ Building Nuxt Nitro server (preset: node-server)
+#12 31.58 [nitro] ✔ Nuxt Nitro server built
+#12 32.08   ├─ .output/server/chunks/_/error-500.mjs (4.26 kB) (1.84 kB gzip)
+#12 32.08   ├─ .output/server/chunks/_/error-500.mjs.map (196 B) (157 B gzip)
+#12 32.08   ├─ .output/server/chunks/build/_roomId_-e9DkwjqV.mjs (31.3 kB) (5.68 kB gzip)
+#12 32.08   ├─ .output/server/chunks/build/_roomId_-e9DkwjqV.mjs.map (25.8 kB) (4.66 kB gzip)
+#12 32.08   ├─ .output/server/chunks/build/_roomId_-styles.DN5DBZ4-.mjs (301 B) (198 B gzip)
+#12 32.08   ├─ .output/server/chunks/build/_roomId_-styles.DN5DBZ4-.mjs.map (314 B) (209 B gzip)
+#12 32.08   ├─ .output/server/chunks/build/asyncContext-BGt7WPOs.mjs (405 B) (251 B gzip)
+#12 32.08   ├─ .output/server/chunks/build/asyncContext-BGt7WPOs.mjs.map (460 B) (274 B gzip)
+#12 32.08   ├─ .output/server/chunks/build/asyncData-ej6YIrod.mjs (5.19 kB) (1.54 kB gzip)
+#12 32.08   ├─ .output/server/chunks/build/asyncData-ej6YIrod.mjs.map (6.51 kB) (1.59 kB gzip)
+#12 32.08   ├─ .output/server/chunks/build/auth-DjBYFaaF.mjs (896 B) (415 B gzip)
+#12 32.08   ├─ .output/server/chunks/build/auth-DjBYFaaF.mjs.map (1.06 kB) (437 B gzip)
+#12 32.08   ├─ .output/server/chunks/build/AvatarEditor-styles.lCoAu7OW.mjs (508 B) (272 B gzip)
+#12 32.08   ├─ .output/server/chunks/build/AvatarEditor-styles.lCoAu7OW.mjs.map (326 B) (210 B gzip)
+#12 32.08   ├─ .output/server/chunks/build/client-db-CDMA30NH.mjs (16.8 kB) (4.76 kB gzip)
+#12 32.08   ├─ .output/server/chunks/build/client-db-CDMA30NH.mjs.map (17.6 kB) (3.88 kB gzip)
+#12 32.08   ├─ .output/server/chunks/build/client.manifest.mjs (26.5 kB) (2.33 kB gzip)
+#12 32.08   ├─ .output/server/chunks/build/client.manifest.mjs.map (21.3 kB) (1.19 kB gzip)
+#12 32.08   ├─ .output/server/chunks/build/ContentDoc-BTgHAQFv.mjs (8.51 kB) (2.6 kB gzip)
+#12 32.08   ├─ .output/server/chunks/build/ContentDoc-BTgHAQFv.mjs.map (7.33 kB) (1.71 kB gzip)
+#12 32.08   ├─ .output/server/chunks/build/ContentList-Ca9vWCMt.mjs (3.64 kB) (1.34 kB gzip)
+#12 32.08   ├─ .output/server/chunks/build/ContentList-Ca9vWCMt.mjs.map (2.33 kB) (724 B gzip)
+#12 32.08   ├─ .output/server/chunks/build/ContentNavigation-Dfd3gHRO.mjs (5.01 kB) (1.85 kB gzip)
+#12 32.08   ├─ .output/server/chunks/build/ContentNavigation-Dfd3gHRO.mjs.map (3.83 kB) (1.18 kB gzip)
+#12 32.08   ├─ .output/server/chunks/build/ContentQuery-YfFaoKGz.mjs (7.18 kB) (2.02 kB gzip)
+#12 32.08   ├─ .output/server/chunks/build/ContentQuery-YfFaoKGz.mjs.map (6.27 kB) (1.27 kB gzip)
+#12 32.08   ├─ .output/server/chunks/build/ContentRenderer-CEGYhulI.mjs (4.03 kB) (1.45 kB gzip)
+#12 32.08   ├─ .output/server/chunks/build/ContentRenderer-CEGYhulI.mjs.map (2.93 kB) (848 B gzip)
+#12 32.08   ├─ .output/server/chunks/build/ContentRendererMarkdown-YalWej_J.mjs (15.1 kB) (4.42 kB gzip)
+#12 32.08   ├─ .output/server/chunks/build/ContentRendererMarkdown-YalWej_J.mjs.map (17.5 kB) (3.55 kB gzip)
+#12 32.08   ├─ .output/server/chunks/build/ContentSlot-DY7LiAz9.mjs (4.85 kB) (1.51 kB gzip)
+#12 32.08   ├─ .output/server/chunks/build/ContentSlot-DY7LiAz9.mjs.map (6.16 kB) (1.48 kB gzip)
+#12 32.08   ├─ .output/server/chunks/build/dashboard-DIyUsNfo.mjs (6.11 kB) (2.04 kB gzip)
+#12 32.08   ├─ .output/server/chunks/build/dashboard-DIyUsNfo.mjs.map (4.26 kB) (1.26 kB gzip)
+#12 32.08   ├─ .output/server/chunks/build/default-DARjDmyM.mjs (13.2 kB) (3.44 kB gzip)
+#12 32.08   ├─ .output/server/chunks/build/default-DARjDmyM.mjs.map (11.9 kB) (2.37 kB gzip)
+#12 32.08   ├─ .output/server/chunks/build/docs-styles.DeGrfALB.mjs (1.1 kB) (491 B gzip)
+#12 32.08   ├─ .output/server/chunks/build/docs-styles.DeGrfALB.mjs.map (300 B) (204 B gzip)
+#12 32.08   ├─ .output/server/chunks/build/docs-uhJ5-b8Y.mjs (2.42 kB) (983 B gzip)
+#12 32.08   ├─ .output/server/chunks/build/docs-uhJ5-b8Y.mjs.map (1.02 kB) (440 B gzip)
+#12 32.08   ├─ .output/server/chunks/build/DocumentDrivenEmpty-CVfz7tly.mjs (805 B) (452 B gzip)
+#12 32.08   ├─ .output/server/chunks/build/DocumentDrivenEmpty-CVfz7tly.mjs.map (934 B) (427 B gzip)
+#12 32.08   ├─ .output/server/chunks/build/DocumentDrivenNotFound-4pTrsASA.mjs (616 B) (355 B gzip)
+#12 32.08   ├─ .output/server/chunks/build/DocumentDrivenNotFound-4pTrsASA.mjs.map (645 B) (343 B gzip)
+#12 32.08   ├─ .output/server/chunks/build/entry-styles.C-yUvAfi.mjs (633 kB) (68.5 kB gzip)
+#12 32.08   ├─ .output/server/chunks/build/entry-styles.C-yUvAfi.mjs.map (560 B) (273 B gzip)
+#12 32.08   ├─ .output/server/chunks/build/fetch-Ch0zJOiL.mjs (3.04 kB) (1.15 kB gzip)
+#12 32.08   ├─ .output/server/chunks/build/fetch-Ch0zJOiL.mjs.map (3.46 kB) (1.01 kB gzip)
+#12 32.08   ├─ .output/server/chunks/build/graphics-DhEhMiu2.mjs (2.4 kB) (641 B gzip)
+#12 32.08   ├─ .output/server/chunks/build/graphics-DhEhMiu2.mjs.map (3.22 kB) (718 B gzip)
+#12 32.08   ├─ .output/server/chunks/build/Icon-Bofo4cZR.mjs (6.76 kB) (2.04 kB gzip)
+#12 32.08   ├─ .output/server/chunks/build/Icon-Bofo4cZR.mjs.map (6.29 kB) (1.5 kB gzip)
+#12 32.08   ├─ .output/server/chunks/build/Icon-styles.D_CRgw4L.mjs (310 B) (216 B gzip)
+#12 32.08   ├─ .output/server/chunks/build/Icon-styles.D_CRgw4L.mjs.map (302 B) (205 B gzip)
+#12 32.08   ├─ .output/server/chunks/build/IconCSS-DYqd_0wi.mjs (3.82 kB) (1.42 kB gzip)
+#12 32.08   ├─ .output/server/chunks/build/IconCSS-DYqd_0wi.mjs.map (3.02 kB) (919 B gzip)
+#12 32.08   ├─ .output/server/chunks/build/IconCSS-styles.D5ci0eBM.mjs (516 B) (296 B gzip)
+#12 32.08   ├─ .output/server/chunks/build/IconCSS-styles.D5ci0eBM.mjs.map (311 B) (208 B gzip)
+#12 32.08   ├─ .output/server/chunks/build/index-B2J_3ytU.mjs (3.94 kB) (1.41 kB gzip)
+#12 32.08   ├─ .output/server/chunks/build/index-B2J_3ytU.mjs.map (2.34 kB) (649 B gzip)
+#12 32.08   ├─ .output/server/chunks/build/index-DmJTZe-0.mjs (2.77 kB) (1.14 kB gzip)
+#12 32.08   ├─ .output/server/chunks/build/index-DmJTZe-0.mjs.map (2.72 kB) (685 B gzip)
+#12 32.08   ├─ .output/server/chunks/build/index-styles.BFPNyKTs.mjs (329 B) (228 B gzip)
+#12 32.08   ├─ .output/server/chunks/build/index-styles.BFPNyKTs.mjs.map (305 B) (209 B gzip)
+#12 32.08   ├─ .output/server/chunks/build/ingame-nFnQbLAt.mjs (1.86 kB) (745 B gzip)
+#12 32.08   ├─ .output/server/chunks/build/ingame-nFnQbLAt.mjs.map (772 B) (355 B gzip)
+#12 32.08   ├─ .output/server/chunks/build/login-Bnzl4woW.mjs (1.05 kB) (545 B gzip)
+#12 32.08   ├─ .output/server/chunks/build/login-Bnzl4woW.mjs.map (1.08 kB) (465 B gzip)
+#12 32.08   ├─ .output/server/chunks/build/Markdown-DyICXKoB.mjs (990 B) (513 B gzip)
+#12 32.08   ├─ .output/server/chunks/build/Markdown-DyICXKoB.mjs.map (1.02 kB) (450 B gzip)
+#12 32.08   ├─ .output/server/chunks/build/mdc-imports.mjs (3.25 kB) (1.19 kB gzip)
+#12 32.08   ├─ .output/server/chunks/build/mdc-imports.mjs.map (373 B) (209 B gzip)
+#12 32.08   ├─ .output/server/chunks/build/Modal-DLqTH9O2.mjs (64.2 kB) (17.2 kB gzip)
+#12 32.08   ├─ .output/server/chunks/build/Modal-DLqTH9O2.mjs.map (87.8 kB) (14.7 kB gzip)
+#12 32.08   ├─ .output/server/chunks/build/nuxt-link-B7NZEOMA.mjs (7.06 kB) (2.04 kB gzip)
+#12 32.08   ├─ .output/server/chunks/build/nuxt-link-B7NZEOMA.mjs.map (6.57 kB) (1.62 kB gzip)
+#12 32.08   ├─ .output/server/chunks/build/preview-CJHQt5NQ.mjs (2.64 kB) (1.02 kB gzip)
+#12 32.08   ├─ .output/server/chunks/build/preview-CJHQt5NQ.mjs.map (3.03 kB) (967 B gzip)
+#12 32.08   ├─ .output/server/chunks/build/ProseA-DGcHqAdY.mjs (2.66 kB) (1.03 kB gzip)
+#12 32.08   ├─ .output/server/chunks/build/ProseA-DGcHqAdY.mjs.map (1.49 kB) (569 B gzip)
+#12 32.08   ├─ .output/server/chunks/build/ProseBlockquote-IOdQZvUi.mjs (2.03 kB) (816 B gzip)
+#12 32.08   ├─ .output/server/chunks/build/ProseBlockquote-IOdQZvUi.mjs.map (917 B) (396 B gzip)
+#12 32.08   ├─ .output/server/chunks/build/ProseCode-pTmlp-wa.mjs (1.09 kB) (502 B gzip)
+#12 32.08   ├─ .output/server/chunks/build/ProseCode-pTmlp-wa.mjs.map (1.2 kB) (454 B gzip)
+#12 32.08   ├─ .output/server/chunks/build/ProseCode-styles.BaOCvZyF.mjs (282 B) (190 B gzip)
+#12 32.08   ├─ .output/server/chunks/build/ProseCode-styles.BaOCvZyF.mjs.map (317 B) (205 B gzip)
+#12 32.08   ├─ .output/server/chunks/build/ProseCodeInline-VvTvPvyl.mjs (2.02 kB) (812 B gzip)
+#12 32.08   ├─ .output/server/chunks/build/ProseCodeInline-VvTvPvyl.mjs.map (917 B) (395 B gzip)
+#12 32.08   ├─ .output/server/chunks/build/ProseEm-DVWZ1QiD.mjs (1.98 kB) (807 B gzip)
+#12 32.08   ├─ .output/server/chunks/build/ProseEm-DVWZ1QiD.mjs.map (900 B) (387 B gzip)
+#12 32.08   ├─ .output/server/chunks/build/ProseH1-DI1npYb1.mjs (2.6 kB) (1.03 kB gzip)
+#12 32.08   ├─ .output/server/chunks/build/ProseH1-DI1npYb1.mjs.map (1.69 kB) (606 B gzip)
+#12 32.08   ├─ .output/server/chunks/build/ProseH2-dh03fOEf.mjs (2.61 kB) (1.03 kB gzip)
+#12 32.08   ├─ .output/server/chunks/build/ProseH2-dh03fOEf.mjs.map (1.71 kB) (612 B gzip)
+#12 32.08   ├─ .output/server/chunks/build/ProseH3-Cgjigz3j.mjs (2.61 kB) (1.03 kB gzip)
+#12 32.08   ├─ .output/server/chunks/build/ProseH3-Cgjigz3j.mjs.map (1.71 kB) (612 B gzip)
+#12 32.08   ├─ .output/server/chunks/build/ProseH4-C6hnatv7.mjs (2.61 kB) (1.03 kB gzip)
+#12 32.08   ├─ .output/server/chunks/build/ProseH4-C6hnatv7.mjs.map (1.71 kB) (611 B gzip)
+#12 32.08   ├─ .output/server/chunks/build/ProseH5-BY2BB4p4.mjs (2.61 kB) (1.04 kB gzip)
+#12 32.08   ├─ .output/server/chunks/build/ProseH5-BY2BB4p4.mjs.map (1.71 kB) (612 B gzip)
+#12 32.08   ├─ .output/server/chunks/build/ProseH6-Bs09c_-e.mjs (2.61 kB) (1.03 kB gzip)
+#12 32.08   ├─ .output/server/chunks/build/ProseH6-Bs09c_-e.mjs.map (1.71 kB) (612 B gzip)
+#12 32.08   ├─ .output/server/chunks/build/ProseHr-BjRhxm_C.mjs (1.88 kB) (768 B gzip)
+#12 32.08   ├─ .output/server/chunks/build/ProseHr-BjRhxm_C.mjs.map (769 B) (354 B gzip)
+#12 32.08   ├─ .output/server/chunks/build/ProseImg-BRDRILd9.mjs (2.87 kB) (1.11 kB gzip)
+#12 32.08   ├─ .output/server/chunks/build/ProseImg-BRDRILd9.mjs.map (1.91 kB) (648 B gzip)
+#12 32.08   ├─ .output/server/chunks/build/ProseLi-CHTeBEyi.mjs (1.98 kB) (806 B gzip)
+#12 32.08   ├─ .output/server/chunks/build/ProseLi-CHTeBEyi.mjs.map (900 B) (386 B gzip)
+#12 32.08   ├─ .output/server/chunks/build/ProseOl-DEKjdw6x.mjs (1.98 kB) (807 B gzip)
+#12 32.08   ├─ .output/server/chunks/build/ProseOl-DEKjdw6x.mjs.map (900 B) (387 B gzip)
+#12 32.08   ├─ .output/server/chunks/build/ProseP-2OThYMZS.mjs (1.98 kB) (806 B gzip)
+#12 32.08   ├─ .output/server/chunks/build/ProseP-2OThYMZS.mjs.map (898 B) (386 B gzip)
+#12 32.08   ├─ .output/server/chunks/build/ProsePre-B0teryc4.mjs (2.25 kB) (825 B gzip)
+#12 32.08   ├─ .output/server/chunks/build/ProsePre-B0teryc4.mjs.map (2.28 kB) (719 B gzip)
+#12 32.08   ├─ .output/server/chunks/build/ProsePre-styles.CQChdepm.mjs (277 B) (187 B gzip)
+#12 32.08   ├─ .output/server/chunks/build/ProsePre-styles.CQChdepm.mjs.map (314 B) (204 B gzip)
+#12 32.08   ├─ .output/server/chunks/build/ProseScript-D0R07iM6.mjs (1.12 kB) (587 B gzip)
+#12 32.08   ├─ .output/server/chunks/build/ProseScript-D0R07iM6.mjs.map (1.02 kB) (459 B gzip)
+#12 32.08   ├─ .output/server/chunks/build/ProseStrong-BEtqwBfJ.mjs (2.01 kB) (809 B gzip)
+#12 32.08   ├─ .output/server/chunks/build/ProseStrong-BEtqwBfJ.mjs.map (909 B) (393 B gzip)
+#12 32.08   ├─ .output/server/chunks/build/ProseTable-CBFTkvlx.mjs (2 kB) (809 B gzip)
+#12 32.08   ├─ .output/server/chunks/build/ProseTable-CBFTkvlx.mjs.map (907 B) (390 B gzip)
+#12 32.08   ├─ .output/server/chunks/build/ProseTbody-DZ-8_bDQ.mjs (2 kB) (811 B gzip)
+#12 32.08   ├─ .output/server/chunks/build/ProseTbody-DZ-8_bDQ.mjs.map (907 B) (392 B gzip)
+#12 32.08   ├─ .output/server/chunks/build/ProseTd-CPf__V92.mjs (1.98 kB) (807 B gzip)
+#12 32.08   ├─ .output/server/chunks/build/ProseTd-CPf__V92.mjs.map (900 B) (388 B gzip)
+#12 32.08   ├─ .output/server/chunks/build/ProseTh-9r9odBUq.mjs (1.98 kB) (805 B gzip)
+#12 32.08   ├─ .output/server/chunks/build/ProseTh-9r9odBUq.mjs.map (900 B) (387 B gzip)
+#12 32.08   ├─ .output/server/chunks/build/ProseThead-B6m2vut-.mjs (2 kB) (809 B gzip)
+#12 32.08   ├─ .output/server/chunks/build/ProseThead-B6m2vut-.mjs.map (907 B) (390 B gzip)
+#12 32.08   ├─ .output/server/chunks/build/ProseTr-CDkynQvu.mjs (1.98 kB) (804 B gzip)
+#12 32.08   ├─ .output/server/chunks/build/ProseTr-CDkynQvu.mjs.map (900 B) (387 B gzip)
+#12 32.08   ├─ .output/server/chunks/build/ProseUl-DdcfhcIn.mjs (1.98 kB) (805 B gzip)
+#12 32.08   ├─ .output/server/chunks/build/ProseUl-DdcfhcIn.mjs.map (900 B) (386 B gzip)
+#12 32.08   ├─ .output/server/chunks/build/query-C1tSZivq.mjs (8.72 kB) (2.93 kB gzip)
+#12 32.08   ├─ .output/server/chunks/build/query-C1tSZivq.mjs.map (10.7 kB) (2.51 kB gzip)
+#12 32.08   ├─ .output/server/chunks/build/rooms-CMaOJkuD.mjs (9.36 kB) (2.64 kB gzip)
+#12 32.08   ├─ .output/server/chunks/build/rooms-CMaOJkuD.mjs.map (6.79 kB) (1.1 kB gzip)
+#12 32.08   ├─ .output/server/chunks/build/server.mjs (74.9 kB) (19.6 kB gzip)
+#12 32.08   ├─ .output/server/chunks/build/server.mjs.map (85.4 kB) (12.2 kB gzip)
+#12 32.08   ├─ .output/server/chunks/build/ssr-0HvVNPIT.mjs (402 B) (245 B gzip)
+#12 32.08   ├─ .output/server/chunks/build/ssr-0HvVNPIT.mjs.map (479 B) (266 B gzip)
+#12 32.08   ├─ .output/server/chunks/build/styles.mjs (2.3 kB) (542 B gzip)
+#12 32.08   ├─ .output/server/chunks/build/styles.mjs.map (1.34 kB) (359 B gzip)
+#12 32.08   ├─ .output/server/chunks/build/testing-DJ_MISAo.mjs (4.79 kB) (1.48 kB gzip)
+#12 32.08   ├─ .output/server/chunks/build/testing-DJ_MISAo.mjs.map (5.08 kB) (1.28 kB gzip)
+#12 32.08   ├─ .output/server/chunks/raw/content-index.mjs (161 B) (152 B gzip)
+#12 32.08   ├─ .output/server/chunks/raw/content-index.mjs.map (105 B) (103 B gzip)
+#12 32.08   ├─ .output/server/chunks/raw/content-navigation.mjs (198 B) (173 B gzip)
+#12 32.08   ├─ .output/server/chunks/raw/content-navigation.mjs.map (110 B) (106 B gzip)
+#12 32.08   ├─ .output/server/chunks/raw/docs.mjs (14.2 kB) (1.91 kB gzip)
+#12 32.08   ├─ .output/server/chunks/raw/docs.mjs.map (96 B) (99 B gzip)
+#12 32.08   ├─ .output/server/chunks/routes/api/auth/_..._.mjs (314 kB) (75.8 kB gzip)
+#12 32.08   ├─ .output/server/chunks/routes/api/auth/_..._.mjs.map (8.49 kB) (1.48 kB gzip)
+#12 32.08   ├─ .output/server/chunks/routes/api/index.get.mjs (1.35 kB) (543 B gzip)
+#12 32.08   ├─ .output/server/chunks/routes/api/index.get.mjs.map (441 B) (203 B gzip)
+#12 32.08   ├─ .output/server/chunks/routes/api/login/github/callback.get.mjs (2.9 kB) (1.08 kB gzip)
+#12 32.08   ├─ .output/server/chunks/routes/api/login/github/callback.get.mjs.map (2.12 kB) (475 B gzip)
+#12 32.08   ├─ .output/server/chunks/routes/api/login/index.get.mjs (1.54 kB) (642 B gzip)
+#12 32.08   ├─ .output/server/chunks/routes/api/login/index.get.mjs.map (612 B) (247 B gzip)
+#12 32.08   ├─ .output/server/chunks/routes/api/logout.post.mjs (1.46 kB) (598 B gzip)
+#12 32.08   ├─ .output/server/chunks/routes/api/logout.post.mjs.map (519 B) (223 B gzip)
+#12 32.08   ├─ .output/server/chunks/routes/api/room/create.post.mjs (2.58 kB) (1.05 kB gzip)
+#12 32.08   ├─ .output/server/chunks/routes/api/room/create.post.mjs.map (1.81 kB) (437 B gzip)
+#12 32.08   ├─ .output/server/chunks/routes/api/room/info.get.mjs (1.67 kB) (664 B gzip)
+#12 32.08   ├─ .output/server/chunks/routes/api/room/info.get.mjs.map (778 B) (259 B gzip)
+#12 32.08   ├─ .output/server/chunks/routes/api/room/masterKey.get.mjs (2.1 kB) (811 B gzip)
+#12 32.08   ├─ .output/server/chunks/routes/api/room/masterKey.get.mjs.map (1.32 kB) (331 B gzip)
+#12 32.08   ├─ .output/server/chunks/routes/api/room/tempKey.post.mjs (2.15 kB) (830 B gzip)
+#12 32.08   ├─ .output/server/chunks/routes/api/room/tempKey.post.mjs.map (1.37 kB) (342 B gzip)
+#12 32.08   ├─ .output/server/chunks/routes/api/self/index.delete.mjs (1.67 kB) (691 B gzip)
+#12 32.08   ├─ .output/server/chunks/routes/api/self/index.delete.mjs.map (826 B) (294 B gzip)
+#12 32.08   ├─ .output/server/chunks/routes/api/self/index.post.mjs (1.71 kB) (703 B gzip)
+#12 32.08   ├─ .output/server/chunks/routes/api/self/index.post.mjs.map (877 B) (300 B gzip)
+#12 32.08   ├─ .output/server/chunks/routes/api/self/profile.get.mjs (1.51 kB) (585 B gzip)
+#12 32.08   ├─ .output/server/chunks/routes/api/self/profile.get.mjs.map (612 B) (225 B gzip)
+#12 32.08   ├─ .output/server/chunks/routes/api/self/profile.patch.mjs (2.03 kB) (803 B gzip)
+#12 32.08   ├─ .output/server/chunks/routes/api/self/profile.patch.mjs.map (1.39 kB) (344 B gzip)
+#12 32.08   ├─ .output/server/chunks/routes/api/self/profile.post.mjs (2.42 kB) (962 B gzip)
+#12 32.08   ├─ .output/server/chunks/routes/api/self/profile.post.mjs.map (2.04 kB) (427 B gzip)
+#12 32.08   ├─ .output/server/chunks/routes/api/self/token/temp.post.mjs (1.59 kB) (661 B gzip)
+#12 32.08   ├─ .output/server/chunks/routes/api/self/token/temp.post.mjs.map (746 B) (273 B gzip)
+#12 32.08   ├─ .output/server/chunks/routes/api/self/tokens.get.mjs (1.53 kB) (630 B gzip)
+#12 32.08   ├─ .output/server/chunks/routes/api/self/tokens.get.mjs.map (639 B) (258 B gzip)
+#12 32.08   ├─ .output/server/chunks/routes/api/self/user.get.mjs (1.26 kB) (511 B gzip)
+#12 32.08   ├─ .output/server/chunks/routes/api/self/user.get.mjs.map (361 B) (182 B gzip)
+#12 32.08   ├─ .output/server/chunks/routes/renderer.mjs (14.6 kB) (4.62 kB gzip)
+#12 32.08   ├─ .output/server/chunks/routes/renderer.mjs.map (424 B) (225 B gzip)
+#12 32.08   ├─ .output/server/chunks/virtual/_virtual_spa-template.mjs (94 B) (100 B gzip)
+#12 32.08   ├─ .output/server/chunks/virtual/_virtual_spa-template.mjs.map (112 B) (111 B gzip)
+#12 32.08   ├─ .output/server/index.mjs (1.19 kB) (467 B gzip)
+#12 32.08   └─ .output/server/package.json (6.95 kB) (1.86 kB gzip)
+#12 32.08 Σ Total size: 10.9 MB (2.68 MB gzip)
+#12 32.08 [nitro] ✔ You can preview this build using node .output/server/index.mjs
+#12 32.22 Done in 30.91s.
+#12 DONE 32.3s
 
-#13 [server build 4/4] RUN yarn run build
-#13 0.429 yarn run v1.22.19
-#13 0.460 $ nuxt build
-#13 0.642 Nuxt 3.8.2 with Nitro 2.8.0
-#13 1.859 [@auth/nuxt] ℹ Adding @auth/nuxt module... { verifyClientOnEveryRequest: true,
-#13 1.859   guestRedirectTo: '/',
-#13 1.859   authenticatedRedirectTo: '/',
-#13 1.859   baseUrl: '' }
-#13 1.860 [@auth/nuxt] ✔ Added @auth/nuxt module successfully.
-#13 2.061 [nuxt:tailwindcss] ℹ Using default Tailwind CSS file
-#13 3.010 ℹ Building client...
-#13 3.020 ℹ vite v4.5.0 building for production...
-#13 3.050 ℹ transforming...
-#13 7.865 
-#13 7.865  WARN  [plugin:vite:resolve] Module "node:crypto" has been externalized for browser compatibility, imported by "/usr/src/app/node_modules/@hebilicious/authjs-nuxt/dist/runtime/lib/server.mjs". See http://vitejs.dev/guide/troubleshooting.html#module-externalized-for-browser-compatibility for more details.
-#13 7.865 
-#13 10.56 ℹ ✓ 973 modules transformed.
-#13 10.76 Inspect report generated at /usr/src/app/.nuxt/analyze/.vite-inspect
-#13 10.98 ℹ rendering chunks...
-#13 11.18 ℹ computing gzip size...
-#13 11.20 ℹ .nuxt/dist/client/manifest.json                                   21.35 kB │ gzip:   2.01 kB
-#13 11.20 ℹ .nuxt/dist/client/_nuxt/ProsePre.e63e49c6.css                      0.05 kB │ gzip:   0.07 kB
-#13 11.20 ℹ .nuxt/dist/client/_nuxt/Icon.cf693866.css                          0.07 kB │ gzip:   0.09 kB
-#13 11.20 ℹ .nuxt/dist/client/_nuxt/index.02e38b99.css                         0.08 kB │ gzip:   0.09 kB
-#13 11.20 ℹ .nuxt/dist/client/_nuxt/register.0fe3cec3.css                      0.23 kB │ gzip:   0.15 kB
-#13 11.20 ℹ .nuxt/dist/client/_nuxt/IconCSS.3544dd2a.css                       0.26 kB │ gzip:   0.17 kB
-#13 11.20 ℹ .nuxt/dist/client/_nuxt/ProseCode.cc041a48.js                      0.10 kB │ gzip:   0.11 kB
-#13 11.20 ℹ .nuxt/dist/client/_nuxt/__vite-browser-external.66d318e3.js        0.13 kB │ gzip:   0.14 kB
-#13 11.20 ℹ .nuxt/dist/client/_nuxt/ProseHr.548f405d.js                        0.15 kB │ gzip:   0.14 kB
-#13 11.21 ℹ .nuxt/dist/client/_nuxt/ingame.892f0f2d.js                         0.15 kB │ gzip:   0.15 kB
-#13 11.21 ℹ .nuxt/dist/client/_nuxt/DocumentDrivenNotFound.8d8c44d0.js         0.16 kB │ gzip:   0.15 kB
-#13 11.21 ℹ .nuxt/dist/client/_nuxt/ContentRendererMarkdown.8c1c855f.js        0.17 kB │ gzip:   0.15 kB
-#13 11.21 ℹ .nuxt/dist/client/_nuxt/ProseTr.7f061e8e.js                        0.18 kB │ gzip:   0.16 kB
-#13 11.21 ℹ .nuxt/dist/client/_nuxt/ProseP.dac59857.js                         0.19 kB │ gzip:   0.17 kB
-#13 11.21 ℹ .nuxt/dist/client/_nuxt/ProseUl.1c253043.js                        0.19 kB │ gzip:   0.17 kB
-#13 11.21 ℹ .nuxt/dist/client/_nuxt/ProseTh.3d794e44.js                        0.19 kB │ gzip:   0.17 kB
-#13 11.21 ℹ .nuxt/dist/client/_nuxt/ProseTd.75d06ad5.js                        0.19 kB │ gzip:   0.17 kB
-#13 11.21 ℹ .nuxt/dist/client/_nuxt/ProseEm.dff5c9d7.js                        0.19 kB │ gzip:   0.17 kB
-#13 11.21 ℹ .nuxt/dist/client/_nuxt/ProseOl.70b74620.js                        0.19 kB │ gzip:   0.17 kB
-#13 11.21 ℹ .nuxt/dist/client/_nuxt/ProseLi.2f709203.js                        0.19 kB │ gzip:   0.17 kB
-#13 11.21 ℹ .nuxt/dist/client/_nuxt/ProseCodeInline.94f9c40a.js                0.19 kB │ gzip:   0.17 kB
-#13 11.21 ℹ .nuxt/dist/client/_nuxt/ProseTable.482d37ff.js                     0.19 kB │ gzip:   0.17 kB
-#13 11.21 ℹ .nuxt/dist/client/_nuxt/ProseBlockquote.ab82a315.js                0.19 kB │ gzip:   0.17 kB
-#13 11.21 ℹ .nuxt/dist/client/_nuxt/ProseTbody.60ef4ac7.js                     0.19 kB │ gzip:   0.17 kB
-#13 11.21 ℹ .nuxt/dist/client/_nuxt/ProseThead.78a7b332.js                     0.19 kB │ gzip:   0.17 kB
-#13 11.21 ℹ .nuxt/dist/client/_nuxt/ProseStrong.28859411.js                    0.19 kB │ gzip:   0.17 kB
-#13 11.21 ℹ .nuxt/dist/client/_nuxt/DocumentDrivenEmpty.1c05ace0.js            0.29 kB │ gzip:   0.24 kB
-#13 11.21 ℹ .nuxt/dist/client/_nuxt/ProseCode.vue.6808da2d.js                  0.32 kB │ gzip:   0.22 kB
-#13 11.21 ℹ .nuxt/dist/client/_nuxt/Markdown.2a6ad2b9.js                       0.33 kB │ gzip:   0.26 kB
-#13 11.21 ℹ .nuxt/dist/client/_nuxt/guest-only.e694bc27.js                     0.37 kB │ gzip:   0.24 kB
-#13 11.21 ℹ .nuxt/dist/client/_nuxt/auth.88d4fa5c.js                           0.37 kB │ gzip:   0.24 kB
-#13 11.21 ℹ .nuxt/dist/client/_nuxt/ProseA.6c704528.js                         0.40 kB │ gzip:   0.28 kB
-#13 11.21 ℹ .nuxt/dist/client/_nuxt/ProseH1.45ea53be.js                        0.44 kB │ gzip:   0.32 kB
-#13 11.21 ℹ .nuxt/dist/client/_nuxt/ProseH3.fedd6442.js                        0.45 kB │ gzip:   0.33 kB
-#13 11.21 ℹ .nuxt/dist/client/_nuxt/ProseH5.b694d362.js                        0.45 kB │ gzip:   0.32 kB
-#13 11.22 ℹ .nuxt/dist/client/_nuxt/ProseH4.4e1f0528.js                        0.45 kB │ gzip:   0.32 kB
-#13 11.22 ℹ .nuxt/dist/client/_nuxt/ProseH6.0797d456.js                        0.45 kB │ gzip:   0.33 kB
-#13 11.22 ℹ .nuxt/dist/client/_nuxt/ProseH2.3542ca89.js                        0.45 kB │ gzip:   0.33 kB
-#13 11.22 ℹ .nuxt/dist/client/_nuxt/ProseScript.d00d5a93.js                    0.49 kB │ gzip:   0.34 kB
-#13 11.22 ℹ .nuxt/dist/client/_nuxt/login.e9d0ac2d.js                          0.52 kB │ gzip:   0.34 kB
-#13 11.22 ℹ .nuxt/dist/client/_nuxt/avatar.22baddbf.js                         0.53 kB │ gzip:   0.27 kB
-#13 11.22 ℹ .nuxt/dist/client/_nuxt/ProseImg.4d4257e1.js                       0.62 kB │ gzip:   0.38 kB
-#13 11.22 ℹ .nuxt/dist/client/_nuxt/default.d7cc7f8c.js                        0.64 kB │ gzip:   0.41 kB
-#13 11.22 ℹ .nuxt/dist/client/_nuxt/_commonjsHelpers.de833af9.js               0.69 kB │ gzip:   0.38 kB
-#13 11.22 ℹ .nuxt/dist/client/_nuxt/index.13aa9e49.js                          0.73 kB │ gzip:   0.40 kB
-#13 11.22 ℹ .nuxt/dist/client/_nuxt/ProsePre.533dd866.js                       0.74 kB │ gzip:   0.39 kB
-#13 11.22 ℹ .nuxt/dist/client/_nuxt/ContentList.b093cab0.js                    0.92 kB │ gzip:   0.51 kB
-#13 11.22 ℹ .nuxt/dist/client/_nuxt/IconCSS.7a9b229e.js                        1.07 kB │ gzip:   0.63 kB
-#13 11.22 ℹ .nuxt/dist/client/_nuxt/ContentRenderer.6feb23f5.js                1.27 kB │ gzip:   0.64 kB
-#13 11.22 ℹ .nuxt/dist/client/_nuxt/index.1b1e4d7c.js                          1.35 kB │ gzip:   0.77 kB
-#13 11.22 ℹ .nuxt/dist/client/_nuxt/ContentNavigation.03a48166.js              1.80 kB │ gzip:   0.94 kB
-#13 11.22 ℹ .nuxt/dist/client/_nuxt/ContentSlot.1d5584c0.js                    1.95 kB │ gzip:   0.90 kB
-#13 11.22 ℹ .nuxt/dist/client/_nuxt/ContentDoc.a4de97a5.js                     2.09 kB │ gzip:   0.98 kB
-#13 11.22 ℹ .nuxt/dist/client/_nuxt/index.b8fe2cb5.js                          2.10 kB │ gzip:   0.98 kB
-#13 11.22 ℹ .nuxt/dist/client/_nuxt/ContentQuery.cd47695c.js                   2.52 kB │ gzip:   1.05 kB
-#13 11.22 ℹ .nuxt/dist/client/_nuxt/preview.351698db.js                        3.84 kB │ gzip:   1.64 kB
-#13 11.23 ℹ .nuxt/dist/client/_nuxt/nuxt-link.9584019d.js                      4.19 kB │ gzip:   1.77 kB
-#13 11.23 ℹ .nuxt/dist/client/_nuxt/query.6351d4dd.js                          4.46 kB │ gzip:   2.10 kB
-#13 11.23 ℹ .nuxt/dist/client/_nuxt/index.b09b0631.js                         10.87 kB │ gzip:   4.48 kB
-#13 11.23 ℹ .nuxt/dist/client/_nuxt/client-db.f9cba751.js                     20.69 kB │ gzip:   8.62 kB
-#13 11.23 ℹ .nuxt/dist/client/_nuxt/Icon.a4c8c706.js                          22.02 kB │ gzip:   8.34 kB
-#13 11.23 ℹ .nuxt/dist/client/_nuxt/ContentRendererMarkdown.vue.c62298c5.js   23.55 kB │ gzip:   8.40 kB
-#13 11.23 ℹ .nuxt/dist/client/_nuxt/rooms.b589ddc0.js                         38.44 kB │ gzip:  13.82 kB
-#13 11.23 ℹ .nuxt/dist/client/_nuxt/entry.4fbc5559.js                        209.12 kB │ gzip:  77.65 kB
-#13 11.23 ℹ .nuxt/dist/client/_nuxt/register.e1401980.js                     482.29 kB │ gzip: 145.64 kB
-#13 11.23 ℹ ✓ built in 8.21s
-#13 11.23 ✔ Client built in 8218ms
-#13 11.23 ℹ Building server...
-#13 11.23 ℹ vite v4.5.0 building SSR bundle for production...
-#13 11.24 ℹ transforming...
-#13 18.01 ℹ ✓ 341 modules transformed.
-#13 18.24 Inspect report generated at /usr/src/app/.nuxt/analyze/.vite-inspect
-#13 18.33 ℹ rendering chunks...
-#13 18.48 ℹ .nuxt/dist/server/_nuxt/register-styles.44d6dccd.mjs           0.08 kB
-#13 18.48 ℹ .nuxt/dist/server/_nuxt/ProseCode-styles.93005832.mjs          0.08 kB
-#13 18.48 ℹ .nuxt/dist/server/_nuxt/Icon-styles.5a0fe09d.mjs               0.14 kB
-#13 18.48 ℹ .nuxt/dist/server/_nuxt/index-styles.f772dcaf.mjs              0.15 kB
-#13 18.48 ℹ .nuxt/dist/server/_nuxt/IconCSS-styles.6ad8301c.mjs            0.15 kB
-#13 18.48 ℹ .nuxt/dist/server/_nuxt/ProsePre-styles.9d8d359a.mjs           0.15 kB
-#13 18.48 ℹ .nuxt/dist/server/_nuxt/entry-styles.29b35f25.mjs              0.21 kB
-#13 18.48 ℹ .nuxt/dist/server/styles.mjs                                   0.92 kB
-#13 18.49 ℹ .nuxt/dist/server/_nuxt/ProsePre-styles-1.mjs-2476b8a8.js      0.22 kB │ map:   0.12 kB
-#13 18.49 ℹ .nuxt/dist/server/_nuxt/ProseCode-styles-1.mjs-ef625421.js     0.23 kB │ map:   0.12 kB
-#13 18.49 ℹ .nuxt/dist/server/_nuxt/Icon-styles-1.mjs-08e1ed8b.js          0.26 kB │ map:   0.11 kB
-#13 18.49 ℹ .nuxt/dist/server/_nuxt/index-styles-1.mjs-9f1d65dd.js         0.28 kB │ map:   0.11 kB
-#13 18.49 ℹ .nuxt/dist/server/_nuxt/entry-styles-3.mjs-9661f37e.js         0.36 kB │ map:   0.11 kB
-#13 18.49 ℹ .nuxt/dist/server/_nuxt/register-styles-1.mjs-54d732c9.js      0.44 kB │ map:   0.12 kB
-#13 18.49 ℹ .nuxt/dist/server/_nuxt/IconCSS-styles-1.mjs-f1206901.js       0.46 kB │ map:   0.11 kB
-#13 18.49 ℹ .nuxt/dist/server/_nuxt/DocumentDrivenNotFound-2c64755c.js     0.62 kB │ map:   0.55 kB
-#13 18.49 ℹ .nuxt/dist/server/_nuxt/DocumentDrivenEmpty-8338ce9f.js        0.80 kB │ map:   0.94 kB
-#13 18.49 ℹ .nuxt/dist/server/_nuxt/Markdown-5a2edc60.js                   0.99 kB │ map:   0.13 kB
-#13 18.49 ℹ .nuxt/dist/server/_nuxt/auth-5735a730.js                       1.04 kB │ map:   0.88 kB
-#13 18.49 ℹ .nuxt/dist/server/_nuxt/guest-only-b0fe1061.js                 1.05 kB │ map:   0.88 kB
-#13 18.49 ℹ .nuxt/dist/server/_nuxt/ingame-f7460202.js                     1.06 kB │ map:   0.13 kB
-#13 18.49 ℹ .nuxt/dist/server/_nuxt/ProseHr-20c5fe97.js                    1.09 kB │ map:   0.13 kB
-#13 18.49 ℹ .nuxt/dist/server/_nuxt/ProseScript-bfe5d4dd.js                1.14 kB │ map:   0.71 kB
-#13 18.49 ℹ .nuxt/dist/server/_nuxt/ProseCode-f55c2a86.js                  1.14 kB │ map:   0.14 kB
-#13 18.49 ℹ .nuxt/dist/server/_nuxt/avatar-d4913dd7.js                     1.18 kB │ map:   2.49 kB
-#13 18.49 ℹ .nuxt/dist/server/_nuxt/ProseP-8a937e03.js                     1.18 kB │ map:   0.13 kB
-#13 18.49 ℹ .nuxt/dist/server/_nuxt/ProseTd-2c1e1a03.js                    1.19 kB │ map:   0.13 kB
-#13 18.49 ℹ .nuxt/dist/server/_nuxt/ProseEm-85bcee5a.js                    1.19 kB │ map:   0.13 kB
-#13 18.49 ℹ .nuxt/dist/server/_nuxt/ProseLi-123ca9bd.js                    1.19 kB │ map:   0.13 kB
-#13 18.49 ℹ .nuxt/dist/server/_nuxt/ProseOl-9d5cce42.js                    1.19 kB │ map:   0.13 kB
-#13 18.49 ℹ .nuxt/dist/server/_nuxt/ProseUl-d1537e45.js                    1.19 kB │ map:   0.13 kB
-#13 18.49 ℹ .nuxt/dist/server/_nuxt/ProseTr-154eb9ad.js                    1.19 kB │ map:   0.13 kB
-#13 18.49 ℹ .nuxt/dist/server/_nuxt/ProseTh-77fa8990.js                    1.19 kB │ map:   0.13 kB
-#13 18.49 ℹ .nuxt/dist/server/_nuxt/ProseTbody-30de3a24.js                 1.21 kB │ map:   0.14 kB
-#13 18.49 ℹ .nuxt/dist/server/_nuxt/ProseThead-36022ffc.js                 1.21 kB │ map:   0.14 kB
-#13 18.49 ℹ .nuxt/dist/server/_nuxt/ProseTable-769a9a84.js                 1.21 kB │ map:   0.14 kB
-#13 18.49 ℹ .nuxt/dist/server/_nuxt/ProseStrong-35d72635.js                1.21 kB │ map:   0.14 kB
-#13 18.49 ℹ .nuxt/dist/server/_nuxt/ProseCodeInline-52a6139f.js            1.23 kB │ map:   0.14 kB
-#13 18.49 ℹ .nuxt/dist/server/_nuxt/ProseBlockquote-e5eb448c.js            1.24 kB │ map:   0.14 kB
-#13 18.49 ℹ .nuxt/dist/server/_nuxt/island-renderer-aaeedb48.js            1.26 kB │ map:   1.53 kB
-#13 18.49 ℹ .nuxt/dist/server/_nuxt/login-5a03a342.js                      1.43 kB │ map:   0.75 kB
-#13 18.49 ℹ .nuxt/dist/server/_nuxt/ProseH1-dce40efe.js                    1.80 kB │ map:   0.82 kB
-#13 18.49 ℹ .nuxt/dist/server/_nuxt/ProseH5-72b4fde5.js                    1.81 kB │ map:   0.82 kB
-#13 18.50 ℹ .nuxt/dist/server/_nuxt/ProseH2-fd24922a.js                    1.81 kB │ map:   0.82 kB
-#13 18.50 ℹ .nuxt/dist/server/_nuxt/ProseH4-4cce36a3.js                    1.81 kB │ map:   0.82 kB
-#13 18.50 ℹ .nuxt/dist/server/_nuxt/ProseH6-efb3f4dc.js                    1.81 kB │ map:   0.82 kB
-#13 18.50 ℹ .nuxt/dist/server/_nuxt/ProseH3-9800e09b.js                    1.81 kB │ map:   0.82 kB
-#13 18.50 ℹ .nuxt/dist/server/_nuxt/ProseA-b5cfe071.js                     1.86 kB │ map:   0.16 kB
-#13 18.50 ℹ .nuxt/dist/server/_nuxt/ProseImg-e38f58d2.js                   2.06 kB │ map:   1.46 kB
-#13 18.50 ℹ .nuxt/dist/server/_nuxt/ProsePre-8eb886a9.js                   2.30 kB │ map:   0.18 kB
-#13 18.50 ℹ .nuxt/dist/server/_nuxt/default-9490c4ba.js                    2.35 kB │ map:   1.83 kB
-#13 18.50 ℹ .nuxt/dist/server/_nuxt/preview-a0dbef45.js                    2.53 kB │ map:   7.72 kB
-#13 18.50 ℹ .nuxt/dist/server/_nuxt/index-a9c02e52.js                      2.70 kB │ map:   4.60 kB
-#13 18.50 ℹ .nuxt/dist/server/_nuxt/ContentList-4fd23b52.js                2.83 kB │ map:   2.94 kB
-#13 18.50 ℹ .nuxt/dist/server/_nuxt/IconCSS-8951fdf0.js                    3.09 kB │ map:   3.04 kB
-#13 18.50 ℹ .nuxt/dist/server/_nuxt/ContentRenderer-4fcb6312.js            3.23 kB │ map:   3.50 kB
-#13 18.50 ℹ .nuxt/dist/server/_nuxt/index-e78b9e26.js                      3.58 kB │ map:   1.98 kB
-#13 18.50 ℹ .nuxt/dist/server/_nuxt/asyncData-d1b20836.js                  4.03 kB │ map:  10.07 kB
-#13 18.50 ℹ .nuxt/dist/server/_nuxt/ContentNavigation-ef10336f.js          4.19 kB │ map:   5.90 kB
-#13 18.50 ℹ .nuxt/dist/server/_nuxt/ContentSlot-232b9df8.js                4.85 kB │ map:   8.09 kB
-#13 18.50 ℹ .nuxt/dist/server/_nuxt/Icon-603cda31.js                       6.16 kB │ map:   6.29 kB
-#13 18.50 ℹ .nuxt/dist/server/_nuxt/nuxt-link-dd438564.js                  6.30 kB │ map:  14.34 kB
-#13 18.50 ℹ .nuxt/dist/server/_nuxt/ContentQuery-cd799226.js               6.37 kB │ map:   9.03 kB
-#13 18.50 ℹ .nuxt/dist/server/_nuxt/register-c116c517.js                   7.35 kB │ map:  27.22 kB
-#13 18.50 ℹ .nuxt/dist/server/_nuxt/ContentDoc-108a9350.js                 7.64 kB │ map:  10.94 kB
-#13 18.50 ℹ .nuxt/dist/server/_nuxt/query-6b8b9ccb.js                      8.76 kB │ map:  19.56 kB
-#13 18.50 ℹ .nuxt/dist/server/_nuxt/ContentRendererMarkdown-ca1c0e84.js   13.65 kB │ map:  21.46 kB
-#13 18.50 ℹ .nuxt/dist/server/_nuxt/client-db-64e5502f.js                 15.85 kB │ map:  28.97 kB
-#13 18.50 ℹ .nuxt/dist/server/server.mjs                                  62.41 kB │ map: 153.16 kB
-#13 18.50 ℹ .nuxt/dist/server/_nuxt/rooms-2339f8fd.js                     68.86 kB │ map: 110.36 kB
-#13 18.50 ℹ .nuxt/dist/server/_nuxt/entry-styles-1.mjs-2c9615a6.js       264.02 kB │ map:   0.11 kB
-#13 18.50 ℹ .nuxt/dist/server/_nuxt/entry-styles-2.mjs-e156c789.js       265.16 kB │ map:   0.11 kB
-#13 18.50 ℹ ✓ built in 7.27s
-#13 18.51 ✔ Server built in 7277ms
-#13 18.52 [nitro] ℹ Initializing prerenderer
-#13 21.80 [nitro] ℹ Prerendering 1 routes
-#13 21.88 [nitro]   ├─ /api/_content/cache.1710973483039.json (78ms)
-#13 21.93 [nitro] ✔ Generated public .output/public
-#13 21.95 [nitro] ℹ Building Nitro Server (preset: node-server)
-#13 31.74 [nitro] ✔ Nitro server built
-#13 32.56   ├─ .output/server/chunks/app/_nuxt/asyncData-d1b20836.mjs (4.23 kB) (1.37 kB gzip)
-#13 32.56   ├─ .output/server/chunks/app/_nuxt/asyncData-d1b20836.mjs.map (5.27 kB) (1.36 kB gzip)
-#13 32.56   ├─ .output/server/chunks/app/_nuxt/auth-5735a730.mjs (1.87 kB) (735 B gzip)
-#13 32.56   ├─ .output/server/chunks/app/_nuxt/auth-5735a730.mjs.map (944 B) (385 B gzip)
-#13 32.56   ├─ .output/server/chunks/app/_nuxt/avatar-d4913dd7.mjs (1.18 kB) (430 B gzip)
-#13 32.56   ├─ .output/server/chunks/app/_nuxt/avatar-d4913dd7.mjs.map (1.89 kB) (511 B gzip)
-#13 32.56   ├─ .output/server/chunks/app/_nuxt/client-db-64e5502f.mjs (16.6 kB) (4.66 kB gzip)
-#13 32.56   ├─ .output/server/chunks/app/_nuxt/client-db-64e5502f.mjs.map (17.2 kB) (3.8 kB gzip)
-#13 32.56   ├─ .output/server/chunks/app/_nuxt/ContentDoc-108a9350.mjs (8.46 kB) (2.57 kB gzip)
-#13 32.56   ├─ .output/server/chunks/app/_nuxt/ContentDoc-108a9350.mjs.map (7.33 kB) (1.71 kB gzip)
-#13 32.56   ├─ .output/server/chunks/app/_nuxt/ContentList-4fd23b52.mjs (3.59 kB) (1.31 kB gzip)
-#13 32.56   ├─ .output/server/chunks/app/_nuxt/ContentList-4fd23b52.mjs.map (2.33 kB) (727 B gzip)
-#13 32.56   ├─ .output/server/chunks/app/_nuxt/ContentNavigation-ef10336f.mjs (4.96 kB) (1.81 kB gzip)
-#13 32.56   ├─ .output/server/chunks/app/_nuxt/ContentNavigation-ef10336f.mjs.map (3.83 kB) (1.18 kB gzip)
-#13 32.56   ├─ .output/server/chunks/app/_nuxt/ContentQuery-cd799226.mjs (7.13 kB) (1.99 kB gzip)
-#13 32.56   ├─ .output/server/chunks/app/_nuxt/ContentQuery-cd799226.mjs.map (6.27 kB) (1.27 kB gzip)
-#13 32.56   ├─ .output/server/chunks/app/_nuxt/ContentRenderer-4fcb6312.mjs (3.98 kB) (1.41 kB gzip)
-#13 32.56   ├─ .output/server/chunks/app/_nuxt/ContentRenderer-4fcb6312.mjs.map (2.93 kB) (850 B gzip)
-#13 32.56   ├─ .output/server/chunks/app/_nuxt/ContentRendererMarkdown-ca1c0e84.mjs (14.5 kB) (4.25 kB gzip)
-#13 32.56   ├─ .output/server/chunks/app/_nuxt/ContentRendererMarkdown-ca1c0e84.mjs.map (16.6 kB) (3.41 kB gzip)
-#13 32.56   ├─ .output/server/chunks/app/_nuxt/ContentSlot-232b9df8.mjs (4.85 kB) (1.51 kB gzip)
-#13 32.56   ├─ .output/server/chunks/app/_nuxt/ContentSlot-232b9df8.mjs.map (6.17 kB) (1.48 kB gzip)
-#13 32.56   ├─ .output/server/chunks/app/_nuxt/default-9490c4ba.mjs (3.13 kB) (1.12 kB gzip)
-#13 32.56   ├─ .output/server/chunks/app/_nuxt/default-9490c4ba.mjs.map (1.95 kB) (632 B gzip)
-#13 32.56   ├─ .output/server/chunks/app/_nuxt/DocumentDrivenEmpty-8338ce9f.mjs (805 B) (452 B gzip)
-#13 32.56   ├─ .output/server/chunks/app/_nuxt/DocumentDrivenEmpty-8338ce9f.mjs.map (937 B) (427 B gzip)
-#13 32.56   ├─ .output/server/chunks/app/_nuxt/DocumentDrivenNotFound-2c64755c.mjs (616 B) (357 B gzip)
-#13 32.56   ├─ .output/server/chunks/app/_nuxt/DocumentDrivenNotFound-2c64755c.mjs.map (648 B) (344 B gzip)
-#13 32.56   ├─ .output/server/chunks/app/_nuxt/entry-styles.29b35f25.mjs (531 kB) (58.7 kB gzip)
-#13 32.56   ├─ .output/server/chunks/app/_nuxt/entry-styles.29b35f25.mjs.map (692 B) (304 B gzip)
-#13 32.56   ├─ .output/server/chunks/app/_nuxt/guest-only-b0fe1061.mjs (1.87 kB) (734 B gzip)
-#13 32.56   ├─ .output/server/chunks/app/_nuxt/guest-only-b0fe1061.mjs.map (933 B) (381 B gzip)
-#13 32.56   ├─ .output/server/chunks/app/_nuxt/Icon-603cda31.mjs (6.9 kB) (2.09 kB gzip)
-#13 32.56   ├─ .output/server/chunks/app/_nuxt/Icon-603cda31.mjs.map (6.49 kB) (1.57 kB gzip)
-#13 32.56   ├─ .output/server/chunks/app/_nuxt/Icon-styles.5a0fe09d.mjs (364 B) (218 B gzip)
-#13 32.56   ├─ .output/server/chunks/app/_nuxt/Icon-styles.5a0fe09d.mjs.map (330 B) (213 B gzip)
-#13 32.56   ├─ .output/server/chunks/app/_nuxt/IconCSS-8951fdf0.mjs (3.8 kB) (1.4 kB gzip)
-#13 32.56   ├─ .output/server/chunks/app/_nuxt/IconCSS-8951fdf0.mjs.map (3.02 kB) (921 B gzip)
-#13 32.56   ├─ .output/server/chunks/app/_nuxt/IconCSS-styles.6ad8301c.mjs (573 B) (299 B gzip)
-#13 32.56   ├─ .output/server/chunks/app/_nuxt/IconCSS-styles.6ad8301c.mjs.map (339 B) (218 B gzip)
-#13 32.56   ├─ .output/server/chunks/app/_nuxt/index-a9c02e52.mjs (2.7 kB) (1.11 kB gzip)
-#13 32.56   ├─ .output/server/chunks/app/_nuxt/index-a9c02e52.mjs.map (2.69 kB) (685 B gzip)
-#13 32.56   ├─ .output/server/chunks/app/_nuxt/index-e78b9e26.mjs (4.43 kB) (1.52 kB gzip)
-#13 32.56   ├─ .output/server/chunks/app/_nuxt/index-e78b9e26.mjs.map (2.46 kB) (501 B gzip)
-#13 32.56   ├─ .output/server/chunks/app/_nuxt/index-styles.f772dcaf.mjs (384 B) (228 B gzip)
-#13 32.56   ├─ .output/server/chunks/app/_nuxt/index-styles.f772dcaf.mjs.map (333 B) (215 B gzip)
-#13 32.56   ├─ .output/server/chunks/app/_nuxt/ingame-f7460202.mjs (1.83 kB) (729 B gzip)
-#13 32.56   ├─ .output/server/chunks/app/_nuxt/ingame-f7460202.mjs.map (774 B) (357 B gzip)
-#13 32.56   ├─ .output/server/chunks/app/_nuxt/island-renderer-aaeedb48.mjs (2.03 kB) (807 B gzip)
-#13 32.56   ├─ .output/server/chunks/app/_nuxt/island-renderer-aaeedb48.mjs.map (1.03 kB) (438 B gzip)
-#13 32.56   ├─ .output/server/chunks/app/_nuxt/login-5a03a342.mjs (2.21 kB) (900 B gzip)
-#13 32.56   ├─ .output/server/chunks/app/_nuxt/login-5a03a342.mjs.map (1.13 kB) (471 B gzip)
-#13 32.56   ├─ .output/server/chunks/app/_nuxt/Markdown-5a2edc60.mjs (990 B) (511 B gzip)
-#13 32.56   ├─ .output/server/chunks/app/_nuxt/Markdown-5a2edc60.mjs.map (1.02 kB) (451 B gzip)
-#13 32.56   ├─ .output/server/chunks/app/_nuxt/nuxt-link-dd438564.mjs (6.39 kB) (1.8 kB gzip)
-#13 32.56   ├─ .output/server/chunks/app/_nuxt/nuxt-link-dd438564.mjs.map (6.14 kB) (1.52 kB gzip)
-#13 32.56   ├─ .output/server/chunks/app/_nuxt/preview-a0dbef45.mjs (2.55 kB) (983 B gzip)
-#13 32.56   ├─ .output/server/chunks/app/_nuxt/preview-a0dbef45.mjs.map (3.02 kB) (967 B gzip)
-#13 32.56   ├─ .output/server/chunks/app/_nuxt/ProseA-b5cfe071.mjs (2.63 kB) (1 kB gzip)
-#13 32.56   ├─ .output/server/chunks/app/_nuxt/ProseA-b5cfe071.mjs.map (1.49 kB) (571 B gzip)
-#13 32.56   ├─ .output/server/chunks/app/_nuxt/ProseBlockquote-e5eb448c.mjs (2.01 kB) (798 B gzip)
-#13 32.56   ├─ .output/server/chunks/app/_nuxt/ProseBlockquote-e5eb448c.mjs.map (919 B) (396 B gzip)
-#13 32.56   ├─ .output/server/chunks/app/_nuxt/ProseCode-f55c2a86.mjs (1.09 kB) (506 B gzip)
-#13 32.56   ├─ .output/server/chunks/app/_nuxt/ProseCode-f55c2a86.mjs.map (1.21 kB) (457 B gzip)
-#13 32.56   ├─ .output/server/chunks/app/_nuxt/ProseCode-styles.93005832.mjs (282 B) (191 B gzip)
-#13 32.56   ├─ .output/server/chunks/app/_nuxt/ProseCode-styles.93005832.mjs.map (323 B) (204 B gzip)
-#13 32.56   ├─ .output/server/chunks/app/_nuxt/ProseCodeInline-52a6139f.mjs (2 kB) (798 B gzip)
-#13 32.56   ├─ .output/server/chunks/app/_nuxt/ProseCodeInline-52a6139f.mjs.map (919 B) (396 B gzip)
-#13 32.56   ├─ .output/server/chunks/app/_nuxt/ProseEm-85bcee5a.mjs (1.96 kB) (786 B gzip)
-#13 32.56   ├─ .output/server/chunks/app/_nuxt/ProseEm-85bcee5a.mjs.map (902 B) (387 B gzip)
-#13 32.56   ├─ .output/server/chunks/app/_nuxt/ProseH1-dce40efe.mjs (2.57 kB) (1.01 kB gzip)
-#13 32.56   ├─ .output/server/chunks/app/_nuxt/ProseH1-dce40efe.mjs.map (1.69 kB) (607 B gzip)
-#13 32.56   ├─ .output/server/chunks/app/_nuxt/ProseH2-fd24922a.mjs (2.58 kB) (1.01 kB gzip)
-#13 32.56   ├─ .output/server/chunks/app/_nuxt/ProseH2-fd24922a.mjs.map (1.71 kB) (612 B gzip)
-#13 32.56   ├─ .output/server/chunks/app/_nuxt/ProseH3-9800e09b.mjs (2.58 kB) (1.01 kB gzip)
-#13 32.56   ├─ .output/server/chunks/app/_nuxt/ProseH3-9800e09b.mjs.map (1.71 kB) (613 B gzip)
-#13 32.56   ├─ .output/server/chunks/app/_nuxt/ProseH4-4cce36a3.mjs (2.58 kB) (1.01 kB gzip)
-#13 32.56   ├─ .output/server/chunks/app/_nuxt/ProseH4-4cce36a3.mjs.map (1.71 kB) (612 B gzip)
-#13 32.56   ├─ .output/server/chunks/app/_nuxt/ProseH5-72b4fde5.mjs (2.58 kB) (1.01 kB gzip)
-#13 32.56   ├─ .output/server/chunks/app/_nuxt/ProseH5-72b4fde5.mjs.map (1.71 kB) (613 B gzip)
-#13 32.56   ├─ .output/server/chunks/app/_nuxt/ProseH6-efb3f4dc.mjs (2.58 kB) (1.01 kB gzip)
-#13 32.56   ├─ .output/server/chunks/app/_nuxt/ProseH6-efb3f4dc.mjs.map (1.71 kB) (612 B gzip)
-#13 32.56   ├─ .output/server/chunks/app/_nuxt/ProseHr-20c5fe97.mjs (1.86 kB) (752 B gzip)
-#13 32.56   ├─ .output/server/chunks/app/_nuxt/ProseHr-20c5fe97.mjs.map (771 B) (355 B gzip)
-#13 32.56   ├─ .output/server/chunks/app/_nuxt/ProseImg-e38f58d2.mjs (2.85 kB) (1.09 kB gzip)
-#13 32.56   ├─ .output/server/chunks/app/_nuxt/ProseImg-e38f58d2.mjs.map (1.92 kB) (649 B gzip)
-#13 32.56   ├─ .output/server/chunks/app/_nuxt/ProseLi-123ca9bd.mjs (1.96 kB) (787 B gzip)
-#13 32.56   ├─ .output/server/chunks/app/_nuxt/ProseLi-123ca9bd.mjs.map (902 B) (388 B gzip)
-#13 32.56   ├─ .output/server/chunks/app/_nuxt/ProseOl-9d5cce42.mjs (1.96 kB) (788 B gzip)
-#13 32.56   ├─ .output/server/chunks/app/_nuxt/ProseOl-9d5cce42.mjs.map (902 B) (387 B gzip)
-#13 32.56   ├─ .output/server/chunks/app/_nuxt/ProseP-8a937e03.mjs (1.96 kB) (786 B gzip)
-#13 32.56   ├─ .output/server/chunks/app/_nuxt/ProseP-8a937e03.mjs.map (900 B) (386 B gzip)
-#13 32.56   ├─ .output/server/chunks/app/_nuxt/ProsePre-8eb886a9.mjs (2.25 kB) (827 B gzip)
-#13 32.56   ├─ .output/server/chunks/app/_nuxt/ProsePre-8eb886a9.mjs.map (2.28 kB) (721 B gzip)
-#13 32.56   ├─ .output/server/chunks/app/_nuxt/ProsePre-styles.9d8d359a.mjs (319 B) (194 B gzip)
-#13 32.56   ├─ .output/server/chunks/app/_nuxt/ProsePre-styles.9d8d359a.mjs.map (342 B) (218 B gzip)
-#13 32.56   ├─ .output/server/chunks/app/_nuxt/ProseScript-bfe5d4dd.mjs (1.14 kB) (594 B gzip)
-#13 32.56   ├─ .output/server/chunks/app/_nuxt/ProseScript-bfe5d4dd.mjs.map (1.04 kB) (461 B gzip)
-#13 32.56   ├─ .output/server/chunks/app/_nuxt/ProseStrong-35d72635.mjs (1.99 kB) (794 B gzip)
-#13 32.56   ├─ .output/server/chunks/app/_nuxt/ProseStrong-35d72635.mjs.map (911 B) (395 B gzip)
-#13 32.56   ├─ .output/server/chunks/app/_nuxt/ProseTable-769a9a84.mjs (1.98 kB) (793 B gzip)
-#13 32.56   ├─ .output/server/chunks/app/_nuxt/ProseTable-769a9a84.mjs.map (909 B) (391 B gzip)
-#13 32.56   ├─ .output/server/chunks/app/_nuxt/ProseTbody-30de3a24.mjs (1.98 kB) (791 B gzip)
-#13 32.56   ├─ .output/server/chunks/app/_nuxt/ProseTbody-30de3a24.mjs.map (909 B) (392 B gzip)
-#13 32.56   ├─ .output/server/chunks/app/_nuxt/ProseTd-2c1e1a03.mjs (1.96 kB) (786 B gzip)
-#13 32.56   ├─ .output/server/chunks/app/_nuxt/ProseTd-2c1e1a03.mjs.map (902 B) (388 B gzip)
-#13 32.56   ├─ .output/server/chunks/app/_nuxt/ProseTh-77fa8990.mjs (1.96 kB) (787 B gzip)
-#13 32.56   ├─ .output/server/chunks/app/_nuxt/ProseTh-77fa8990.mjs.map (902 B) (388 B gzip)
-#13 32.56   ├─ .output/server/chunks/app/_nuxt/ProseThead-36022ffc.mjs (1.98 kB) (792 B gzip)
-#13 32.56   ├─ .output/server/chunks/app/_nuxt/ProseThead-36022ffc.mjs.map (909 B) (392 B gzip)
-#13 32.56   ├─ .output/server/chunks/app/_nuxt/ProseTr-154eb9ad.mjs (1.96 kB) (787 B gzip)
-#13 32.56   ├─ .output/server/chunks/app/_nuxt/ProseTr-154eb9ad.mjs.map (902 B) (388 B gzip)
-#13 32.56   ├─ .output/server/chunks/app/_nuxt/ProseUl-d1537e45.mjs (1.96 kB) (789 B gzip)
-#13 32.56   ├─ .output/server/chunks/app/_nuxt/ProseUl-d1537e45.mjs.map (902 B) (388 B gzip)
-#13 32.56   ├─ .output/server/chunks/app/_nuxt/query-6b8b9ccb.mjs (8.68 kB) (2.91 kB gzip)
-#13 32.56   ├─ .output/server/chunks/app/_nuxt/query-6b8b9ccb.mjs.map (10.7 kB) (2.51 kB gzip)
-#13 32.56   ├─ .output/server/chunks/app/_nuxt/register-c116c517.mjs (8.02 kB) (2.42 kB gzip)
-#13 32.56   ├─ .output/server/chunks/app/_nuxt/register-c116c517.mjs.map (7.54 kB) (1.69 kB gzip)
-#13 32.56   ├─ .output/server/chunks/app/_nuxt/register-styles.44d6dccd.mjs (496 B) (273 B gzip)
-#13 32.56   ├─ .output/server/chunks/app/_nuxt/register-styles.44d6dccd.mjs.map (320 B) (206 B gzip)
-#13 32.56   ├─ .output/server/chunks/app/_nuxt/rooms-2339f8fd.mjs (69.6 kB) (18.3 kB gzip)
-#13 32.56   ├─ .output/server/chunks/app/_nuxt/rooms-2339f8fd.mjs.map (91.1 kB) (9.79 kB gzip)
-#13 32.56   ├─ .output/server/chunks/app/client.manifest.mjs (24.5 kB) (1.98 kB gzip)
-#13 32.56   ├─ .output/server/chunks/app/client.manifest.mjs.map (18.1 kB) (1.24 kB gzip)
-#13 32.56   ├─ .output/server/chunks/app/server.mjs (63.2 kB) (16.7 kB gzip)
-#13 32.56   ├─ .output/server/chunks/app/server.mjs.map (71.1 kB) (9.94 kB gzip)
-#13 32.56   ├─ .output/server/chunks/app/styles.mjs (991 B) (361 B gzip)
-#13 32.56   ├─ .output/server/chunks/app/styles.mjs.map (709 B) (276 B gzip)
-#13 32.56   ├─ .output/server/chunks/build/mdc-imports.mjs (2.93 kB) (1.16 kB gzip)
-#13 32.56   ├─ .output/server/chunks/build/mdc-imports.mjs.map (238 B) (179 B gzip)
-#13 32.56   ├─ .output/server/chunks/create.post.mjs (2.56 kB) (1.03 kB gzip)
-#13 32.56   ├─ .output/server/chunks/create.post.mjs.map (1.78 kB) (432 B gzip)
-#13 32.56   ├─ .output/server/chunks/error-500.mjs (4.26 kB) (1.84 kB gzip)
-#13 32.56   ├─ .output/server/chunks/error-500.mjs.map (193 B) (157 B gzip)
-#13 32.56   ├─ .output/server/chunks/handlers/renderer.mjs (13 kB) (4.13 kB gzip)
-#13 32.56   ├─ .output/server/chunks/handlers/renderer.mjs.map (424 B) (225 B gzip)
-#13 32.56   ├─ .output/server/chunks/index.delete.mjs (1.66 kB) (684 B gzip)
-#13 32.56   ├─ .output/server/chunks/index.delete.mjs.map (816 B) (293 B gzip)
-#13 32.56   ├─ .output/server/chunks/index.get.mjs (1.34 kB) (536 B gzip)
-#13 32.56   ├─ .output/server/chunks/index.get.mjs.map (434 B) (203 B gzip)
-#13 32.56   ├─ .output/server/chunks/index.post.mjs (1.7 kB) (694 B gzip)
-#13 32.56   ├─ .output/server/chunks/index.post.mjs.map (867 B) (300 B gzip)
-#13 32.56   ├─ .output/server/chunks/info.get.mjs (1.66 kB) (657 B gzip)
-#13 32.56   ├─ .output/server/chunks/info.get.mjs.map (768 B) (259 B gzip)
-#13 32.56   ├─ .output/server/chunks/masterKey.get.mjs (2.24 kB) (862 B gzip)
-#13 32.56   ├─ .output/server/chunks/masterKey.get.mjs.map (1.42 kB) (348 B gzip)
-#13 32.56   ├─ .output/server/chunks/nitro/node-server.mjs (302 kB) (73.4 kB gzip)
-#13 32.56   ├─ .output/server/chunks/nitro/node-server.mjs.map (7.95 kB) (1.48 kB gzip)
-#13 32.56   ├─ .output/server/chunks/profile.get.mjs (1.75 kB) (692 B gzip)
-#13 32.56   ├─ .output/server/chunks/profile.get.mjs.map (860 B) (285 B gzip)
-#13 32.56   ├─ .output/server/chunks/profile.patch.mjs (2.15 kB) (851 B gzip)
-#13 32.56   ├─ .output/server/chunks/profile.patch.mjs.map (1.5 kB) (366 B gzip)
-#13 32.56   ├─ .output/server/chunks/profile.post.mjs (2.52 kB) (1 kB gzip)
-#13 32.56   ├─ .output/server/chunks/profile.post.mjs.map (2.11 kB) (442 B gzip)
-#13 32.56   ├─ .output/server/chunks/raw/content-index.mjs (161 B) (152 B gzip)
-#13 32.56   ├─ .output/server/chunks/raw/content-index.mjs.map (105 B) (103 B gzip)
-#13 32.56   ├─ .output/server/chunks/raw/content-navigation.mjs (198 B) (173 B gzip)
-#13 32.56   ├─ .output/server/chunks/raw/content-navigation.mjs.map (110 B) (106 B gzip)
-#13 32.56   ├─ .output/server/chunks/raw/docs.mjs (14.2 kB) (1.91 kB gzip)
-#13 32.56   ├─ .output/server/chunks/raw/docs.mjs.map (96 B) (99 B gzip)
-#13 32.56   ├─ .output/server/chunks/rollup/_virtual_spa-template.mjs (94 B) (100 B gzip)
-#13 32.56   ├─ .output/server/chunks/rollup/_virtual_spa-template.mjs.map (112 B) (111 B gzip)
-#13 32.56   ├─ .output/server/chunks/temp.post.mjs (1.58 kB) (651 B gzip)
-#13 32.56   ├─ .output/server/chunks/temp.post.mjs.map (733 B) (272 B gzip)
-#13 32.56   ├─ .output/server/chunks/tempKey.post.mjs (2.29 kB) (881 B gzip)
-#13 32.56   ├─ .output/server/chunks/tempKey.post.mjs.map (1.47 kB) (364 B gzip)
-#13 32.56   ├─ .output/server/chunks/tokens.get.mjs (1.51 kB) (613 B gzip)
-#13 32.56   ├─ .output/server/chunks/tokens.get.mjs.map (614 B) (255 B gzip)
-#13 32.56   ├─ .output/server/index.mjs (1.13 kB) (441 B gzip)
-#13 32.56   └─ .output/server/package.json (6.88 kB) (1.88 kB gzip)
-#13 32.56 Σ Total size: 18.5 MB (4.51 MB gzip)
-#13 32.56 [nitro] ✔ You can preview this build using node .output/server/index.mjs
-#13 CANCELED
+#13 [server stage-2 1/1] COPY --from=build /src /src
+#13 DONE 2.5s
+
+#14 [server] exporting to image
+#14 exporting layers
+#14 exporting layers 2.4s done
+#14 writing image sha256:b0bb956f70f23c4bd98949781e9177ce86c35c94047cb2d43828a1ddb83fd034
+#14 writing image sha256:b0bb956f70f23c4bd98949781e9177ce86c35c94047cb2d43828a1ddb83fd034 done
+#14 naming to docker.io/library/botris-vue-server done
+#14 DONE 2.4s
+Attaching to db, server
+db      | 2024-03-24 03:27:17+00:00 [Note] [Entrypoint]: Entrypoint script for MySQL Server 8.3.0-1.el8 started.
+db      | 2024-03-24 03:27:17+00:00 [Note] [Entrypoint]: Switching to dedicated user 'mysql'
+db      | 2024-03-24 03:27:17+00:00 [Note] [Entrypoint]: Entrypoint script for MySQL Server 8.3.0-1.el8 started.
+db      | '/var/lib/mysql/mysql.sock' -> '/var/run/mysqld/mysqld.sock'
+server  | Prisma schema loaded from prisma/schema.prisma
+server  | 
+server  | ✔ Generated Prisma Client (v5.11.0) to ./node_modules/@prisma/client in 68ms
+server  | 
+server  | Start using Prisma Client in Node.js (See: https://pris.ly/d/client)
+server  | ```
+server  | import { PrismaClient } from '@prisma/client'
+server  | const prisma = new PrismaClient()
+server  | ```
+server  | or start using Prisma Client at the edge (See: https://pris.ly/d/accelerate)
+server  | ```
+server  | import { PrismaClient } from '@prisma/client/edge'
+server  | const prisma = new PrismaClient()
+server  | ```
+server  | 
+server  | See other ways of importing Prisma Client: http://pris.ly/d/importing-client
+server  | 
+server  | ┌─────────────────────────────────────────────────────────────┐
+server  | │  Deploying your app to serverless or edge functions?        │
+server  | │  Try Prisma Accelerate for connection pooling and caching.  │
+server  | │  https://pris.ly/cli/accelerate                             │
+server  | └─────────────────────────────────────────────────────────────┘
+server  | 
+server  | Prisma schema loaded from prisma/schema.prisma
+server  | Datasource "db": MySQL database "botris" at "db:3306"
+server  | 
+server  | 🚀  Your database is now in sync with your Prisma schema. Done in 88ms
+server  | 
+server  | Running generate... (Use --skip-generate to skip the generators)
+server  | [2K[1A[2K[GRunning generate... - Prisma Client
+server  | [2K[1A[2K[G✔ Generated Prisma Client (v5.11.0) to ./node_modules/@prisma/client in 67ms
+server  | 
+server  | yarn run v1.22.19
+server  | $ nuxt dev
+server  | Nuxt 3.11.1 with Nitro 2.9.4
+server  | 
+server  |   ➜ Local:    http://localhost:3000/
+server  |   ➜ Network:  use --host to expose
+server  | 
+server  | [nuxt:tailwindcss] ℹ Using default Tailwind CSS file
+server  |   ➜ DevTools: press Shift + Alt + D in the browser (v1.1.3)
+server  | 
+server  | [nuxt:tailwindcss] ℹ Tailwind Viewer: http://localhost:3000/_tailwind/
+server  | ℹ Vite server warmed up in 7039ms
+server  | ℹ Vite client warmed up in 7958ms
+server  | [nitro] ✔ Nuxt Nitro server built in 1425 ms
+server  | ℹ ✨ new dependencies optimized: pixi.js, libtris, pixi-ease
+server  | ℹ ✨ optimized dependencies changed. reloading
+server  | Callback
+server  | looks right
+server  | creating
+server  | { githubId: 69740123, id: 'mfd26uru71edco7' }

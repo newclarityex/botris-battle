@@ -12,34 +12,38 @@ services:
     container_name: server
     restart: unless-stopped
     env_file:
-      - .env
+      - .build.env
+    environment:
+      NODE_ENV: "production"
     build:
       context: .
-    environment:
-      NODE_ENV: production
     ports:
       - 3000:3000
+      - 5555:5555
     depends_on:
       db:
         condition: service_healthy
+    networks:
+      - frontend
   db:
     container_name: db
     image: mysql
-    ports:
-        - "3306"
     environment:
+        MYSQL_DATABASE: "botris"
         MYSQL_ROOT_PASSWORD: "password"
         # MYSQL_USER: "root"
         # MYSQL_PASSWORD: "password"
         # MYSQL_DATABASE: "database"
     restart: unless-stopped
     volumes:
-      - db:/var/lib/mysql
-    expose:
-      - 3306
+      - db:/var/lib/botris-db
     healthcheck:
         test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
         timeout: 20s
         retries: 10
+    networks:
+      - frontend
 volumes:
   db:
+networks:
+  frontend:

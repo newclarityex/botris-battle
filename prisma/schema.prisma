@@ -10,42 +10,11 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Account {
-  id                String  @id @default(cuid())
-  userId            String
-  type              String
-  provider          String
-  providerAccountId String
-  refresh_token     String? @db.Text
-  access_token      String? @db.Text
-  expires_at        Int?
-  token_type        String?
-  scope             String?
-  id_token          String? @db.Text
-  session_state     String?
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([provider, providerAccountId])
-}
-
 model Session {
-  id           String   @id @default(cuid())
-  sessionToken String   @unique
-  userId       String
-  expires      DateTime
-  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-}
-
-model User {
-  id            String    @id @default(cuid())
-  name          String?
-  email         String?   @unique
-  emailVerified DateTime?
-  image         String?
-  accounts      Account[]
-  sessions      Session[]
-  Profile       Profile?
+  id        String   @id
+  userId    String
+  expiresAt DateTime
+  user      User     @relation(references: [id], fields: [userId], onDelete: Cascade)
 }
 
 model VerificationToken {
@@ -56,26 +25,34 @@ model VerificationToken {
   @@unique([identifier, token])
 }
 
+model User {
+  id       String     @id
+  githubId Int     @unique
+  Profile       Profile?
+  Session  Session[]
+}
+
 model Profile {
   id       String     @id
   User     User       @relation(fields: [id], references: [id])
   creator  String
   name     String
+  email    String?    @unique
   avatar   Json
   ApiToken ApiToken[]
 }
 
 model ApiToken {
-  token     String    @id @default(uuid())
-  name      String?
-  Profile   Profile   @relation(fields: [profileId], references: [id])
-  profileId String
-  temp      Boolean   @default(false)
-  expires   DateTime?
+  token   String    @id @default(uuid())
+  name    String?
+  Profile    Profile      @relation(fields: [profileId], references: [id])
+  profileId  String
+  temp    Boolean   @default(false)
+  expires DateTime?
 }
 
 model RoomKey {
-  key     String  @id
+  key       String  @id
   singleUse Boolean @default(false)
   roomId    String
 }
