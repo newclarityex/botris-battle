@@ -347,14 +347,14 @@ export default defineNitroPlugin((event) => {
                 if (!ws.id) return;
                 room.spectators.delete(ws.id);
             });
+
+            return;
         }
 
         const token = urlParams.get("token");
 
         if (!token) {
-            if (!spectating) {
-                ws.close(4005, "Missing token");
-            }
+            ws.close(4005, "Missing token");
             return;
         }
 
@@ -369,8 +369,6 @@ export default defineNitroPlugin((event) => {
             ws.close(4004, "Failed to authenticate token or roomKey.");
             return;
         }
-
-        if (spectating) return;
 
         if (room.banned.has(connection.id)) {
             ws.close(4001, "Banned by host");
