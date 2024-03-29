@@ -28,6 +28,7 @@ services:
       - .build.env
     environment:
       NODE_ENV: "production"
+      NUXT_ENVIRONMENT: "production"
     build:
       context: .
     ports:

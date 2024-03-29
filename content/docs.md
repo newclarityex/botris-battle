@@ -18,7 +18,7 @@ Spectate a room by going to [View Rooms](/rooms){.link} and selecting a room fro
 
 ### Join Room
 
-Connect to `wss://botrisbattle.com/ws?token={token}&roomKey={roomKey}`
+Connect to `wss://ws.botrisbattle.com?token={token}&roomKey={roomKey}`
 using a websocket connection.
 - {token} - Generated API Token from the [Dashboard](/dashboard){.link}
 - {roomKey} - Provided roomKey from the room host
