@@ -247,7 +247,12 @@ export default defineNitroPlugin((event) => {
 
     const wss = new WebSocketServer({
         port: 8080,
+        path: "/ws"
     });
+
+    wss.on('listening', () => {
+        console.log("opened wss on 8080");
+    })
 
     wss.on("connection", async function connection(ws: IDWebSocket, req) {
         console.log("Attempted connection");
