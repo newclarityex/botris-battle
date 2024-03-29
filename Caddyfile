@@ -4,7 +4,7 @@ botrisbattle.com {
 		header Upgrade    websocket
 	}
 
-	handle /ws/* {
+	handle /ws {
 		reverse_proxy @websockets /ws server:8080
 	}
 
