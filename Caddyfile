@@ -8,7 +8,7 @@ botrisbattle.com {
 		reverse_proxy @websockets /ws server:8080
 	}
 
-	handle /* {
+	handle / {
     	reverse_proxy server:3000
 	}
 }

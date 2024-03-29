@@ -598,7 +598,7 @@ onMounted(() => {
         if (timePassed > 0) {
             countdownTime.value = null;
             currentPps.value = calculatePps(timePassed, initialPps, finalPps, startMargin, endMargin);
-            countdownTime.value = Math.floor((timePassed) / 1000);
+            displayTime.value = Math.floor((timePassed) / 1000);
         } else {
             displayTime.value = null;
             currentPps.value = initialPps;
