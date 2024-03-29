@@ -23,7 +23,6 @@ export const PlayerMessageSchema = z.object({
 				z.literal("sonic_right"),
 				z.literal("drop"),
 				z.literal("sonic_drop"),
-				z.literal("hard_drop"),
 				z.literal("rotate_cw"),
 				z.literal("rotate_ccw"),
 				z.literal("hold"),
