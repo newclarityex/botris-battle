@@ -138,8 +138,9 @@ When a round is about to start, the server will send:
 {
     type: 'round_started';
     payload: {
-        startTime: number;
-        gamestate: <a href="#gamestate" class="type-link">Gamestate</a>;
+        startsAt: number;
+        roomData: <a href="#roomdata" class="type-link">RoomData</a>;
+        players: <a href="#playerdata" class="type-link">PlayerData</a>[];
     }
 }
 </pre>

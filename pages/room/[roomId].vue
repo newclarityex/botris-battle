@@ -132,8 +132,6 @@ onMounted(() => {
 
 let ws: WebSocket | null = null;
 
-const roundStartTime = ref<number | null>(null);
-
 const pixiInst = ref<ApplicationInst | null>(null);
 const pixiApp = computed(() => pixiInst.value?.app ?? null);
 
@@ -217,13 +215,13 @@ onMounted(async () => {
             }
             case "round_started": {
                 if (!publicRoomData.value) return console.error("no room info");
-                roundStartTime.value = data.payload.startsAt;
                 publicRoomData.value = data.payload.roomData;
 
                 for (const player of publicRoomData.value.players) {
                     const playerGraphics = allPlayerGraphics.value.find(
                         (p) => p.id === player.sessionId
                     ) as PlayerGraphics | undefined;
+
                     if (!playerGraphics)
                         return console.error("player graphics not found");
 
@@ -245,8 +243,6 @@ onMounted(async () => {
             }
             case "game_reset": {
                 if (!publicRoomData.value) return console.error("no room info");
-
-                roundStartTime.value = null;
 
                 publicRoomData.value.gameOngoing = false;
                 publicRoomData.value.players = data.payload.roomData.players;
@@ -594,6 +590,8 @@ onMounted(() => {
         const now = Date.now();
         const timePassed = now - publicRoomData.value.startedAt;
         const timeLeft = publicRoomData.value.startedAt - now;
+
+        console.log(publicRoomData.value.startedAt, now, timePassed, timeLeft);
 
         if (timePassed > 0) {
             countdownTime.value = null;
