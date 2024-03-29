@@ -1,5 +1,5 @@
 botrisbattle.com {
-	handle /api/ws/* {
+	handle /api/ws {
         reverse_proxy server:8080
 	}
 
