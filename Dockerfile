@@ -30,7 +30,5 @@ FROM base
 # COPY --from=build /src/.output /src/.output
 COPY --from=build /src /src
 
-EXPOSE 3000
-
 # Run the application.
 CMD [ "/bin/sh", "/src/run.sh" ]
