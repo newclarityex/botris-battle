@@ -41,8 +41,8 @@ export default defineEventHandler(async (event) => {
 
 	room.initialPps = data.initialPps;
 	room.finalPps = data.finalPps;
-	room.startMargin = data.startMargin * 1000;
-	room.endMargin = data.endMargin * 1000;
+	room.startMargin = data.startMargin;
+	room.endMargin = data.endMargin;
 	room.ft = data.ft;
 	room.private = data.private;
 
