@@ -217,7 +217,7 @@ onMounted(async () => {
 
     const runtimeConfig = useRuntimeConfig();
 
-    const wsUrl = runtimeConfig.public.environment === "production" ? `wss://ws.botrisbattle.com?${urlParams.toString()}` :`ws://localhost:8080/api/ws?${urlParams.toString()}`;
+    const wsUrl = runtimeConfig.public.environment === "production" ? `wss://ws.${location.host}?${urlParams.toString()}` :`ws://localhost:8080/api/ws?${urlParams.toString()}`;
     ws = new WebSocket(wsUrl);
 
     ws.addEventListener("close", (event) => {

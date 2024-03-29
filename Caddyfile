@@ -1,12 +1,9 @@
 botrisbattle.com {
-	handle /api/ws/* {
-        rewrite * /{uri}
-        reverse_proxy server:8080
+	@websockets {
+		header Connection *Upgrade*
+		header Upgrade    websocket
 	}
 
+	reverse_proxy @websockets server:8080
     reverse_proxy server:3000
-}
-
-ws.botrisbattle.com {
-    reverse_proxy server:8080
 }
