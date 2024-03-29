@@ -20,6 +20,15 @@
                 <h2 class="text-2xl text-primary py-2 text-center">Rules</h2>
                 <ul class="max-w-2xl">
                     <li>
+                        Matches will be done FT5 in a single elimination bracket.
+                    </li>
+                    <li>
+                        Maximum of 4 players per team.
+                    </li>
+                    <li>
+                        Matches will be played at 2.5pps initially, then scaling to 5pps from 1:30 - 2:30.
+                    </li>
+                    <li>
                         You may use any public code that you have the rights to use.
                     </li>
                     <li>

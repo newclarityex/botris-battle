@@ -6,7 +6,10 @@ const EditGameSchema = z.object({
 	roomId: z.string(),
 	private: z.boolean(),
 	ft: z.number().min(1).max(99),
-	ppsCap: z.number().gt(0).max(30),
+	initialPps: z.number().gt(0).max(30),
+	finalPps: z.number().gt(0).max(30),
+	startMargin: z.number().gt(0),
+	endMargin: z.number().gt(0),
 });
 
 export default defineEventHandler(async (event) => {
@@ -30,7 +33,10 @@ export default defineEventHandler(async (event) => {
         });
     };
 
-	room.ppsCap = data.ppsCap;
+	room.initialPps = data.initialPps;
+	room.finalPps = data.finalPps;
+	room.startMargin = data.startMargin * 1000;
+	room.endMargin = data.endMargin * 1000;
 	room.ft = data.ft;
 	room.private = data.private;
 

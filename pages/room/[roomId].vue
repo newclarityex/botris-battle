@@ -373,7 +373,10 @@ onMounted(async () => {
                 const { roomData } = data.payload;
                 publicRoomData.value = roomData;
                 roomOptions.value.ft = roomData.ft;
-                roomOptions.value.ppsCap = roomData.ppsCap;
+                roomOptions.value.initialPps = roomData.initialPps;
+                roomOptions.value.finalPps = roomData.finalPps;
+                roomOptions.value.startMargin = roomData.startMargin;
+                roomOptions.value.endMargin = roomData.endMargin;
                 roomOptions.value.private = roomData.private;
                 break;
             }
@@ -488,9 +491,12 @@ onKeyStroke("Escape", (e) => {
 }, { dedupe: true });
 
 const roomOptions = ref({
-    ft: initialRoomData.ft,
-    ppsCap: initialRoomData.ppsCap,
-    private: initialRoomData.private,
+    ft: 5,
+    private: false,
+    initialPps: 2.5,
+    finalPps: 5,
+    startMargin: 90,
+    endMargin: 150,
 });
 
 const { data: masterKey } = useFetch('/api/room/masterKey', {
@@ -534,27 +540,16 @@ async function saveSettings() {
         ft = 99;
     }
 
-    let ppsCap: string | number = roomOptions.value.ppsCap;
-    if (typeof ppsCap === 'string') {
-        ppsCap = parseFloat(ppsCap);
-    }
-    if (isNaN(ppsCap)) {
-        ppsCap = 3;
-    }
-    if (ppsCap < 0.1) {
-        ppsCap = 0.1;
-    }
-    if (ppsCap > 30) {
-        ppsCap = 30;
-    }
-
     await $fetch('/api/room/edit', {
         method: "POST",
         body: {
             roomId,
             private: roomOptions.value.private,
             ft,
-            ppsCap,
+            initialPps: roomOptions.value.initialPps,
+            finalPps: roomOptions.value.finalPps,
+            startMargin: roomOptions.value.startMargin,
+            endMargin: roomOptions.value.endMargin,
         }
     });
 };
@@ -566,30 +561,48 @@ const settingsChanged = computed(() => {
     if (publicRoomData.value.ft !== roomOptions.value.ft) {
         return true;
     };
-    if (publicRoomData.value.ppsCap !== roomOptions.value.ppsCap) {
+    if (publicRoomData.value.initialPps !== roomOptions.value.initialPps) {
+        return true;
+    };
+    if (publicRoomData.value.finalPps !== roomOptions.value.finalPps) {
+        return true;
+    };
+    if (publicRoomData.value.startMargin !== roomOptions.value.startMargin) {
+        return true;
+    };
+    if (publicRoomData.value.endMargin !== roomOptions.value.endMargin) {
         return true;
     };
     return false;
 });
 
+const countdownTime = ref<number | null>(null);
 const displayTime = ref<number | null>(null);
+const currentPps = ref<number>(0);
 
 onMounted(() => {
     const interval = setInterval(() => {
+        const { initialPps, finalPps, startMargin, endMargin } = publicRoomData.value;
         if (!publicRoomData.value.startedAt) {
+            countdownTime.value = null;
             displayTime.value = null;
+            currentPps.value = initialPps;
             return;
         }
-
+        
         const now = Date.now();
+        const timePassed = now - publicRoomData.value.startedAt;
         const timeLeft = publicRoomData.value.startedAt - now;
 
-        if (timeLeft < 0) {
+        if (timePassed > 0) {
+            countdownTime.value = null;
+            currentPps.value = getPps(timePassed, initialPps, finalPps, startMargin, endMargin);
+            countdownTime.value = Math.floor((timePassed) / 1000);
+        } else {
             displayTime.value = null;
-            return;
+            currentPps.value = initialPps;
+            countdownTime.value = Math.ceil((timeLeft) / 1000);
         }
-
-        displayTime.value = Math.ceil((timeLeft) / 1000);
     }, 1000 / 60);
 
     return () => {
@@ -636,7 +649,7 @@ onMounted(() => {
                 fontSize: '20px',
                 fontFamily: 'Fira Mono',
             }">
-                                {{ publicRoomData.ppsCap.toFixed(1) }} PPS
+                                {{ displayTime?.toFixed(1) }} - {{ currentPps.toFixed(1) }} PPS
                             </text>
                             <text :anchorX="0" :anchorY="0.5" :x="-650 / 2 + 24" :y="0" :style="{
                 fill: 'white',
@@ -679,7 +692,7 @@ onMounted(() => {
                 fontSize: '48px',
                 fontFamily: 'Fira Mono',
             }">
-                                    {{ displayTime }}
+                                    {{ countdownTime }}
                                 </text>
                                 <text v-if="publicRoomData.lastWinner === board.id" :anchorX="0.5" :anchorY="0.5"
                                     :x="10 * CELL_SIZE / 2" :y="200" :style="{
@@ -813,8 +826,23 @@ onMounted(() => {
                         <input type="text" v-model.number="roomOptions.ft"  class="w-12 px-1 bg-white/20 text-right" />
                     </div>
                     <div class="flex justify-between items-center">
-                        <label>PPS Cap:</label>
-                        <input type="text" v-model.number="roomOptions.ppsCap"
+                        <label>Initial PPS (max: 30):</label>
+                        <input type="text" v-model.number="roomOptions.initialPps"
+                            class="w-12 px-1 bg-white/20 text-right" />
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <label>Final PPS (max: 30):</label>
+                        <input type="text" v-model.number="roomOptions.finalPps"
+                            class="w-12 px-1 bg-white/20 text-right" />
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <label>Start Margin:</label>
+                        <input type="text" v-model.number="roomOptions.startMargin"
+                            class="w-12 px-1 bg-white/20 text-right" />
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <label>End Margin:</label>
+                        <input type="text" v-model.number="roomOptions.endMargin"
                             class="w-12 px-1 bg-white/20 text-right" />
                     </div>
                     <div class="flex justify-between items-center">

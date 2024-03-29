@@ -139,10 +139,15 @@ async function handlePlayerMessage(data: RawData, connection: Connection) {
                 serverCommands
             );
             player.gameState = newGameState;
+
+            const { initialPps, finalPps, startMargin, endMargin } = room;
+            const timePassed = Date.now() - room.startedAt!;
+            const ppsCap = getPps(timePassed, initialPps, finalPps, startMargin, endMargin);
+            
             if (!player.gameState.dead) {
                 setTimeout(() => {
                     requestMove(player, room);
-                }, (1000 * 1) / room.ppsCap);
+                }, (1000 * 1) / ppsCap);
             }
             for (const event of events) {
                 if (event.type === "game_over") {

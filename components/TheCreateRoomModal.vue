@@ -4,10 +4,12 @@ const emit = defineEmits<{
 }>();
 
 const roomData = ref({
-    ft: 3,
-    // maxPlayers: 2,
+    ft: 5,
     private: false,
-    ppsCap: 3,
+    initialPps: 2.5,
+    finalPps: 5,
+    startMargin: 90,
+    endMargin: 150,
 });
 
 const disableCreate = ref(false);
@@ -40,8 +42,20 @@ async function createRoom(event: Event) {
                     <input type="checkbox" id="room-private" class="bg-black/40" v-model="roomData.private">
                 </div>
                 <div class="w-full gap-2 flex flex-row items-center justify-between">
-                    <label for="pps-cap">PPS Cap</label>
-                    <input type="number" id="pps-cap" class="bg-black/40 w-12 px-1" required v-model="roomData.ppsCap">
+                    <label for="initial-pps">Inital PPS (max: 30)</label>
+                    <input type="number" id="initial-pps" class="bg-black/40 w-12 px-1" required v-model="roomData.initialPps">
+                </div>
+                <div class="w-full gap-2 flex flex-row items-center justify-between">
+                    <label for="final-pps">Final PPS (max: 30)</label>
+                    <input type="number" id="final-pps" class="bg-black/40 w-12 px-1" required v-model="roomData.finalPps">
+                </div>
+                <div class="w-full gap-2 flex flex-row items-center justify-between">
+                    <label for="start-margin">Start Margin (secs)</label>
+                    <input type="number" id="start-margin" class="bg-black/40 w-12 px-1" required v-model="roomData.startMargin">
+                </div>
+                <div class="w-full gap-2 flex flex-row items-center justify-between">
+                    <label for="end-margin">End Margin (secs)</label>
+                    <input type="number" id="end-margin" class="bg-black/40 w-12 px-1" required v-model="roomData.endMargin">
                 </div>
                 <button class="disabled:opacity-50 text-secondary" :disabled="disableCreate" type="submit">Submit</button>
             </form>
