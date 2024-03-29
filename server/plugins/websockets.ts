@@ -6,16 +6,15 @@ import {
     connections,
     sendRoom,
     getPublicRoomData,
+    requestMove,
+    startRound,
 } from "~/server/utils/rooms";
-import type { Connection, PlayerData, RoomData } from "~/server/utils/rooms";
+import type { Connection } from "~/server/utils/rooms";
 import { checkAuthToken } from "../utils/auth";
 import {
-    GeneralMessageSchema,
-    GeneralServerMessage,
     PlayerMessageSchema,
 } from "../utils/messages";
 import {
-    createGameState,
     executeCommands,
     generateGarbage,
     getPublicGameState,
@@ -26,8 +25,6 @@ import { Block } from "~/utils/game";
 interface IDWebSocket extends WebSocket {
     id?: string;
 }
-
-const MOVE_TIMEOUT = 5000;
 
 async function authenticateWs(
     ws: IDWebSocket,
@@ -89,234 +86,7 @@ async function authenticateWs(
     return connection;
 }
 
-function requestMove(player: PlayerData, room: RoomData) {
-    if (!player.gameState || !player.playing) return;
-
-    sendClient(player.ws, {
-        type: "request_move",
-        payload: {
-            gameState: getPublicGameState(player.gameState),
-            players: getPublicPlayers(room.players),
-        },
-    });
-
-    player.moveRequested = true;
-    if (player.timeout) {
-        clearTimeout(player.timeout);
-    }
-    player.timeout = setTimeout(() => {
-        if (!player.gameState || !player.playing || player.gameState.dead)
-            return;
-
-        player.gameState.dead = true;
-        sendRoom(room.id, {
-            type: "player_died",
-            payload: {
-                sessionId: player.sessionId,
-            },
-        });
-    }, MOVE_TIMEOUT);
-}
-
-async function startRound(room: RoomData) {
-    for (const player of room.players.values()) {
-        if (!player.playing) return;
-
-        player.gameState = createGameState();
-        if (player.timeout) {
-            clearTimeout(player.timeout);
-            player.timeout = null;
-        }
-        player.moveRequested = false;
-    }
-
-    const startsAt = Date.now() + 3000;
-
-    room.startedAt = startsAt;
-    room.endedAt = null;
-    room.gameOngoing = true;
-    room.roundOngoing = false;
-    room.lastWinner = null;
-
-    sendRoom(room.id, {
-        type: "round_started",
-        payload: {
-            startsAt,
-            players: getPublicPlayers(room.players),
-            roomData: getPublicRoomData(room),
-        },
-    });
-
-    setTimeout(() => {
-        room.roundOngoing = true;
-        room.players.forEach((player) => {
-            requestMove(player, room);
-        });
-    }, 3000);
-}
-
 const jsonSchema = zu.stringToJSON();
-async function handleGeneralMessage(data: RawData, connection: Connection) {
-    console.log(":(")
-    const message = jsonSchema.safeParse(data.toString());
-    if (!message.success) return;
-
-    const parsed = GeneralMessageSchema.safeParse(message.data);
-    if (!parsed.success) return;
-
-    const messageData = parsed.data;
-
-    const room = rooms.get(connection.roomId);
-    if (!room) return;
-
-    if (connection.info.userId !== room.host.userId) return;
-
-    switch (messageData.type) {
-        case "kick": {
-            const player = room.players.get(messageData.payload.sessionId);
-
-            if (!player) return;
-            player.ws.close(4001, "Kicked by host");
-            sendRoom(connection.roomId, {
-                type: "player_left",
-                payload: {
-                    sessionId: player.sessionId,
-                },
-            });
-            break;
-        }
-        case "ban": {
-            const profile = await prisma.profile.findFirst({
-                where: {
-                    id: messageData.payload.userId,
-                },
-            });
-            if (!profile) return;
-            const playerInfo = {
-                userId: profile.id,
-                bot: profile.name,
-                avatar: profile.avatar as Block[][],
-                creator: profile.creator,
-            };
-            room.banned.set(profile.id, playerInfo);
-            for (const [sessionId, player] of room.players.entries()) {
-                if (player.info.userId !== messageData.payload.userId) continue;
-
-                player.ws.close(4002, "Banned by host");
-                room.players.delete(player.info.userId);
-                sendRoom(connection.roomId, {
-                    type: "player_left",
-                    payload: {
-                        sessionId,
-                    },
-                });
-            }
-            sendRoom(connection.roomId, {
-                type: "player_banned",
-                payload: playerInfo,
-            });
-            break;
-        }
-        case "unban": {
-            const playerInfo = room.banned.get(messageData.payload.userId);
-            if (!playerInfo) return;
-            room.banned.delete(messageData.payload.userId);
-            sendRoom(connection.roomId, {
-                type: "player_unbanned",
-                payload: playerInfo,
-            });
-            break;
-        }
-        case "start_game": {
-            if (room.players.size < 2) {
-                connection.ws.send(
-                    JSON.stringify({
-                        type: "error",
-                        payload: "Not enough players",
-                    })
-                );
-                return;
-            }
-
-            if (room.players.size > room.maxPlayers) {
-                connection.ws.send(
-                    JSON.stringify({
-                        type: "error",
-                        payload: "Too many players",
-                    })
-                );
-                return;
-            }
-            if (room.gameOngoing) {
-                connection.ws.send(
-                    JSON.stringify({
-                        type: "error",
-                        payload: "Game already started",
-                    })
-                );
-                return;
-            }
-
-            for (const player of room.players.values()) {
-                player.wins = 0;
-                player.playing = true;
-            }
-
-            sendRoom(connection.roomId, {
-                type: "game_started",
-            });
-
-            console.log("Starting Game")
-
-            startRound(room);
-
-            break;
-        }
-        case "reset_game": {
-            if (!room.gameOngoing) {
-                connection.ws.send(
-                    JSON.stringify({
-                        type: "error",
-                        payload: "Game not started",
-                    })
-                );
-                return;
-            }
-            room.gameOngoing = false;
-            room.roundOngoing = false;
-            sendRoom(connection.roomId, {
-                type: "game_reset",
-                payload: {
-                    players: getPublicPlayers(room.players),
-                },
-            });
-            break;
-        }
-        case "transfer_host": {
-            const player = room.players.get(messageData.payload.userId);
-            if (!player) return;
-            room.host = player.info;
-            sendRoom(connection.roomId, {
-                type: "host_changed",
-                payload: {
-                    hostInfo: player.info,
-                },
-            });
-            break;
-        }
-        case "room_settings": {
-            room.ppsCap = messageData.payload.ppsCap;
-            room.ft = messageData.payload.ft;
-            room.private = messageData.payload.private;
-            sendRoom(connection.roomId, {
-                type: "settings_changed",
-                payload: getPublicRoomData(room),
-            });
-            break;
-        }
-    }
-}
-
 async function handlePlayerMessage(data: RawData, connection: Connection) {
     const message = jsonSchema.safeParse(data.toString());
     if (!message.success) return;
@@ -330,7 +100,7 @@ async function handlePlayerMessage(data: RawData, connection: Connection) {
     if (!room) return;
 
     switch (messageData.type) {
-        case "commands": {
+        case "action": {
             const player = room.players.get(connection.id);
             if (!player) return;
             if (!room.gameOngoing) {
@@ -372,12 +142,12 @@ async function handlePlayerMessage(data: RawData, connection: Connection) {
             }
             for (const event of events) {
                 if (event.type === "game_over") {
-                    sendRoom(connection.roomId, {
-                        type: "player_died",
-                        payload: {
-                            sessionId: connection.id,
-                        },
-                    });
+                    // sendRoom(connection.roomId, {
+                    //     type: "player_died",
+                    //     payload: {
+                    //         sessionId: connection.id,
+                    //     },
+                    // });
                     if (player.timeout) {
                         clearTimeout(player.timeout);
                         player.timeout = null;
@@ -407,7 +177,7 @@ async function handlePlayerMessage(data: RawData, connection: Connection) {
                 }
             }
             sendRoom(connection.roomId, {
-                type: "player_commands",
+                type: "player_action",
                 payload: {
                     sessionId: connection.id,
                     commands: messageData.payload.commands,
@@ -429,7 +199,8 @@ async function handlePlayerMessage(data: RawData, connection: Connection) {
                 sendRoom(connection.roomId, {
                     type: "round_over",
                     payload: {
-                        winnerId: roundWinner.sessionId,
+                        winnerSession: roundWinner.sessionId,
+                        winnerInfo: roundWinner.info,
                         roomData: getPublicRoomData(room),
                     },
                 });
@@ -439,14 +210,15 @@ async function handlePlayerMessage(data: RawData, connection: Connection) {
                     sendRoom(connection.roomId, {
                         type: "game_over",
                         payload: {
-                            winnerId: roundWinner.sessionId,
+                            winnerSession: roundWinner.sessionId,
+                            winnerInfo: roundWinner.info,
                             roomData: getPublicRoomData(room),
                         },
                     });
                     sendRoom(connection.roomId, {
                         type: "game_reset",
                         payload: {
-                            players: getPublicPlayers(room.players),
+                            roomData: getPublicRoomData(room),
                         },
                     });
                 } else {
@@ -520,8 +292,10 @@ export default defineNitroPlugin((event) => {
         }
 
         sendClient(ws, {
-            type: "room_info",
-            payload: getPublicRoomData(room),
+            type: "room_data",
+            payload: {
+                roomData: getPublicRoomData(room)
+            },
         });
 
         ws.on("close", () => {
@@ -551,7 +325,7 @@ export default defineNitroPlugin((event) => {
                 sendRoom(room.id, {
                     type: "game_reset",
                     payload: {
-                        players: getPublicPlayers(room.players),
+                        roomData: getPublicRoomData(room),
                     },
                 });
             }
@@ -586,8 +360,6 @@ export default defineNitroPlugin((event) => {
             ws.close(4004, "Failed to authenticate token or roomKey.");
             return;
         }
-
-        ws.on("message", (data) => handleGeneralMessage(data, connection));
 
         if (spectating) return;
 

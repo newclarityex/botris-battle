@@ -4,6 +4,14 @@ import { useAuthStore } from '~/stores/auth';
 const route = useRoute();
 
 const authStore = useAuthStore();
+
+async function signOut() {
+    await $fetch('/api/logout', {
+        method: 'POST',
+    });
+
+    authStore.tryAuthenticate();
+};
 </script>
 
 <template>
@@ -15,27 +23,23 @@ const authStore = useAuthStore();
                 <NuxtLink to="/" :class="{
                     'underline text-secondary': route.path !== '/'
                 }">Info</NuxtLink>
-                <!-- <NuxtLink to="/rules" :class="{
-                    'underline text-secondary': route.path !== '/rules'
-                }">Rules</NuxtLink> -->
-                <NuxtLink to="https://discord.gg/47AhNAs25M" class="underline text-secondary">Discord</NuxtLink>
-                <!-- <NuxtLink to="/docs" :class="{
+                <NuxtLink to="/docs" :class="{
                     'underline text-secondary': route.path !== '/docs'
-                }">API Documentation</NuxtLink> -->
+                }">API Documentation</NuxtLink>
                 <NuxtLink to="/rooms" :class="{
                     'underline text-secondary': route.path !== '/rooms'
                 }">View Rooms</NuxtLink>
-                <a class="bg-white/20 p-2" href="/api/login/github">
-                    Register
+                <a class="bg-white/20 p-2" href="/api/login/github" v-if="authStore.status === 'unauthenticated'">
+                    Login/Register
                 </a>
-                <!-- <template v-if="status === 'authenticated'">
+                <template v-if="authStore.status === 'authenticated'">
                     <NuxtLink to="/dashboard" :class="{
-                    'underline text-secondary': route.path !== '/dashboard'
-                }">Dashboard</NuxtLink>
+                        'underline text-secondary': route.path !== '/dashboard'
+                    }">Dashboard</NuxtLink>
                     <button class="bg-white/20 p-2" @click="signOut">
                         Sign Out
                     </button>
-                </template> -->
+                </template>
             </div>
             <slot />
         </div>

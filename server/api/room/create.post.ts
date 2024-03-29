@@ -33,6 +33,7 @@ export default defineEventHandler(async (event) => {
 
 	const match = {
 		id: roomId,
+		createdAt: Date.now(),
 		host: {
 			userId: profile.id,
 			creator: profile.creator,

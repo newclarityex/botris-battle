@@ -19,7 +19,7 @@ import { getBoardBumpiness, getBoardAvgHeight } from "libtris";
 import FontFaceObserver from "fontfaceobserver";
 import { Text } from "pixi.js";
 
-const { status, session } = useAuth();
+const { status, profile } = toRefs(useAuthStore());
 
 definePageMeta({
     layout: "ingame",
@@ -64,7 +64,7 @@ allPlayerGraphics.value = initialRoomData.players.map((player) => ({
 function getPlayerStats() {
     const { startedAt, endedAt } = publicRoomData.value;
     return publicRoomData.value.players.map((player) => {
-        const { sessionId, info, gameState } = player;
+        const { gameState } = player;
 
         if (!startedAt || !gameState)
             return [
@@ -236,8 +236,8 @@ onMounted(async () => {
         const data = JSON.parse(event.data) as GeneralServerMessage;
 
         switch (data.type) {
-            case "room_info": {
-                publicRoomData.value = data.payload;
+            case "room_data": {
+                publicRoomData.value = data.payload.roomData;
                 break;
             }
             case "round_started": {
@@ -274,7 +274,7 @@ onMounted(async () => {
                 roundStartTime.value = null;
 
                 publicRoomData.value.gameOngoing = false;
-                publicRoomData.value.players = data.payload.players;
+                publicRoomData.value.players = data.payload.roomData.players;
                 break;
             }
             case "player_joined": {
@@ -308,7 +308,7 @@ onMounted(async () => {
 
                 break;
             }
-            case "player_commands": {
+            case "player_action": {
                 if (!publicRoomData.value) return console.error("no room info");
 
                 const { sessionId, gameState, events } = data.payload;
@@ -356,15 +356,15 @@ onMounted(async () => {
                                     clearData.piece,
                                     clearData.attack
                                 );
-                            }
+                            };
 
                             // if (clearData.pc) {
                             //     AUDIO_SOURCES.all_clear.play();
                             // } else if (clearData.allSpin) {
                             //     AUDIO_SOURCES.all_spin_clear.play();
                             // } else {
-                            //     if (newGameState.combo > 0) {
-                            //         AUDIO_SOURCES.combo[newGameState.combo - 1].play();
+                            //     if (clearData.combo > 0) {
+                            //         AUDIO_SOURCES.combo[clearData.combo - 1].play();
                             //     } else {
                             //         AUDIO_SOURCES.line_clear.play();
                             //     }
@@ -396,7 +396,7 @@ onMounted(async () => {
                 break;
             }
             case "settings_changed": {
-                const roomData = data.payload;
+                const { roomData } = data.payload;
                 publicRoomData.value = roomData;
                 roomOptions.value.ft = roomData.ft;
                 roomOptions.value.ppsCap = roomData.ppsCap;
@@ -404,12 +404,12 @@ onMounted(async () => {
                 break;
             }
             case "player_banned": {
-                publicRoomData.value.banned.push(data.payload);
+                publicRoomData.value.banned.push(data.payload.playerInfo);
                 break;
             }
             case "player_unbanned": {
                 publicRoomData.value.banned = publicRoomData.value.banned.filter(
-                    (banned) => banned.userId !== data.payload.userId
+                    (banned) => banned.userId !== data.payload.playerInfo.userId
                 );
                 break;
             }
@@ -423,36 +423,54 @@ onUnmounted(() => {
     ws.close();
 });
 
-function startGame() {
-    if (!ws) return;
-
+async function startGame() {
     gameMenu.value?.close();
 
-    sendClientMessage(ws, { type: "start_game" });
+    await $fetch('/api/room/start', {
+        method: 'POST',
+        body: {
+            roomId,
+        },
+    });
 }
 
-function resetGame() {
-    if (!ws) return;
-
-    sendClientMessage(ws, { type: "reset_game" });
+async function resetGame() {
+    await $fetch('/api/room/reset', {
+        method: 'POST',
+        body: {
+            roomId,
+        },
+    });
 }
 
-function kickPlayer(sessionId: string) {
-    if (!ws) return;
-
-    sendClientMessage(ws, { type: "kick", payload: { sessionId } });
+async function kickPlayer(sessionId: string) {
+    await $fetch('/api/room/kick', {
+        method: 'POST',
+        body: {
+            roomId,
+            targetId: sessionId,
+        },
+    });
 }
 
-function banPlayer(userId: string) {
-    if (!ws) return;
-
-    sendClientMessage(ws, { type: "ban", payload: { userId } });
+async function banPlayer(userId: string) {
+    await $fetch('/api/room/kick', {
+        method: 'POST',
+        body: {
+            roomId,
+            targetId: userId,
+        },
+    });
 }
 
-function unBanPlayer(userId: string) {
-    if (!ws) return;
-
-    sendClientMessage(ws, { type: "unban", payload: { userId } });
+async function unbanPlayer(userId: string) {
+    await $fetch('/api/room/kick', {
+        method: 'POST',
+        body: {
+            roomId,
+            targetId: userId,
+        },
+    });
 }
 
 const playerCount = 2;
@@ -525,9 +543,7 @@ async function generateTempKey() {
     loadingTempKey.value = false;
 }
 
-function saveSettings() {
-    if (!ws) return;
-
+async function saveSettings() {
     let ft: string | number = roomOptions.value.ft;
     if (typeof ft === 'number') {
         ft = Math.floor(ft);
@@ -558,24 +574,30 @@ function saveSettings() {
         ppsCap = 30;
     }
 
-    sendClientMessage(ws, {
-        type: 'room_settings',
-        payload: {
-            ft, ppsCap,
+    await $fetch('/api/room/edit', {
+        method: "POST",
+        body: {
+            roomId,
             private: roomOptions.value.private,
-        },
+            ft,
+            ppsCap,
+        }
     });
 };
 
-// function validateFt() {
-//     const value = parseInt(input.value);
+const settingsChanged = computed(() => {
+    if (publicRoomData.value.private !== roomOptions.value.private) {
+        return true;
+    };
+    if (publicRoomData.value.ft !== roomOptions.value.ft) {
+        return true;
+    };
+    if (publicRoomData.value.ppsCap !== roomOptions.value.ppsCap) {
+        return true;
+    };
+    return false;
+});
 
-//     if (isNaN(value)) event.preventDefault();
-
-//     if (value < 1) event.preventDefault();
-
-//     if (value > 99) event.preventDefault();
-// }
 const displayTime = ref<number | null>(null);
 
 onMounted(() => {
@@ -778,26 +800,11 @@ onMounted(() => {
                     </container>
                 </container>
             </Application>
-            <!-- <canvas ref="pixiCanvas" class="absolute w-full h-full" /> -->
         </div>
-        <!-- <div class="absolute w-full h-full flex justify-center items-center -z-10" ref="canvasContainer">
-            <div class="relative" :class="{
-                'w-full h-auto': maxCanvasWidth / maxCanvasHeight < RESOLUTION_RATIO,
-                'w-auto h-full': maxCanvasWidth / maxCanvasHeight > RESOLUTION_RATIO,
-            }">
-                <div class="absolute w-full flex justify-center gap-8 top-16">
-                    <div v-for="player in publicRoomData?.players" class="text-xl">
-                        {{ player.wins }}
-                    </div>
-                </div>
-            </div>
-        </div> -->
-        <dialog ref="gameMenu" v-if="publicRoomData &&
-                session &&
-                publicRoomData.host.userId === session.user?.id
+        <dialog ref="gameMenu" v-if="publicRoomData && publicRoomData.host.userId === profile?.id
                 " class="bg-black/40 backdrop:bg-black/20 backdrop:backdrop-blur-sm">
-            <div class="p-8 flex flex-col gap-4 w-[540px]">
-                <div class="text-white text-center text-xl">
+            <div class="p-6 flex flex-col gap-4 w-[520px]">
+                <div class="text-white text-center text-lg">
                     Press ESC to toggle menu
                 </div>
                 <div class="p-4 bg-white/10 flex flex-col gap-2">
@@ -829,7 +836,7 @@ onMounted(() => {
                 <div class="p-4 bg-white/10 flex flex-col gap-2">
                     <div class="flex justify-between items-center">
                         <label>FT:</label>
-                        <input type="text" v-model.number="roomOptions.ft" class="w-12 px-1 bg-white/20 text-right" />
+                        <input type="text" v-model.number="roomOptions.ft"  class="w-12 px-1 bg-white/20 text-right" />
                     </div>
                     <div class="flex justify-between items-center">
                         <label>PPS Cap:</label>
@@ -842,18 +849,18 @@ onMounted(() => {
                     </div>
                     <div class="flex justify-center">
                         <button class="bg-white/10 w-full py-1 hover:bg-white/20" @click="saveSettings">
-                            Save
+                            Save{{ settingsChanged ? '*' : '' }}
                         </button>
                     </div>
                 </div>
                 <div class="p-4 bg-white/10 flex flex-col gap-2">
-                    <h2 class="text-xl">Players</h2>
+                    <h2 class="text-lg">Players</h2>
                     <div v-if="publicRoomData.players.length === 0 && publicRoomData.banned.length === 0"
                         class="italic opacity-50">
                         No Players Joined
                     </div>
                     <ul v-else class="flex flex-col gap-2">
-                        <li class="flex justify-between" v-for=" player  in  publicRoomData.players ">
+                        <li class="w-full flex justify-between" v-for="player in publicRoomData.players ">
                             <div>
                                 {{ player.info.bot }}
                                 <span class="opacity-50">
@@ -869,7 +876,7 @@ onMounted(() => {
                                 </button>
                             </div>
                         </li>
-                        <li class="flex justify-between" v-for=" player  in  publicRoomData.banned ">
+                        <li class="flex justify-between" v-for=" player in publicRoomData.banned">
                             <div class="text-red-400">
                                 {{ player.bot }}
                                 <span class="opacity-50">
@@ -877,31 +884,22 @@ onMounted(() => {
                                 </span>
                             </div>
                             <div class="flex gap-2">
-                                <button class="underline" @click="unBanPlayer(player.userId)">
+                                <button class="underline" @click="unbanPlayer(player.userId)">
                                     Unban
                                 </button>
                             </div>
                         </li>
                     </ul>
                 </div>
-                <!-- <div class="flex justify-between">
-                    <label>Room Settings:</label>
-                    <button class="underline">Manage</button>
-                </div>
-                <div class="flex justify-between">
-                    <label>Players:</label>
-                    <button class="underline">Manage</button>
-                </div>
-                <div class="flex justify-between">
-                    <label>Banned:</label>
-                    <button class="underline">Manage</button>
-                </div> -->
                 <div class="flex justify-evenly">
-                    <button class="underline disabled:opacity-60 text-xl" @click="resetGame"
+                    <NuxtLink class="underline text-lg" to="/rooms">
+                        Leave Game
+                    </NuxtLink>
+                    <button class="underline disabled:opacity-60 text-lg" @click="resetGame"
                         :disabled="!publicRoomData || !publicRoomData.gameOngoing">
                         Reset Game
                     </button>
-                    <button class="underline disabled:opacity-60 text-xl" @click="startGame" :disabled="!publicRoomData ||
+                    <button class="underline disabled:opacity-60 text-lg" @click="startGame" :disabled="!publicRoomData ||
                 publicRoomData.gameOngoing ||
                 publicRoomData.players.length < 2
                 ">
@@ -910,15 +908,6 @@ onMounted(() => {
                 </div>
             </div>
         </dialog>
-        <!-- <div v-if="!publicRoomData.gameOngoing">
-            <Countdown v-if="roundStartTime" :startsAt="roundStartTime" />
-            scale: {{ scale }}
-            {{ publicRoomData }}
-        </div>
-        {{ JSON.stringify(playerStats) }}
-        <br />
-        startedAt: {{ publicRoomData.startedAt }}, {{ publicRoomData.endedAt }} -->
-        <!-- {{ publicRoomData }} -->
     </div>
 </template>
 

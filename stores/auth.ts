@@ -6,6 +6,8 @@ export const useAuthStore = defineStore('auth', () => {
     const status = ref<'pending' | 'authenticated' | 'unauthenticated'>('pending');
 
     async function tryAuthenticate() {
+        status.value = 'pending';
+
         const profileRes = $fetch("/api/self/profile").catch(() => null);
         const userRes = $fetch("/api/self/user").catch(() => null);
 

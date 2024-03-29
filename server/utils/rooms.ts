@@ -1,5 +1,5 @@
 import type { WebSocket } from "ws";
-import { getPublicGameState, type GameState, PublicGameState } from "libtris";
+import { getPublicGameState, type GameState, PublicGameState, createGameState } from "libtris";
 import { GeneralServerMessage } from "./messages";
 import { Block } from "~/utils/game";
 import { customAlphabet } from "nanoid";
@@ -33,6 +33,7 @@ export type PublicPlayerData = {
 
 export type RoomData = {
 	id: string;
+	createdAt: number;
 	host: PlayerInfo;
 	private: boolean;
 	ft: number;
@@ -46,6 +47,22 @@ export type RoomData = {
 	banned: Map<string, PlayerInfo>;
 	players: Map<string, PlayerData>;
 	spectators: Map<string, WebSocket>;
+};
+
+export type PublicRoomData = {
+	id: string;
+	host: PlayerInfo;
+	private: boolean;
+	ft: number;
+	ppsCap: number;
+	maxPlayers: number;
+	gameOngoing: boolean;
+	roundOngoing: boolean;
+	startedAt: number | null;
+	endedAt: number | null;
+	lastWinner: string | null;
+	players: PublicPlayerData[];
+	banned: PlayerInfo[];
 };
 
 export type Connection = {
@@ -64,6 +81,7 @@ export function sendClient(ws: WebSocket, message: GeneralServerMessage) {
 	const parsed = JSON.stringify(message);
 	ws.send(parsed);
 }
+
 export function sendRoom(roomId: string, message: GeneralServerMessage) {
 	const parsed = JSON.stringify(message);
 	const room = rooms.get(roomId);
@@ -76,21 +94,72 @@ export function sendRoom(roomId: string, message: GeneralServerMessage) {
 	}
 }
 
-export type PublicRoomData = {
-	id: string;
-	host: PlayerInfo;
-	private: boolean;
-	ft: number;
-	ppsCap: number;
-	maxPlayers: number;
-	gameOngoing: boolean;
-	roundOngoing: boolean;
-	startedAt: number | null;
-	endedAt: number | null;
-	lastWinner: string | null;
-	players: PublicPlayerData[];
-	banned: PlayerInfo[];
-};
+const MOVE_TIMEOUT = 5 * 1000;
+export function requestMove(player: PlayerData, room: RoomData) {
+    if (!player.gameState || !player.playing) return;
+
+    sendClient(player.ws, {
+        type: "request_move",
+        payload: {
+            gameState: getPublicGameState(player.gameState),
+            players: getPublicPlayers(room.players),
+        },
+    });
+
+    player.moveRequested = true;
+    if (player.timeout) {
+        clearTimeout(player.timeout);
+    }
+    player.timeout = setTimeout(() => {
+        if (!player.gameState || !player.playing || player.gameState.dead)
+            return;
+
+        player.gameState.dead = true;
+        sendRoom(room.id, {
+            type: "player_died",
+            payload: {
+                sessionId: player.sessionId,
+            },
+        });
+    }, MOVE_TIMEOUT);
+}
+
+export async function startRound(room: RoomData) {
+    for (const player of room.players.values()) {
+        if (!player.playing) return;
+
+        player.gameState = createGameState();
+        if (player.timeout) {
+            clearTimeout(player.timeout);
+            player.timeout = null;
+        }
+        player.moveRequested = false;
+    }
+
+    const startsAt = Date.now() + 3000;
+
+    room.startedAt = startsAt;
+    room.endedAt = null;
+    room.gameOngoing = true;
+    room.roundOngoing = false;
+    room.lastWinner = null;
+
+    sendRoom(room.id, {
+        type: "round_started",
+        payload: {
+            startsAt,
+            players: getPublicPlayers(room.players),
+            roomData: getPublicRoomData(room),
+        },
+    });
+
+    setTimeout(() => {
+        room.roundOngoing = true;
+        room.players.forEach((player) => {
+            requestMove(player, room);
+        });
+    }, 3000);
+}
 
 export function getPublicPlayerData(player: PlayerData): PublicPlayerData {
 	return {
@@ -124,7 +193,7 @@ export function getPublicRoomData(roomData: RoomData): PublicRoomData {
 		endedAt: roomData.endedAt,
 		lastWinner: roomData.lastWinner,
 		players: getPublicPlayers(roomData.players),
-		banned: [...roomData.banned].map(([, player]) => player),
+		banned: [...roomData.banned].map(([_, player]) => player),
 	};
 }
 

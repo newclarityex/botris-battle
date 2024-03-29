@@ -18,6 +18,10 @@ p {
   @apply bg-black/20 p-4 whitespace-pre-wrap block text-white;
 }
 
+code {
+  @apply bg-black/20 whitespace-pre-wrap text-white;
+}
+
 /* pre {
   @apply bg-black/20 p-4 whitespace-pre-wrap;
 } */
@@ -31,7 +35,7 @@ ul {
 }
 
 .type-link {
-  @apply text-content;
+  @apply text-content underline;
 }
 
 .comment {

@@ -5,7 +5,6 @@ export default defineNitroPlugin((nitro) => {
     if (runtimeConfig.build) return;
 
     setInterval(async () => {
-        // console.log(runtimeConfig);
         await prisma.apiToken.deleteMany({
             where: {
                 expires: {

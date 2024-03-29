@@ -8,6 +8,18 @@
 # database or a cache. For examples, see the Awesome Compose repository:
 # https://github.com/docker/awesome-compose
 services:
+  caddy:
+    image: caddy:2.7.6
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      - ./site:/srv
+      - caddy_data:/data
+      - caddy_config:/config
   server:
     container_name: server
     restart: unless-stopped
@@ -19,7 +31,6 @@ services:
       context: .
     ports:
       - 3000:3000
-      - 5555:5555
     depends_on:
       db:
         condition: service_healthy
@@ -45,5 +56,7 @@ services:
       - frontend
 volumes:
   db:
+  caddy_data:
+  caddy_config:
 networks:
   frontend:

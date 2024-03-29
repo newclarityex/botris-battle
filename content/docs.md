@@ -8,36 +8,26 @@ Create an authorization token by going to [Dashboard](/dashboard){.link}! -> Cre
 
 ### Create Room
 
-Create a room online by going to [View Rooms](/rooms){.link} -> Create Room.
+Create a room by going to [View Rooms](/rooms){.link} -> Create Room.
 
 Each user can only hold 1 room at a time.
 
 ### Spectate Room
 
-Spectate a room online by going to [View Rooms](/rooms){.link} and selecting a room from the list, or following a shared room link.
+Spectate a room by going to [View Rooms](/rooms){.link} and selecting a room from the list, or following a shared room link.
 
 ### Join Room
 
-Connect to `/api/ws` using a websocket connection, and join a room by sending the following through the websocket connection:
+Connect to `/api/ws?token={token}&roomKey={roomKey}`
+using a websocket connection.
+- {token} - Generated API Token from the [Dashboard](/dashboard){.link}
+- {roomKey} - Provided roomKey from the room host
 
-<pre class='code'>
-{
-    type: 'join';
-    payload: {
-        <span class="comment">// Your generated authorization token</span>
-        token: string;
-        <span class="comment">// Host provided room key</span>
-        roomKey: string;
-    }
-}
-</pre>
-
-\
 The server will respond with:
 
 <pre class='code'>
 {
-    type: 'room_info';
+    type: 'room_data';
     payload: {
         roomData: <a href="#roomdata" class="type-link">RoomData</a>
     }
@@ -51,6 +41,67 @@ The game can also be spectated at `/room/{roomId}`.
 
 ## WS Messages
 
+### General
+When a player joins, the server will send:
+<pre class='code'>
+{
+    type: "player_joined";
+    payload: {
+        playerData: <a href="#playerdata" class="type-link">PlayerData</a>;
+    };
+}
+</pre>
+
+When a player leaves or gets kicked, the server will send:
+<pre class='code'>
+{
+    type: "player_left";
+    payload: {
+        sessionId: string;
+    };
+}
+</pre>
+
+When a player gets banned, the server will send:
+<pre class='code'>
+{
+    type: "player_banned";
+    payload: {
+        playerInfo: <a href="#playerinfo" class="type-link">PlayerInfo</a>
+    };
+}
+</pre>
+
+When a player gets unbanned, the server will send:
+<pre class='code'>
+{
+    type: "player_unbanned";
+    payload: {
+        playerInfo: <a href="#playerinfo" class="type-link">PlayerInfo</a>
+    };
+}
+</pre>
+
+When the room settings are changed, the server will send:
+<pre class='code'>
+{
+    type: "settings_changed";
+    payload: {
+        roomData: <a href="#roomdata" class="type-link">RoomData</a>
+    };
+}
+</pre>
+
+When the host is transfered, the server will send:
+<pre class='code'>
+{
+    type: "host_changed";
+    payload: {
+        hostInfo: PlayerInfo;
+    };
+}
+</pre>
+
 ### Ingame
 When the game starts, the server will send:
 <pre class='code'>
@@ -62,89 +113,135 @@ When the game starts, the server will send:
 When a round is about to start, the server will send:
 <pre class='code'>
 {
-    type: 'game_started';
+    type: 'round_started';
     payload: {
         startTime: number;
-        boardState: <a href="#boardstate" class="type-link">BoardState</a>;
+        gamestate: <a href="#gamestate" class="type-link">Gamestate</a>;
     }
 }
 </pre>
 
-\
-A command is represented as:
-
+The server will request a move from the player by sending:
 <pre class='code'>
-type Command = 'move_left' | 'move_right' | 'rotate_left' |
-    'rotate_right' | 'rotate_180' | 'drop' | 'sonic_drop' | 'hard_drop';
+{
+    type: "request_move";
+    payload: {
+        gameState: <a href="#gamestate" class="type-link">GameState</a>;
+        players: <a href="#playerdata" class="type-link">PlayerData</a>[];
+    };
+}
 </pre>
 
-\
-Actions are sent from a client to a server to perform commands. An action can be sent to the server using:
+After the server requests a move, you may place a piece. Actions are sent from a client to a server to perform commands, and after every action the player will automatically harddrop.
+<br>
+**An action can be sent to the server using**:
 
 <pre class='code'>
 {
     type: 'action';
     payload: {
-        commands: Command[];
+        commands: <a href="#command" class="type-link">Command</a>[];
     }
 }
 </pre>
 
-\
-Whenever a player performs an action, the server will send:
+Whenever a player performs an action, the server will send everyone:
 
 <pre class='code'>
 {
-    type: 'player_update';
+    type: 'player_action';
     payload: {
-        timestamp: number;
-        commands: Command[];
-        initialState: BoardState;
-        newState: BoardState;
+        sessionId: string;
+        commands: string[];
+        gameState: <a href="#gamestate" class="type-link">GameState</a>;
+        events: <a href="#gameevent" class="type-link">GameEvent</a>[];
     }
 }
 </pre>
 
-\
-Whenever a player performs an action, the server will send:
+Whenever a player is sent damage, the server will send everyone:
 
 <pre class='code'>
 {
-    type: 'player_update';
+    type: 'player_damage_received';
     payload: {
-        timestamp: number;
-        commands: Command[];
-        initialState: BoardState;
-        newState: BoardState;
+        sessionId: string;
+        damage: number;
+        gameState: <a href="#gamestate" class="type-link">GameState</a>;
     }
 }
 </pre>
 
-\
-When a round is over, the winner's `botId` is sent using:
+When a round is over, the winner is sent using:
 
 <pre class='code'>
 {
     type: 'round_over';
     payload: {
-        winner: string;
+        winnerSession: string;
+        winnerInfo: <a href="#playerinfo" class="type-link">PlayerInfo</a>;
+        roomInfo: roomInfo;
     }
 }
 </pre>
 
-\
-When the game is over, the winner's `botId` is sent using:
+When the game is over, the winner is sent using:
 
 <pre class='code'>
 {
     type: 'game_over';
     payload: {
-        winner: string;
+        winnerSession: string;
+        winnerInfo: <a href="#playerinfo" class="type-link">PlayerInfo</a>;
+        roomData: <a href="#roomdata" class="type-link">RoomData</a>;
     }
 }
 </pre>
 
+When the game is reset early, the server sends:
+
+<pre class='code'>
+{
+    type: "game_reset";
+    payload: {
+        roomData: <a href="#roomdata" class="type-link">RoomData</a>;
+    };
+}
+</pre>
+
 ## Types
+
+### RoomData
+
+<pre class='code'>
+{
+	id: string;
+	host: <a href="#playerinfo" class="type-link">PlayerInfo</a>;
+	private: boolean;
+	ft: number;
+	ppsCap: number;
+	maxPlayers: number;
+	gameOngoing: boolean;
+	roundOngoing: boolean;
+	startedAt: number | null;
+	endedAt: number | null;
+	lastWinner: string | null;
+	players: PlayerData[];
+	banned: <a href="#playerinfo" class="type-link">PlayerInfo</a>[];
+}
+</pre>
+
+### PlayerData
+
+<pre class='code'>
+{
+	sessionId: string;
+	playing: boolean;
+	info: <a href="#playerinfo" class="type-link">PlayerInfo</a>;
+	wins: number;
+	gameState: <a href="#gamestate" class="type-link">GameState</a> | null;
+}
+</pre>
 
 ### PlayerInfo
 
@@ -167,19 +264,32 @@ When the game is over, the winner's `botId` is sent using:
 <a href="#piece" class="type-link">Piece</a> | null
 </pre>
 
-### BoardState
+### PieceData
+<pre class='code'>
+{
+    piece: <a href="#piece" class="type-link">Piece</a>;
+    x: number;
+    y: number;
+    rotation: 0 | 1 | 2 | 3;
+}
+</pre>
+
+### GameState
 
 <pre class='code'>
 {
-    board: <a href="#piece" class="type-link">Piece</a>[][];
+    board: <a href="#block" class="type-link">Block</a>[][];
     queue: <a href="#piece" class="type-link">Piece</a>[];
+    garbageQueued: number;
     held: <a href="#piece" class="type-link">Piece</a> | null;
-    current: {
-        piece: <a href="#piece" class="type-link">Piece</a>;
-        x: number;
-        y: number;
-        rotation: 0 | 1 | 2 | 3;
-    };
+    current: <a href="#piecedata" class="type-link">PieceData</a>;
+    isImmobile: boolean;
+    canHold: boolean;
+    combo: number;
+    b2b: boolean;
+    score: number;
+    piecesPlaced: number;
+    dead: boolean;
 }
 </pre>
 
@@ -189,50 +299,38 @@ When the game is over, the winner's `botId` is sent using:
 'move_left' | 'move_right' | 'rotate_left' | 'rotate_right' | 'rotate_180' | 'drop' | 'sonic_drop' | 'hard_drop'
 </pre>
 
-## Types
-### RoomData
+### GameEvent
 <pre class='code'>
 {
-	id: string;
-	host: PlayerInfo;
-
-    private: boolean;
-	ft: number;
-	ppsCap: number;
-	maxPlayers: number;
-	
-    gameOngoing: boolean;
-	roundOngoing: boolean;
-
-	startedAt: number | null;
-	endedAt: number | null;
-	lastWinner: string | null;
-	players: PlayerData[];
-	banned: PlayerInfo[];
-};
-</pre>
-
-### PlayerInfo
-<pre class='code'>
-type PlayerInfo = {
-	userId: string;
-	creator: string;
-	bot: string;
-	avatar: Block[][];
-};
-</pre>
-
-### BoardState
-<pre class='code'>
-type BoardState = {
-    board: Piece[][];
-    queue: Piece[];
-    held: Piece | null;
-    current: {
-        piece: Piece;
-        x: number;
-        y: number;
-        roation: 0 | 1 | 2 | 3;
+    type: 'piece_placed';
+    payload: {
+        initial: PieceData;
+        final: PieceData;
     };
-}
+} | {
+    type: 'damage_tanked';
+    payload: {
+        holeIndices: number[];
+    };
+} | {
+    type: 'clear';
+    payload: {
+        clearName: string;
+        allSpin: boolean;
+        b2b: boolean;
+        combo: number;
+        pc: boolean;
+        attack: number;
+        cancelled: number;
+        piece: PieceData;
+        clearedLines: {
+            height: number;
+            blocks: Block[];
+        }[];
+    };
+} | {
+    type: 'game_over';
+};
 </pre>
+
+<br>
