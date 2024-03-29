@@ -4,15 +4,13 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits<{
-    (event: 'update:modelValue', value: boolean): void;
+    (event: 'close'): void;
     (event: 'tokenCreated'): void;
 }>();
 
 const tokenName = ref('');
 
 async function createToken(event: Event) {
-    event.preventDefault()
-
     const form = event.target as HTMLFormElement;
     if (!form.checkValidity()) return;
 
@@ -26,12 +24,12 @@ async function createToken(event: Event) {
     alert(`Token created: ${token}`);
 
     emit('tokenCreated');
-    emit('update:modelValue', false);
+    emit('close');
 }
 </script>
 
 <template>
-    <UModal @update:model-value="(newValue: boolean) => emit('update:modelValue', newValue)" :model-value="modelValue">
+    <ModalWrapper @close="emit('close')">
         <div class="p-4">
             <h1>Create Room</h1>
             <form @submit.prevent="createToken">
@@ -42,5 +40,5 @@ async function createToken(event: Event) {
                 <button>Submit</button>
             </form>
         </div>
-    </UModal>
+    </ModalWrapper>
 </template>

@@ -1,7 +1,37 @@
-import type { H3Event } from 'h3';
-import { prisma } from './prisma';
-import { getServerSession } from '#auth';
-import { authOptions } from '../api/auth/[...]';
+import { PrismaAdapter } from "@lucia-auth/adapter-prisma";
+import { Lucia, User } from "lucia";
+import { prisma } from "./prisma";
+import { GitHub } from "arctic";
+
+const adapter = new PrismaAdapter(prisma.session, prisma.user);
+ 
+export const lucia = new Lucia(adapter, {
+	sessionCookie: {
+		attributes: {
+			secure: !process.dev
+		}
+	},
+	getUserAttributes: (attributes) => {
+		return {
+			// attributes has the type of DatabaseUserAttributes
+			githubId: attributes.githubId,
+		};
+	}
+
+});
+
+declare module "lucia" {
+	interface Register {
+		Lucia: typeof lucia;
+		DatabaseUserAttributes: DatabaseUserAttributes;
+	}
+}
+
+interface DatabaseUserAttributes {
+    githubId: number;
+}
+
+export const github = new GitHub(process.env.GITHUB_CLIENT_ID!, process.env.GITHUB_CLIENT_SECRET!);
 
 export async function checkAuthToken(token: string) {
     const apiToken = await prisma.apiToken.findUnique({
@@ -23,38 +53,19 @@ export async function checkAuthToken(token: string) {
         }
     });
 
-
     return apiToken?.Profile ?? null;
 }
 
-export async function checkAuthHeader(event: H3Event) {
-    const auth = getRequestHeader(event, 'Authorization');
+export async function checkAuth(user: User | null) {
+    if (!user) {
+        return null;
+    }
 
-    if (!auth) return null;
-
-    const arr = auth.split(' ');
-
-    if (arr.length !== 2) return null
-
-    const [_, token] = arr;
-
-    return await checkAuthToken(token);
-}
-
-export async function checkAuthSession(event: H3Event) {
-    const session = await getServerSession(event, authOptions)
-
-    if (!session?.user?.id) return null;
-
-    const profile = await prisma.profile.findUnique({
+    const profile = await prisma.profile.findFirst({
         where: {
-            id: session.user.id
+            id: user.id,
         }
     });
 
-    return profile ?? null;
-}
-
-export async function checkAuth(event: H3Event) {
-    return await checkAuthHeader(event) || await checkAuthSession(event);
+    return profile;
 }

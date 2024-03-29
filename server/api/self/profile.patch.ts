@@ -1,7 +1,5 @@
 import { z } from 'zod';
 import { prisma } from '@/server/utils/prisma';
-import { getServerSession, getServerToken } from "#auth"
-import { authOptions } from "../auth/[...]";
 
 const RegisterSchema = z.object({
     avatar: z.union([
@@ -19,22 +17,21 @@ const RegisterSchema = z.object({
 });
 
 export default defineEventHandler(async (event) => {
-    const session = await getServerSession(event, authOptions)
-
-    if (!session?.user?.id) {
-        throw createError({
-            statusCode: 401,
-            message: 'You must be sign in to create your profile.'
-        });
-    }
+	const profile = await checkAuth(event.context.user);
+	if (!profile) {
+		throw createError({
+			statusCode: 401,
+			message: "Unauthorized",
+		});
+	}
 
     const body = await readBody(event);
     const data = RegisterSchema.parse(body);
 
 
-    const profile = await prisma.profile.update({
+    const newProfile = await prisma.profile.update({
         where: {
-            id: session.user.id
+            id: profile.id
         },
         data: {
             creator: data.creator,
@@ -43,5 +40,5 @@ export default defineEventHandler(async (event) => {
         }
     });
 
-    return profile;
+    return newProfile;
 });

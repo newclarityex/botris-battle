@@ -15,7 +15,8 @@ export default {
         'background': '#181F16',
         'primary': '#6EFAFB',
         'secondary': '#3E92CC',
-        'subheader': '#E88D67',
+        // 'subheader': '#E88D67',
+        'subheader': '#ff8857',
         'content': '#4F9D69',
       }
     },

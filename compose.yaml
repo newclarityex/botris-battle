@@ -8,38 +8,55 @@
 # database or a cache. For examples, see the Awesome Compose repository:
 # https://github.com/docker/awesome-compose
 services:
+  caddy:
+    image: caddy:2.7.6
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      - ./site:/srv
+      - caddy_data:/data
+      - caddy_config:/config
   server:
     container_name: server
     restart: unless-stopped
     env_file:
-      - .env
+      - .build.env
+    environment:
+      NODE_ENV: "production"
     build:
       context: .
-    environment:
-      NODE_ENV: production
     ports:
       - 3000:3000
     depends_on:
       db:
         condition: service_healthy
+    networks:
+      - frontend
   db:
     container_name: db
     image: mysql
-    ports:
-        - "3306"
     environment:
+        MYSQL_DATABASE: "botris"
         MYSQL_ROOT_PASSWORD: "password"
         # MYSQL_USER: "root"
         # MYSQL_PASSWORD: "password"
         # MYSQL_DATABASE: "database"
     restart: unless-stopped
     volumes:
-      - db:/var/lib/mysql
-    expose:
-      - 3306
+      - db:/var/lib/botris-db
     healthcheck:
         test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
         timeout: 20s
         retries: 10
+    networks:
+      - frontend
 volumes:
   db:
+  caddy_data:
+  caddy_config:
+networks:
+  frontend:

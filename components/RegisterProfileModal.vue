@@ -1,7 +1,5 @@
 <script setup lang="ts">
-definePageMeta({ middleware: "auth", auth: { guestRedirectTo: "/" } });
-
-const { signOut, session, user } = useAuth();
+const authStore = useAuthStore();
 
 const registerData = ref({
     name: "",
@@ -23,11 +21,13 @@ async function handleRegister(event: Event) {
             avatar: avatar.value,
         },
     });
+
+    await authStore.tryAuthenticate();
 }
 </script>
 
 <template>
-    <div>
+    <ModalWrapper>
         <form @submit="handleRegister" class="text-white flex flex-col items-center">
             <div class="flex">
                 <label for="name">Bot Name:</label>
@@ -42,5 +42,5 @@ async function handleRegister(event: Event) {
             <AvatarEditor v-model="avatar" />
             <button>Submit</button>
         </form>
-    </div>
+    </ModalWrapper>
 </template>

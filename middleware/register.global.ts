@@ -1,12 +1,12 @@
 export default defineNuxtRouteMiddleware(async (to, from) => {
-  if (process.server) return;
+  // if (process.server) return;
 
-  const { status } = useAuth();
-  if (status.value !== 'authenticated') return;
+  // const { status } = useAuth();
+  // if (status.value !== 'authenticated') return;
 
-  const profile = await $fetch('/api/self/profile').catch(() => null);
-  if (!profile && to.path !== '/register') return navigateTo('/register');
-  if (profile && to.path === '/register') return navigateTo('/');
+  // const profile = await $fetch('/api/self/profile').catch(() => null);
+  // if (!profile && to.path !== '/register') return navigateTo('/register');
+  // if (profile && to.path === '/register') return navigateTo('/');
 
   return;
 });

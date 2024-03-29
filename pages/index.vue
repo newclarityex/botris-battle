@@ -1,16 +1,9 @@
-<script setup lang="ts">
-import { generateAvatar } from '~/utils/avatar';
-
-const { signIn } = useAuth();
-
-const avatar = ref(generateAvatar());
-</script>
 
 <template>
     <div class="flex flex-col items-center">
         <main class="flex flex-col items-center">
             <h1 class="text-3xl text-primary py-2">
-                Botris Battle 2024
+                Botris Battle
             </h1>
             <h2 class="text-xl text-primary py-2">
                 <NuxtLink href="https://www.twitch.tv/puzzlekingdom" class="text-secondary">
@@ -25,7 +18,7 @@ const avatar = ref(generateAvatar());
             </p>
             <img src="/images/botris_preview.png" alt="Example Board" class="w-56 py-8 glow-shadow" />
             <NuxtLink to="https://discord.gg/47AhNAs25M" class="text-2xl text-primary py-6 underline">
-                Competition Date TBD
+                Register for Botris Battle 2024
             </NuxtLink>
             <!-- <button class="text-2xl text-primary underline py-6" @click="signIn('github')">Click Here to
                 Participate</button> -->

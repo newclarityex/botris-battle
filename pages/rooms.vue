@@ -1,12 +1,15 @@
 <script setup lang="ts">
-const { status } = useAuth()
+import { useAuthStore } from '~/stores/auth';
+const authStore = useAuthStore();
+const { status } = storeToRefs(authStore);
+
 const { data: rooms, refresh } = useFetch('/api/rooms');
 
 const createRoomModal = ref(false);
 </script>
 
 <template>
-    <TheCreateRoomModal v-model="createRoomModal" />
+    <TheCreateRoomModal @close="createRoomModal = false" v-if="createRoomModal" />
     <div class="flex justify-center">
         <div class="flex flex-col items-center gap-2">
             <h1>Public Rooms</h1>

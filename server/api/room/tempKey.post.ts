@@ -4,15 +4,13 @@ import {
 	rooms,
 } from "@/server/utils/rooms";
 import { z } from "zod";
-import { getServerSession, getServerToken } from "#auth";
-import { authOptions } from "../auth/[...]";
 
 export default defineEventHandler(async (event) => {
-	const session = await getServerSession(event, authOptions);
-	if (!session?.user?.id) {
+	const profile = await checkAuth(event.context.user);
+	if (!profile) {
 		throw createError({
 			statusCode: 401,
-			message: "You must be sign in to view your profile.",
+			message: "Unauthorized",
 		});
 	}
 
@@ -39,7 +37,7 @@ export default defineEventHandler(async (event) => {
 		});
 	}
 
-	if (room.host.userId !== session.user.id) {
+	if (room.host.userId !== profile.id) {
 		throw createError({
 			statusCode: 403,
 			message: "You are not the owner of this room",
