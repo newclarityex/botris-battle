@@ -14,6 +14,8 @@ import { checkAuthToken } from "../utils/auth";
 import {
     PlayerMessageSchema,
 } from "../utils/messages";
+import { calculatePps } from "~/utils/game";
+
 import {
     Command,
     executeCommands,
@@ -142,7 +144,7 @@ async function handlePlayerMessage(data: RawData, connection: Connection) {
 
             const { initialPps, finalPps, startMargin, endMargin } = room;
             const timePassed = Date.now() - room.startedAt!;
-            const ppsCap = getPps(timePassed, initialPps, finalPps, startMargin, endMargin);
+            const ppsCap = calculatePps(timePassed, initialPps, finalPps, startMargin, endMargin);
             
             if (!player.gameState.dead) {
                 setTimeout(() => {

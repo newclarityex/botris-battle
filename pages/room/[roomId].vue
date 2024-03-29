@@ -18,6 +18,7 @@ import type { ApplicationInst } from "vue3-pixi";
 import { getBoardBumpiness, getBoardAvgHeight } from "libtris";
 import FontFaceObserver from "fontfaceobserver";
 import { Text } from "pixi.js";
+import { calculatePps } from "~/utils/game";
 
 const { status, profile } = toRefs(useAuthStore());
 
@@ -596,7 +597,7 @@ onMounted(() => {
 
         if (timePassed > 0) {
             countdownTime.value = null;
-            currentPps.value = getPps(timePassed, initialPps, finalPps, startMargin, endMargin);
+            currentPps.value = calculatePps(timePassed, initialPps, finalPps, startMargin, endMargin);
             countdownTime.value = Math.floor((timePassed) / 1000);
         } else {
             displayTime.value = null;
