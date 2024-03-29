@@ -14,8 +14,14 @@ export default defineEventHandler(async (event) => {
 		});
 	}
 
-    const body = await readBody(event);
-    const data = DeleteTokenSchema.parse(body);
+    const body = await readValidatedBody(event, body => DeleteTokenSchema.safeParse(body));
+	if (!body.success) {
+		throw createError({
+			statusCode: 400,
+			statusMessage: "Doesn't match schema."
+		});
+	};
+	const data = body.data;
 
     await prisma.apiToken.delete({
         where: {

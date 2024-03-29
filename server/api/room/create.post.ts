@@ -11,7 +11,10 @@ const CreateGameSchema = z.object({
 	private: z.boolean(),
 	ft: z.number().min(1).max(99),
 	// maxPlayers: z.number().min(2).max(4),
-	ppsCap: z.number().gt(0).max(30),
+	initialPps: z.number().gt(0).max(30),
+	finalPps: z.number().gt(0).max(30),
+	startMargin: z.number().gt(0),
+	endMargin: z.number().gt(0),
 });
 
 export default defineEventHandler(async (event) => {
@@ -23,8 +26,14 @@ export default defineEventHandler(async (event) => {
 		});
 	}
 
-	const body = await readBody(event);
-	const data = CreateGameSchema.parse(body);
+	const body = await readValidatedBody(event, body => CreateGameSchema.safeParse(body));
+	if (!body.success) {
+		throw createError({
+			statusCode: 400,
+			statusMessage: "Doesn't match schema."
+		});
+	};
+	const data = body.data;
 
 	let roomId = genRoomId();
 	while (rooms.has(roomId)) {
@@ -43,7 +52,10 @@ export default defineEventHandler(async (event) => {
 		private: data.private,
 		ft: data.ft,
 		maxPlayers: 2,
-		ppsCap: data.ppsCap,
+		initialPps: data.initialPps,
+		finalPps: data.finalPps,
+		startMargin: data.startMargin,
+		endMargin: data.endMargin,
 		gameOngoing: false,
 		roundOngoing: false,
 		startedAt: null,

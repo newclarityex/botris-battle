@@ -12,8 +12,14 @@ export default defineEventHandler(async (event) => {
 		});
 	};
 
-    const body = await readBody(event);
-	const data = StartGameSchema.parse(body);
+    const body = await readValidatedBody(event, body => StartGameSchema.safeParse(body));
+	if (!body.success) {
+		throw createError({
+			statusCode: 400,
+			statusMessage: "Doesn't match schema."
+		});
+	};
+	const data = body.data;
 
     const room = rooms.get(data.roomId);
 

@@ -34,7 +34,6 @@ function generateAvatar() {
 }
 
 export default defineEventHandler(async (event) => {
-    console.log(event.context.user);
     if (event.context.user === null) {
         throw createError({
             statusCode: 401,
@@ -42,8 +41,14 @@ export default defineEventHandler(async (event) => {
         });
     }
 
-    const body = await readBody(event);
-    const data = RegisterSchema.parse(body);
+    const body = await readValidatedBody(event, body => RegisterSchema.safeParse(body));
+	if (!body.success) {
+		throw createError({
+			statusCode: 400,
+			statusMessage: "Doesn't match schema."
+		});
+	};
+	const data = body.data;
 
 
     const profile = await prisma.profile.create({

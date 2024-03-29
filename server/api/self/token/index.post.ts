@@ -15,8 +15,14 @@ export default defineEventHandler(async (event) => {
 		});
 	}
 
-    const body = await readBody(event);
-    const data = CreateTokenSchema.parse(body);
+    const body = await readValidatedBody(event, body => CreateTokenSchema.safeParse(body));
+	if (!body.success) {
+		throw createError({
+			statusCode: 400,
+			statusMessage: "Doesn't match schema."
+		});
+	};
+	const data = body.data;
 
     const token = await prisma.apiToken.create({
         data: {

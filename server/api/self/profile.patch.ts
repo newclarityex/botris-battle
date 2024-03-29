@@ -25,8 +25,14 @@ export default defineEventHandler(async (event) => {
 		});
 	}
 
-    const body = await readBody(event);
-    const data = RegisterSchema.parse(body);
+    const body = await readValidatedBody(event, body => RegisterSchema.safeParse(body));
+	if (!body.success) {
+		throw createError({
+			statusCode: 400,
+			statusMessage: "Doesn't match schema."
+		});
+	};
+	const data = body.data;
 
 
     const newProfile = await prisma.profile.update({

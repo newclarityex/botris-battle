@@ -14,21 +14,19 @@ export default defineEventHandler(async (event) => {
 		});
 	}
 
-	const body = await readBody(event);
-	const parsed = z
+	const body = await readValidatedBody(event, body => z
 		.object({
 			roomId: z.string(),
-		})
-		.safeParse(body);
-
-	if (!parsed.success) {
+		}).safeParse(body));
+	if (!body.success) {
 		throw createError({
 			statusCode: 400,
-			message: "Invalid room ID",
+			statusMessage: "Doesn't match schema."
 		});
-	}
+	};
+	const data = body.data;
 
-	const room = rooms.get(parsed.data.roomId);
+	const room = rooms.get(data.roomId);
 
 	if (!room) {
 		throw createError({
