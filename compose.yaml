@@ -19,6 +19,8 @@ services:
       - ./site:/srv
       - caddy_data:/data
       - caddy_config:/config
+    networks:
+      - frontend
   server:
     container_name: server
     restart: unless-stopped
