@@ -212,11 +212,7 @@ onMounted(async () => {
     urlParams.append("roomId", roomId as string);
     urlParams.append("spectate", "true");
 
-    if (userToken) urlParams.append("userToken", userToken);
-    if (roomKey) urlParams.append("roomKey", roomKey);
-
     const runtimeConfig = useRuntimeConfig();
-
     // const wsUrl = runtimeConfig.public.environment === "production" ? `wss://ws.${location.host}?${urlParams.toString()}` :`ws://localhost:8080/api/ws?${urlParams.toString()}`;
     const wsUrl = `wss://${location.host}/ws?${urlParams.toString()}`;
     ws = new WebSocket(wsUrl);

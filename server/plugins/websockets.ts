@@ -250,6 +250,12 @@ export default defineNitroPlugin((event) => {
     });
 
     wss.on("connection", async function connection(ws: IDWebSocket, req) {
+        console.log("Attempted connection");
+
+        ws.on('error', (err) => {
+            console.log("Error connecting", err);
+        });
+
         ws.id = uuid();
         const urlArr = req.url!.split("?");
 

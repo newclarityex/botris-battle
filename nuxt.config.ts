@@ -34,20 +34,12 @@ export default defineNuxtConfig({
   runtimeConfig: {
     build: false,
     secret: process.env.NUXT_SECRET,
-    authJs: {
-      // baseUrl: "localhost:3000/api/auth",
-      verifyClientOnEveryRequest: true,
-    },
     github: {
       clientId: process.env.NUXT_GITHUB_CLIENT_ID,
       clientSecret: process.env.NUXT_GITHUB_CLIENT_SECRET
     },
     public: {
-      environment: process.env.NUXT_ENVIRONMENT,
-      authJs: {
-        baseUrl: process.env.NUXT_NEXTAUTH_URL, // The URL of your deployed app (used for origin Check in production)
-        verifyClientOnEveryRequest: true // whether to hit the /auth/session endpoint on every client request
-      }
+      environment: process.env.NUXT_PUBLIC_ENVIRONMENT,
     }
   },
   alias: {
