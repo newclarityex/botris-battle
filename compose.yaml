@@ -25,8 +25,9 @@ services:
     container_name: server
     restart: unless-stopped
     env_file:
-      - .build.env
+      - .prod.env
     environment:
+      NUXT_BUILD: "false"
       NODE_ENV: "production"
       NUXT_ENVIRONMENT: "production"
     build:

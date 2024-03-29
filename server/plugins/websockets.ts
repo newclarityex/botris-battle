@@ -243,6 +243,7 @@ async function deleteRoom(roomId: string) {
 
 export default defineNitroPlugin((event) => {
     const runtimeConfig = useRuntimeConfig();
+    console.log("Runtime config", runtimeConfig);
     if (runtimeConfig.build) return;
 
     const wss = new WebSocketServer({

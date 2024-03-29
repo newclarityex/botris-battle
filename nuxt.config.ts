@@ -32,7 +32,7 @@ export default defineNuxtConfig({
     },
   },
   runtimeConfig: {
-    build: false,
+    build: process.env.NUXT_BUILD === "true",
     secret: process.env.NUXT_SECRET,
     github: {
       clientId: process.env.NUXT_GITHUB_CLIENT_ID,
