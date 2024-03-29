@@ -6,3 +6,7 @@ botrisbattle.com {
 
     reverse_proxy server:3000
 }
+
+ws.botrisbattle.com {
+    reverse_proxy server:8080
+}
