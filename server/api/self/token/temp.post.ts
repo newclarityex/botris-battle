@@ -1,13 +1,13 @@
 import { checkAuth } from '~/server/utils/auth';
 
 export default defineEventHandler(async (event) => {
-    const profile = await checkAuth(event);
-    if (!profile) {
-        throw createError({
-            statusCode: 401,
-            message: 'Unauthorized'
-        });
-    }
+	const profile = await checkAuth(event.context.user);
+	if (!profile) {
+		throw createError({
+			statusCode: 401,
+			message: "Unauthorized",
+		});
+	}
 
     const token = await prisma.apiToken.create({
         data: {

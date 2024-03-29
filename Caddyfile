@@ -1,7 +1,7 @@
 botrisbattle.com {
-    reverse_proxy server:3000
-
 	handle /api/ws/* {
         reverse_proxy server:8080
 	}
+
+    reverse_proxy server:3000
 }
