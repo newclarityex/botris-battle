@@ -29,21 +29,21 @@ async function createRoom(event: Event) {
 <template>
     <ModalWrapper @close="emit('close')">
         <div class="p-4">
-            <h1>Create Room</h1>
-            <form @submit.prevent="createRoom">
-                <div class="flex flex-col">
-                    <label for="room-ft">Room FT:</label>
+            <h2>Create Room</h2>
+            <form @submit.prevent="createRoom" class="flex flex-col items-center gap-4">
+                <div class="w-full gap-2 flex flex-col">
+                    <label for="room-ft">Room FT</label>
                     <input type="number" id="room-ft" class="bg-black/40" required v-model="roomData.ft">
                 </div>
-                <div class="flex flex-col">
-                    <label for="room-private">Room Private:</label>
+                <div class="w-full gap-2 flex flex-row items-center">
+                    <label for="room-private">Room Private</label>
                     <input type="checkbox" id="room-private" class="bg-black/40" v-model="roomData.private">
                 </div>
-                <div class="flex flex-col">
-                    <label for="pps-cap">PPS Cap:</label>
+                <div class="w-full gap-2 flex flex-col">
+                    <label for="pps-cap">PPS Cap</label>
                     <input type="number" id="pps-cap" class="bg-black/40" required v-model="roomData.ppsCap">
                 </div>
-                <button class="disabled:opacity-50" :disabled="disableCreate" type="submit">Submit</button>
+                <button class="disabled:opacity-50 text-secondary" :disabled="disableCreate" type="submit">Submit</button>
             </form>
         </div>
     </ModalWrapper>

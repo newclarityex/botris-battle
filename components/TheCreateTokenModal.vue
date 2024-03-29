@@ -31,13 +31,11 @@ async function createToken(event: Event) {
 <template>
     <ModalWrapper @close="emit('close')">
         <div class="p-4">
-            <h1>Create Room</h1>
             <form @submit.prevent="createToken">
-                <div class="flex flex-col">
-                    <label for="room-id">Token Name:</label>
-                    <input type="text" id="room-id" class="bg-black/40" placeholder="Test" required v-model="tokenName">
+                <div class="flex flex-col items-center gap-2">
+                    <input type="text" id="token-label" class="bg-black/40 text-center px-1" placeholder="Label" required v-model="tokenName">
+                    <button class="text-secondary">Create</button>
                 </div>
-                <button>Submit</button>
             </form>
         </div>
     </ModalWrapper>

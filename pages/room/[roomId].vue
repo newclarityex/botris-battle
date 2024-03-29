@@ -195,7 +195,6 @@ onMounted(async () => {
 
     ws.addEventListener("close", (event) => {
         console.log("closed", event);
-        console.log("closed", event.code);
         switch (event.code) {
             case 4004:
                 throw createError({
@@ -209,8 +208,6 @@ onMounted(async () => {
 
     ws.addEventListener("message", (event) => {
         const data = JSON.parse(event.data) as GeneralServerMessage;
-
-        console.log("Message received", data);
 
         switch (data.type) {
             case "room_data": {
@@ -784,7 +781,7 @@ onMounted(() => {
                 <div class="text-white text-center text-lg">
                     Press ESC to toggle menu
                 </div>
-                <div class="p-4 bg-white/10 flex flex-col gap-2">
+                <div class="p-4 bg-white/10 flex flex-col gap-2 text-sm">
                     <div class="flex justify-between">
                         <div>Room ID:</div>
                         <div>
@@ -810,7 +807,7 @@ onMounted(() => {
                             :disabled="loadingTempKey">Generate</button>
                     </div>
                 </div>
-                <div class="p-4 bg-white/10 flex flex-col gap-2">
+                <div class="p-4 bg-white/10 flex flex-col gap-2 text-sm">
                     <div class="flex justify-between items-center">
                         <label>FT:</label>
                         <input type="text" v-model.number="roomOptions.ft"  class="w-12 px-1 bg-white/20 text-right" />
@@ -836,7 +833,7 @@ onMounted(() => {
                         class="italic opacity-50">
                         No Players Joined
                     </div>
-                    <ul v-else class="flex flex-col gap-2">
+                    <ul v-else class="flex flex-col gap-2 text-sm">
                         <li class="w-full flex justify-between" v-for="player in publicRoomData.players ">
                             <div>
                                 {{ player.info.bot }}

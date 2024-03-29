@@ -16,7 +16,26 @@
                 Botris 2024 is a hackathon where teams of programmers compete to create the
                 best block-stacking AI in 6 months.
             </p>
-            <img src="/images/botris_preview.png" alt="Example Board" class="w-56 py-8 glow-shadow" />
+            <div class="py-2">
+                <h2 class="text-2xl text-primary py-2 text-center">Rules</h2>
+                <ul class="max-w-2xl">
+                    <li>
+                        You may use any public code that you have the rights to use.
+                    </li>
+                    <li>
+                        If you heavily borrow from an existing bot that you did not write you must credit the original author(s).
+                    </li>
+                    <li>
+                        You must be in the PuzzleKingdom discord <a class="text-secondary" href="https://discord.gg/47AhNAs25M" target="_blank">here</a> and registered on Challonge <a class="text-secondary" href="https://challonge.com/botrisbattle" target="_blank">here</a> to participate. 
+                    </li>
+                    <li>
+                        You must not be banned from PuzzleKingdom events.
+                    </li>
+                    <li>
+                        Do not put hate speech or NSFW in your bot/team name.
+                    </li>
+                </ul>
+            </div>
             <NuxtLink to="https://discord.gg/47AhNAs25M" class="text-2xl text-primary py-6 underline">
                 Register for Botris Battle 2024
             </NuxtLink>

@@ -103,6 +103,29 @@ When the host is transfered, the server will send:
 </pre>
 
 ### Ingame
+
+Game Info
+
+<pre class='code'>
+{
+    boardWidth: 10,
+    boardHeight: 20,
+    garbageMessiness: 0.05,
+    attackTable: {
+        'single': 0,
+        'double': 1,
+        'triple': 2,
+        'quad': 4,
+        'asd': 4,
+        'ass': 2,
+        'ast': 6,
+        'pc': 10,
+        'b2b': 1,
+    },
+    comboTable: [0, 0, 1, 1, 1, 2, 2, 3, 3, 4],
+}
+</pre>
+
 When the game starts, the server will send:
 <pre class='code'>
 {
@@ -275,7 +298,7 @@ When the game is reset early, the server sends:
 </pre>
 
 ### GameState
-
+**Sent board data is *upside-down* to prevent line clipping**
 <pre class='code'>
 {
     board: <a href="#block" class="type-link">Block</a>[][];
