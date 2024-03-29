@@ -15,6 +15,7 @@ import {
     PlayerMessageSchema,
 } from "../utils/messages";
 import {
+    Command,
     executeCommands,
     generateGarbage,
     getPublicGameState,
@@ -130,9 +131,12 @@ async function handlePlayerMessage(data: RawData, connection: Connection) {
                 return;
             }
             player.moveRequested = false;
+            
+            let serverCommands: Command[] = messageData.payload.commands;
+            serverCommands.push('hard_drop');
             const { gameState: newGameState, events } = executeCommands(
                 player.gameState!,
-                messageData.payload.commands
+                serverCommands
             );
             player.gameState = newGameState;
             if (!player.gameState.dead) {
