@@ -194,7 +194,8 @@ onMounted(async () => {
     ws = new WebSocket(wsUrl);
 
     ws.addEventListener("close", (event) => {
-        console.log("close reason", event.reason);
+        console.log("closed", event);
+        console.log("closed", event.code);
         switch (event.code) {
             case 4004:
                 throw createError({

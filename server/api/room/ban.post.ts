@@ -63,7 +63,7 @@ export default defineEventHandler(async (event) => {
     
     sendRoom(data.roomId, {
         type: "player_banned",
-        payload: playerInfo,
+        payload: { playerInfo },
     });
 
     return { success: true };

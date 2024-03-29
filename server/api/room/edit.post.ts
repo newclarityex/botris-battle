@@ -36,7 +36,7 @@ export default defineEventHandler(async (event) => {
 
 	sendRoom(data.roomId, {
 		type: "settings_changed",
-		payload: getPublicRoomData(room),
+		payload: { roomData: getPublicRoomData(room) },
 	});
 
     return { success: true };
