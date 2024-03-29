@@ -2,5 +2,4 @@
 cd /src
 npx prisma generate
 npx prisma db push
-# node .output/server/index.mjs
-yarn dev
+node .output/server/index.mjs
