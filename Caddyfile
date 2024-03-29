@@ -1,6 +1,6 @@
 @websockets {
-header Connection Upgrade
-header Upgrade websocket
+	header Connection *Upgrade*
+	header Upgrade websocket
 }
 
 botrisbattle.com {
