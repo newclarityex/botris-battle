@@ -209,6 +209,8 @@ onMounted(async () => {
     ws.addEventListener("message", (event) => {
         const data = JSON.parse(event.data) as GeneralServerMessage;
 
+        console.log("Message received", data);
+
         switch (data.type) {
             case "room_data": {
                 publicRoomData.value = data.payload.roomData;
