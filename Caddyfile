@@ -5,7 +5,7 @@ botrisbattle.com {
     }
     reverse_proxy server:3000
 
-	handle /ws {
+	handle /api/ws {
         reverse_proxy @websockets server:8080
 	}
 }
