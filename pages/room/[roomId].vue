@@ -131,26 +131,6 @@ onMounted(() => {
 
 let ws: WebSocket | null = null;
 
-async function getUserToken() {
-    if (status.value !== "authenticated") return null;
-
-    const { token } = await $fetch("/api/self/token/temp", {
-        method: "POST",
-    });
-
-    return token;
-}
-
-async function getRoomKey(roomId: string) {
-    if (status.value !== "authenticated") return null;
-
-    const res = await $fetch("/api/room/masterKey", {
-        query: { roomId },
-    });
-
-    return res?.key;
-}
-
 const roundStartTime = ref<number | null>(null);
 
 const pixiInst = ref<ApplicationInst | null>(null);
@@ -205,19 +185,16 @@ watch([width, height], resizeRenderer);
 onMounted(async () => {
     resizeRenderer();
 
-    const userToken = await getUserToken();
-    const roomKey = await getRoomKey(roomId as string);
-
     const urlParams = new URLSearchParams();
     urlParams.append("roomId", roomId as string);
     urlParams.append("spectate", "true");
 
     const runtimeConfig = useRuntimeConfig();
-    // const wsUrl = runtimeConfig.public.environment === "production" ? `wss://ws.${location.host}?${urlParams.toString()}` :`ws://localhost:8080/api/ws?${urlParams.toString()}`;
-    const wsUrl = `wss://${location.host}/ws?${urlParams.toString()}`;
+    const wsUrl = runtimeConfig.public.environment === "production" ? `wss://${location.host}/ws?${urlParams.toString()}` :`ws://localhost:8080/api/ws?${urlParams.toString()}`;
     ws = new WebSocket(wsUrl);
 
     ws.addEventListener("close", (event) => {
+        console.log("close reason", event.reason);
         switch (event.code) {
             case 4004:
                 throw createError({

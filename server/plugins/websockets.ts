@@ -243,7 +243,6 @@ async function deleteRoom(roomId: string) {
 
 export default defineNitroPlugin((event) => {
     const runtimeConfig = useRuntimeConfig();
-    console.log("Runtime config", runtimeConfig);
     if (runtimeConfig.build) return;
 
     const wss = new WebSocketServer({
@@ -253,11 +252,9 @@ export default defineNitroPlugin((event) => {
 
     wss.on('listening', () => {
         console.log("opened wss on 8080");
-    })
+    });
 
     wss.on("connection", async function connection(ws: IDWebSocket, req) {
-        console.log("Attempted connection");
-
         ws.on('error', (err) => {
             console.log("Error connecting", err);
         });

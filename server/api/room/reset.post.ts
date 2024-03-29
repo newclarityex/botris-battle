@@ -37,7 +37,7 @@ export default defineEventHandler(async (event) => {
     sendRoom(data.roomId, {
         type: "game_reset",
         payload: {
-            players: getPublicPlayers(room.players),
+            roomData: getPublicRoomData(room),
         },
     });
 

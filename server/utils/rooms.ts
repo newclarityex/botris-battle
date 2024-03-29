@@ -115,12 +115,12 @@ export function requestMove(player: PlayerData, room: RoomData) {
             return;
 
         player.gameState.dead = true;
-        sendRoom(room.id, {
-            type: "player_died",
-            payload: {
-                sessionId: player.sessionId,
-            },
-        });
+        // sendRoom(room.id, {
+        //     type: "player_died",
+        //     payload: {
+        //         sessionId: player.sessionId,
+        //     },
+        // });
     }, MOVE_TIMEOUT);
 }
 
