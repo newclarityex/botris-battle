@@ -244,8 +244,7 @@ onMounted(async () => {
             case "game_reset": {
                 if (!publicRoomData.value) return console.error("no room info");
 
-                publicRoomData.value.gameOngoing = false;
-                publicRoomData.value.players = data.payload.roomData.players;
+                publicRoomData.value = data.payload.roomData;
                 break;
             }
             case "player_joined": {

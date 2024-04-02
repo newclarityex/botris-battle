@@ -16,9 +16,9 @@
                 Botris 2024 is a hackathon where teams of programmers compete to create the
                 best block-stacking AI in 6 months.
             </p>
-            <div class="py-2">
+            <div class="py-6">
                 <h2 class="text-2xl text-primary py-2 text-center">Rules</h2>
-                <ul class="max-w-2xl">
+                <ol class="max-w-2xl list-decimal">
                     <li>
                         Matches will be done FT5 in a single elimination bracket.
                     </li>
@@ -43,9 +43,9 @@
                     <li>
                         Do not put hate speech or NSFW in your bot/team name.
                     </li>
-                </ul>
+                </ol>
             </div>
-            <NuxtLink to="https://discord.gg/47AhNAs25M" class="text-2xl text-primary py-6 underline">
+            <NuxtLink to="https://discord.gg/47AhNAs25M" class="text-2xl text-primary py-14 underline">
                 Register for Botris Battle 2024
             </NuxtLink>
             <!-- <button class="text-2xl text-primary underline py-6" @click="signIn('github')">Click Here to
