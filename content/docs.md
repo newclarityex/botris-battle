@@ -140,7 +140,6 @@ When a round is about to start, the server will send:
     payload: {
         startsAt: number;
         roomData: <a href="#roomdata" class="type-link">RoomData</a>;
-        players: <a href="#playerdata" class="type-link">PlayerData</a>[];
     }
 }
 </pre>

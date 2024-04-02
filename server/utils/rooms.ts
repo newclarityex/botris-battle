@@ -154,7 +154,6 @@ export async function startRound(room: RoomData) {
         type: "round_started",
         payload: {
             startsAt,
-            players: getPublicPlayers(room.players),
             roomData: getPublicRoomData(room),
         },
     });

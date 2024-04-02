@@ -647,7 +647,7 @@ onMounted(() => {
                 fontSize: '20px',
                 fontFamily: 'Fira Mono',
             }">
-                                {{ displayTime?.toFixed(1) }} - {{ currentPps.toFixed(1) }} PPS
+                                {{ displayTime }} - {{ currentPps.toFixed(1) }} PPS
                             </text>
                             <text :anchorX="0" :anchorY="0.5" :x="-650 / 2 + 24" :y="0" :style="{
                 fill: 'white',

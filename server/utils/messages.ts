@@ -83,7 +83,6 @@ export type GeneralServerMessage =
 		type: "round_started";
 		payload: {
 			startsAt: number;
-			players: PublicPlayerData[];
 			roomData: PublicRoomData;
 		};
 	} 
