@@ -289,7 +289,7 @@ When the game is reset early, the server sends:
 
 ### Block
 <pre class='code'>
-<a href="#piece" class="type-link">Piece</a> | null
+<a href="#piece" class="type-link">Piece</a> | 'G' | null
 </pre>
 
 ### PieceData

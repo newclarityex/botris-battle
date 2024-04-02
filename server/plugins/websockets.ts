@@ -23,7 +23,7 @@ import {
     getPublicGameState,
     queueGarbage,
 } from "libtris";
-import { Block } from "~/utils/game";
+import type { Block } from "~/utils/game";
 
 interface IDWebSocket extends WebSocket {
     id?: string;
