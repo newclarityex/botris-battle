@@ -590,7 +590,7 @@ onMounted(() => {
         const timePassed = now - publicRoomData.value.startedAt;
         const timeLeft = publicRoomData.value.startedAt - now;
 
-        console.log(publicRoomData.value.startedAt, now, timePassed, timeLeft);
+        // console.log(publicRoomData.value.startedAt, now, timePassed, timeLeft);
 
         if (timePassed > 0) {
             countdownTime.value = null;
