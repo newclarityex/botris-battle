@@ -323,7 +323,7 @@ When the game is reset early, the server sends:
 ### Command
 
 <pre class='code'>
-'move_left' | 'move_right' | 'rotate_left' | 'rotate_right' | 'rotate_180' | 'drop' | 'sonic_drop'
+'move_left' | 'move_right' | 'rotate_cw' | 'rotate_ccw' | 'drop' | 'sonic_drop'
 </pre>
 
 ### GameEvent

@@ -179,11 +179,8 @@ function resizeRenderer() {
     pixiApp.value.renderer.resize(width.value, height.value);
     pixiApp.value.render();
 }
-watch([width, height], resizeRenderer);
 
-watch(publicRoomData, (newRoomData) => {
-    console.log("new room update", newRoomData.startedAt, Date.now());
-});
+watch([width, height], resizeRenderer);
 
 onMounted(async () => {
     resizeRenderer();
