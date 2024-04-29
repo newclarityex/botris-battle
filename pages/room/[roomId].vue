@@ -181,6 +181,10 @@ function resizeRenderer() {
 }
 watch([width, height], resizeRenderer);
 
+watch(publicRoomData, (newRoomData) => {
+    console.log("new room update", newRoomData.startedAt);
+});
+
 onMounted(async () => {
     resizeRenderer();
 
@@ -189,7 +193,7 @@ onMounted(async () => {
     urlParams.append("spectate", "true");
 
     const runtimeConfig = useRuntimeConfig();
-    const wsUrl = runtimeConfig.public.environment === "production" ? `wss://${location.host}/ws?${urlParams.toString()}` :`ws://localhost:8080/api/ws?${urlParams.toString()}`;
+    const wsUrl = runtimeConfig.public.environment === "production" ? `wss://${location.host}/ws?${urlParams.toString()}` : `ws://localhost:8080/api/ws?${urlParams.toString()}`;
     ws = new WebSocket(wsUrl);
 
     ws.addEventListener("close", (event) => {
@@ -585,12 +589,10 @@ onMounted(() => {
             currentPps.value = initialPps;
             return;
         }
-        
+
         const now = Date.now();
         const timePassed = now - publicRoomData.value.startedAt;
         const timeLeft = publicRoomData.value.startedAt - now;
-
-        // console.log(publicRoomData.value.startedAt, now, timePassed, timeLeft);
 
         if (timePassed > 0) {
             countdownTime.value = null;
@@ -821,7 +823,7 @@ onMounted(() => {
                 <div class="p-4 bg-white/10 flex flex-col gap-2 text-sm">
                     <div class="flex justify-between items-center">
                         <label>FT:</label>
-                        <input type="text" v-model.number="roomOptions.ft"  class="w-12 px-1 bg-white/20 text-right" />
+                        <input type="text" v-model.number="roomOptions.ft" class="w-12 px-1 bg-white/20 text-right" />
                     </div>
                     <div class="flex justify-between items-center">
                         <label>Initial PPS (max: 30):</label>
