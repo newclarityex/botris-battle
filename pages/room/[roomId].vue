@@ -182,7 +182,7 @@ function resizeRenderer() {
 watch([width, height], resizeRenderer);
 
 watch(publicRoomData, (newRoomData) => {
-    console.log("new room update", newRoomData.startedAt);
+    console.log("new room update", newRoomData.startedAt, Date.now());
 });
 
 onMounted(async () => {
