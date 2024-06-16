@@ -1,5 +1,5 @@
 import { resolve } from "node:path";
-import { isCustomElement, transformAssetUrls } from 'vue3-pixi'
+import { isCustomElement } from 'vue3-pixi'
 
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
@@ -10,7 +10,12 @@ export default defineNuxtConfig({
     },
   },
   experimental: {
-    asyncContext: true
+    asyncContext: true,
+  },
+  nitro: {
+    experimental: {
+      websocket: true
+    }
   },
   devtools: { enabled: true },
   css: ['~/assets/css/main.css'],
@@ -65,7 +70,7 @@ export default defineNuxtConfig({
 
     // 'api/room/**',
     // 'api/rooms/**',
-  ]
+  ],
 })
 
 

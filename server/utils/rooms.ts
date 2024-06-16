@@ -1,9 +1,9 @@
-import type { WebSocket } from "ws";
 import { getPublicGameState, type GameState, PublicGameState, createGameState } from "libtris";
 import { GeneralServerMessage } from "./messages";
 import { Block } from "~/utils/game";
 import { customAlphabet } from "nanoid";
 import { numbers, lowercase } from "nanoid-dictionary";
+import type { Peer } from 'crossws';
 
 export type PlayerInfo = {
 	userId: string;
@@ -15,7 +15,7 @@ export type PlayerInfo = {
 export type PlayerData = {
 	sessionId: string;
 	playing: boolean;
-	ws: WebSocket;
+	peer: Peer;
 	wins: number;
 	gameState: GameState | null;
 	info: PlayerInfo;
@@ -37,10 +37,11 @@ export type RoomData = {
 	host: PlayerInfo;
 	private: boolean;
 	ft: number;
-	initialPps: number;
-	finalPps: number;
-	startMargin: number;
-	endMargin: number;
+	currentPlayer: string;
+	baseTime: number;
+	bonusTime: number;
+	marginTime: number;
+	moveTimeout: number;
 	maxPlayers: number;
 	gameOngoing: boolean;
 	roundOngoing: boolean;
@@ -49,7 +50,7 @@ export type RoomData = {
 	lastWinner: string | null;
 	banned: Map<string, PlayerInfo>;
 	players: Map<string, PlayerData>;
-	spectators: Map<string, WebSocket>;
+	spectators: Map<string, Peer>;
 };
 
 export type PublicRoomData = {
@@ -57,10 +58,11 @@ export type PublicRoomData = {
 	host: PlayerInfo;
 	private: boolean;
 	ft: number;
-	initialPps: number;
-	finalPps: number;
-	startMargin: number;
-	endMargin: number;
+	currentPlayer: string;
+	baseTime: number;
+	bonusTime: number;
+	marginTime: number;
+	moveTimeout: number;
 	maxPlayers: number;
 	gameOngoing: boolean;
 	roundOngoing: boolean;
@@ -73,7 +75,7 @@ export type PublicRoomData = {
 
 export type Connection = {
 	id: string;
-	ws: WebSocket;
+	peer: Peer;
 	token: string;
 	status: "playing" | "spectating" | "idle";
 	roomId: string;
@@ -83,9 +85,9 @@ export type Connection = {
 export const connections = new Map<string, Connection>();
 export const rooms = new Map<string, RoomData>();
 
-export function sendClient(ws: WebSocket, message: GeneralServerMessage) {
+export function sendClient(peer: Peer, message: GeneralServerMessage) {
 	const parsed = JSON.stringify(message);
-	ws.send(parsed);
+	peer.send(parsed);
 }
 
 export function sendRoom(roomId: string, message: GeneralServerMessage) {
@@ -93,7 +95,7 @@ export function sendRoom(roomId: string, message: GeneralServerMessage) {
 	const room = rooms.get(roomId);
 	if (!room) return;
 	for (const player of room.players.values()) {
-		player.ws.send(parsed);
+		player.peer.send(parsed);
 	}
 	for (const spectator of room.spectators.values()) {
 		spectator.send(parsed);
@@ -104,7 +106,7 @@ const MOVE_TIMEOUT = 5 * 1000;
 export function requestMove(player: PlayerData, room: RoomData) {
 	if (!player.gameState || !player.playing) return;
 
-	sendClient(player.ws, {
+	sendClient(player.peer, {
 		type: "request_move",
 		payload: {
 			gameState: getPublicGameState(player.gameState),
@@ -192,10 +194,11 @@ export function getPublicRoomData(roomData: RoomData): PublicRoomData {
 		host: roomData.host,
 		private: roomData.private,
 		ft: roomData.ft,
-		initialPps: roomData.initialPps,
-		finalPps: roomData.finalPps,
-		startMargin: roomData.startMargin,
-		endMargin: roomData.endMargin,
+		currentPlayer: roomData.currentPlayer,
+		baseTime: roomData.baseTime,
+		bonusTime: roomData.bonusTime,
+		marginTime: roomData.marginTime,
+		moveTimeout: roomData.moveTimeout,
 		maxPlayers: roomData.maxPlayers,
 		gameOngoing: roomData.gameOngoing,
 		roundOngoing: roomData.roundOngoing,

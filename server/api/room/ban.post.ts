@@ -55,7 +55,7 @@ export default defineEventHandler(async (event) => {
     for (const [sessionId, player] of room.players.entries()) {
         if (player.info.userId !== data.targetId) continue;
 
-        player.ws.close(4002, "Banned by host");
+        player.peer.close(4002, "Banned by host");
 
         room.players.delete(player.sessionId);
 

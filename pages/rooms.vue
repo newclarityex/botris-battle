@@ -6,6 +6,9 @@ const { status } = storeToRefs(authStore);
 const { data: rooms, refresh } = useFetch('/api/rooms');
 
 const createRoomModal = ref(false);
+
+const ws = new WebSocket("/ws");
+ws.addEventListener('open', () => { console.log('ws open') })
 </script>
 
 <template>

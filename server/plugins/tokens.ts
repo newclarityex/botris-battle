@@ -4,13 +4,13 @@ export default defineNitroPlugin((nitro) => {
     const runtimeConfig = useRuntimeConfig();
     if (runtimeConfig.build) return;
 
-    setInterval(async () => {
-        await prisma.apiToken.deleteMany({
-            where: {
-                expires: {
-                    lte: new Date(),
-                },
-            },
-        });
-    }, 1000);
+    // setInterval(async () => {
+    //     await prisma.apiToken.deleteMany({
+    //         where: {
+    //             expires: {
+    //                 lte: new Date(),
+    //             },
+    //         },
+    //     });
+    // }, 1000);
 });
