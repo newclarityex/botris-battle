@@ -6,7 +6,7 @@ const registerData = ref({
     creator: "",
 });
 
-const avatar = ref(generateAvatar());
+// const avatar = ref(generateAvatar());
 
 async function handleRegister(event: Event) {
     event.preventDefault();
@@ -14,12 +14,9 @@ async function handleRegister(event: Event) {
     const form = event.target as HTMLFormElement;
     if (!form.checkValidity()) return;
 
-    const profile = await $fetch("/api/self/profile", {
+    await $fetch("/api/self/profile", {
         method: "POST",
-        body: {
-            ...registerData.value,
-            avatar: avatar.value,
-        },
+        body: registerData.value,
     });
 
     await authStore.tryAuthenticate();
@@ -28,19 +25,21 @@ async function handleRegister(event: Event) {
 
 <template>
     <ModalWrapper>
-        <form @submit="handleRegister" class="text-white flex flex-col items-center">
+        <form @submit="handleRegister" class="text-white flex flex-col items-center py-6 px-12 gap-4">
+            <h1 class="text-2xl text-primary p-0">Register Profile</h1>
             <div class="flex">
-                <label for="name">Bot Name:</label>
-                <input type="text" id="name" v-model="registerData.name" class="bg-black/40" placeholder="ColdClear"
-                    required />
+                <input type="text" id="name" v-model="registerData.name" class="bg-black/40 p-1 text-lg text-center"
+                    placeholder="Bot Name" aria-label="Bot Name" required />
             </div>
             <div class="flex">
-                <label for="creator">Creator/Team Name:</label>
-                <input type="text" id="creator" v-model="registerData.creator" class="bg-black/40" placeholder="MinusKelvin"
-                    required />
+                <input type="text" id="creator" v-model="registerData.creator"
+                    class="bg-black/40 p-1 text-lg text-center" placeholder="Creator/Team Name" required />
             </div>
-            <AvatarEditor v-model="avatar" />
-            <button>Submit</button>
+            <!-- <AvatarEditor v-model="avatar" /> -->
+            <div class="flex gap-8">
+                <button class="text-btn" type="button" @click="authStore.logout()">Sign Out</button>
+                <button class="text-btn">Submit</button>
+            </div>
         </form>
     </ModalWrapper>
 </template>

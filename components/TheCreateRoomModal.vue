@@ -43,21 +43,25 @@ async function createRoom(event: Event) {
                 </div>
                 <div class="w-full gap-4 flex flex-row items-center justify-between">
                     <label for="initial-pps">Inital PPS (max: 30)</label>
-                    <input type="number" id="initial-pps" class="bg-black/40 w-16 px-1" required v-model="roomData.initialPps" step="0.01">
+                    <input type="number" id="initial-pps" class="bg-black/40 w-16 px-1" required
+                        v-model="roomData.initialPps" step="0.01">
                 </div>
                 <div class="w-full gap-4 flex flex-row items-center justify-between">
                     <label for="final-pps">Final PPS (max: 30)</label>
-                    <input type="number" id="final-pps" class="bg-black/40 w-16 px-1" required v-model="roomData.finalPps" step="0.01">
+                    <input type="number" id="final-pps" class="bg-black/40 w-16 px-1" required
+                        v-model="roomData.finalPps" step="0.01">
                 </div>
                 <div class="w-full gap-4 flex flex-row items-center justify-between">
                     <label for="start-margin">Start Margin (secs)</label>
-                    <input type="number" id="start-margin" class="bg-black/40 w-16 px-1" required v-model="roomData.startMargin">
+                    <input type="number" id="start-margin" class="bg-black/40 w-16 px-1" required
+                        v-model="roomData.startMargin">
                 </div>
                 <div class="w-full gap-4 flex flex-row items-center justify-between">
                     <label for="end-margin">End Margin (secs)</label>
-                    <input type="number" id="end-margin" class="bg-black/40 w-16 px-1" required v-model="roomData.endMargin">
+                    <input type="number" id="end-margin" class="bg-black/40 w-16 px-1" required
+                        v-model="roomData.endMargin">
                 </div>
-                <button class="disabled:opacity-50 text-secondary" :disabled="disableCreate" type="submit">Submit</button>
+                <button class="text-btn" :disabled="disableCreate" type="submit">Submit</button>
             </form>
         </div>
     </ModalWrapper>

@@ -33,8 +33,9 @@ async function createToken(event: Event) {
         <div class="p-4">
             <form @submit.prevent="createToken">
                 <div class="flex flex-col items-center gap-4">
-                    <input type="text" id="token-label" class="bg-black/40 text-center px-1" placeholder="Label" required v-model="tokenName">
-                    <button class="text-secondary text-lg">Create</button>
+                    <input type="text" id="token-label" class="bg-black/40 text-center px-1" placeholder="Label"
+                        required v-model="tokenName">
+                    <button class="text-btn">Create</button>
                 </div>
             </form>
         </div>

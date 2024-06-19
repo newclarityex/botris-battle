@@ -42,21 +42,20 @@ export default defineEventHandler(async (event) => {
     }
 
     const body = await readValidatedBody(event, body => RegisterSchema.safeParse(body));
-	if (!body.success) {
-		throw createError({
-			statusCode: 400,
-			statusMessage: "Doesn't match schema."
-		});
-	};
-	const data = body.data;
-
+    if (!body.success) {
+        throw createError({
+            statusCode: 400,
+            statusMessage: "Doesn't match schema."
+        });
+    };
+    const data = body.data;
 
     const profile = await prisma.profile.create({
         data: {
             id: event.context.user.id,
             creator: data.creator,
             name: data.name,
-            avatar: data.avatar || generateAvatar(),
+            // avatar: data.avatar || generateAvatar(),
         }
     });
 

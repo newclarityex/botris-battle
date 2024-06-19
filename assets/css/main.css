@@ -14,3 +14,9 @@ body {
   height: 100%;
   /* background-color: #2c481e; */
 }
+
+@layer components {
+  .text-btn {
+    @apply underline hover:opacity-75 disabled:opacity-50;
+  }
+}
