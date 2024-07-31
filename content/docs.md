@@ -274,7 +274,7 @@ When the game is reset early, the server sends:
 
 <pre class='code'>
 {
-    botId: string;
+    userId: string;
     creator: string;
     bot: string;
 }
