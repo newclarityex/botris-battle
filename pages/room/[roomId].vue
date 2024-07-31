@@ -56,6 +56,7 @@ const allPlayerGraphics = ref<PlayerGraphics[]>([]);
 allPlayerGraphics.value = initialRoomData.players.map((player) => ({
     id: player.sessionId,
     name: player.info.bot,
+    creator: player.info.creator,
     boardContainer: null,
     effectsContainer: null,
     heldContainer: null,
@@ -257,6 +258,7 @@ onMounted(async () => {
                 allPlayerGraphics.value.push({
                     id: playerData.sessionId,
                     name: playerData.info.bot,
+                    creator: playerData.info.creator,
                     boardContainer: null,
                     effectsContainer: null,
                     heldContainer: null,
@@ -720,6 +722,28 @@ onMounted(() => {
                 lineHeight: 50,
             }">
                                     {{ board.name }}
+                                </text>
+                            </container>
+                            <container :y="21 * CELL_SIZE + 82">
+                                <graphics :pivotX="(10 * CELL_SIZE) / 2" @render="(graphics) => {
+                graphics.clear();
+                graphics.beginFill(0x000000, 0.25);
+                graphics.drawRect(
+                    0,
+                    0,
+                    10 * CELL_SIZE,
+                    20
+                );
+                graphics.endFill();
+            }
+                " />
+                                <text :x="0" :y="0" :anchorX="0.5" :style="{
+                fill: 'white',
+                fontFamily: 'Fira Mono',
+                fontSize: 16,
+                lineHeight: 50,
+            }">
+                                    {{ board.creator }}
                                 </text>
                             </container>
                             <container :x="-5 * CELL_SIZE - 20" :pivotX="200" :pivotY="0">

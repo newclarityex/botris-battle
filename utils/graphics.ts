@@ -37,6 +37,7 @@ const TEXT_RESOLUTION = 8;
 export type PlayerGraphics = {
     id: string;
     name: string;
+    creator: string;
     heldContainer: PIXI.Container | null;
     boardContainer: PIXI.Container | null;
     effectsContainer: PIXI.Container | null;

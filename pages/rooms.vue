@@ -24,7 +24,7 @@ const createRoomModal = ref(false);
                     </li>
                     <li v-for="room in rooms" class="bg-white/20 p-4 flex">
                         <div class="w-40">{{ room.id }}</div>
-                        <div class="w-64">{{ room.host.bot }}</div>
+                        <div class="w-80">{{ room.host.bot }} - {{ room.host.creator }}</div>
                         <div>
                             <NuxtLink :to="`/room/${room.id}`" class="underline">Spectate</NuxtLink>
                         </div>
