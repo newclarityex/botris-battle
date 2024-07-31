@@ -2,6 +2,7 @@
 <template>
     <div class="flex flex-col items-center">
         <main class="flex flex-col items-center">
+            <img src="/images/logo_gradient.svg" alt="Botris Logo" class="w-64 p-8">
             <h1 class="text-3xl text-primary py-2">
                 Botris Battle
             </h1>
@@ -35,7 +36,7 @@
                         If you heavily borrow from an existing bot that you did not write you must credit the original author(s).
                     </li>
                     <li>
-                        You must be in the PuzzleKingdom discord <a class="text-secondary" href="https://discord.gg/47AhNAs25M" target="_blank">here</a> and registered on Challonge <a class="text-secondary" href="https://challonge.com/botrisbattle" target="_blank">here</a> to participate. 
+                        You must be in the Nuketris discord <a class="text-secondary" href="https://discord.gg/NUSgpfT5eH" target="_blank">here</a> and registered on Challonge <a class="text-secondary" href="https://challonge.com/botrisbattle" target="_blank">here</a> to participate. 
                     </li>
                     <li>
                         You must not be banned from PuzzleKingdom events.
@@ -45,7 +46,7 @@
                     </li>
                 </ol>
             </div>
-            <NuxtLink to="https://discord.gg/47AhNAs25M" class="text-2xl text-primary py-14 underline">
+            <NuxtLink to="https://discord.gg/NUSgpfT5eH" class="text-2xl text-primary py-8 underline">
                 Register for Botris Battle 2024
             </NuxtLink>
             <!-- <button class="text-2xl text-primary underline py-6" @click="signIn('github')">Click Here to
