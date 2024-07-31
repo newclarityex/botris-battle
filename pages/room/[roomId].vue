@@ -428,7 +428,7 @@ async function kickPlayer(sessionId: string) {
 }
 
 async function banPlayer(userId: string) {
-    await $fetch('/api/room/kick', {
+    await $fetch('/api/room/ban', {
         method: 'POST',
         body: {
             roomId,
@@ -438,7 +438,7 @@ async function banPlayer(userId: string) {
 }
 
 async function unbanPlayer(userId: string) {
-    await $fetch('/api/room/kick', {
+    await $fetch('/api/room/unban', {
         method: 'POST',
         body: {
             roomId,
@@ -867,7 +867,7 @@ onMounted(() => {
                                 </span>
                             </div>
                             <div class="flex gap-2">
-                                <button class="underline" @click="kickPlayer(player.info.userId)">
+                                <button class="underline" @click="kickPlayer(player.sessionId)">
                                     Kick
                                 </button>
                                 <button class="underline" @click="banPlayer(player.info.userId)">
