@@ -361,3 +361,5 @@ When the game is reset early, the server sends:
 </pre>
 
 <br>
+
+## [Engine Source Code](https://github.com/newclarityex/libtris){.link}
