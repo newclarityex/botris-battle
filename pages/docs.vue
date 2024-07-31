@@ -4,8 +4,8 @@ const route = useRoute();
 </script>
 
 <template>
-    <div>
-        <main class="px-8">
+    <div class="flex justify-center">
+        <main class="px-8 max-w-[1600px]">
             <ContentDoc path="/docs" />
         </main>
     </div>
