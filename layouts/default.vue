@@ -11,6 +11,8 @@ async function signOut() {
     });
 
     authStore.tryAuthenticate();
+
+    navigateTo("/")
 };
 </script>
 
