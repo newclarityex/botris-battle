@@ -16,7 +16,7 @@
             </h2>
             <p class="text-xl text-content py-2 px-4 max-w-2xl indent-8">
                 Botris 2024 is a hackathon where teams of programmers compete to create the
-                best block-stacking AI in 6 months.
+                best block-stacking AI in 3 months.
             </p>
             <div class="py-6">
                 <h2 class="text-3xl text-primary py-8 underline text-center">Registration</h2>
