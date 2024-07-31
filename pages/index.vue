@@ -28,7 +28,10 @@
                         Register on this website to test your bots.
                     </li>
                     <li>
-                        Join the <a class="text-secondary" target="_blank" href="https://discord.gg/NUSgpfT5eH">Nuketris discord</a>
+                        Join the <a class="text-secondary" target="_blank" href="https://discord.gg/9nHff39Twz">Nuketris discord</a>.
+                    </li>
+                    <li>
+                        Battles will be held November 9th, competitors must be present!
                     </li>
                 </ol>
             </div>
@@ -51,7 +54,7 @@
                         If you heavily borrow from an existing bot that you did not write you must credit the original author(s).
                     </li>
                     <li>
-                        You must be in the Nuketris discord <a class="text-secondary" target="_blank" href="https://discord.gg/NUSgpfT5eH">here</a> and registered on Challonge <a class="text-secondary" href="https://challonge.com/botrisbattle" target="_blank">here</a> to participate. 
+                        You must be in the Nuketris discord <a class="text-secondary" target="_blank" href="https://discord.gg/9nHff39Twz">here</a> and registered on Challonge <a class="text-secondary" href="https://challonge.com/botrisbattle" target="_blank">here</a> to participate. 
                     </li>
                     <li>
                         You must not be banned from PuzzleKingdom events.
