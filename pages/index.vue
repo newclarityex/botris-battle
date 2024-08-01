@@ -42,7 +42,7 @@
                         Matches will be done FT5 in a single elimination bracket.
                     </li>
                     <li>
-                        Maximum of 4 players per team.
+                        Maximum of 8 players per team.
                     </li>
                     <li>
                         Matches will be played at 2.5pps initially, then scaling to 5pps from 1:30 - 2:30.
