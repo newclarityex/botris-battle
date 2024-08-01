@@ -113,7 +113,7 @@ export type GeneralServerMessage =
 	| {
 		type: "round_over";
 		payload: {
-			winnerSession: string;
+			winnerId: string;
 			winnerInfo: PlayerInfo;
 			roomData: PublicRoomData;
 		};
@@ -121,7 +121,7 @@ export type GeneralServerMessage =
 	| {
 		type: "game_over";
 		payload: {
-			winnerSession: string;
+			winnerId: string;
 			winnerInfo: PlayerInfo;
 			roomData: PublicRoomData;
 		};

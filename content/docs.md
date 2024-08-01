@@ -275,8 +275,8 @@ type SessionId = string;
 	roundOngoing: boolean;
 	startedAt: number | null;
 	endedAt: number | null;
-	lastWinner: string | null;
-	players: PlayerData[];
+	lastWinner: <a href="#sessionid" class="type-link">SessionId</a> | null;
+	players: <a href="#playerdata" class="type-link">PlayerData</a>[];
 	banned: <a href="#playerinfo" class="type-link">PlayerInfo</a>[];
 }
 </pre>
@@ -381,7 +381,7 @@ type SessionId = string;
         piece: <a href="#piecedata" class="type-link">PieceData</a>;
         clearedLines: {
             height: number;
-            blocks: Block[];
+            blocks: <a href="#block" class="type-link">Block</a>[];
         }[];
     };
 } | {

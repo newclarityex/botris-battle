@@ -210,7 +210,7 @@ async function handlePlayerMessage(data: RawData, connection: Connection) {
                 sendRoom(connection.roomId, {
                     type: "round_over",
                     payload: {
-                        winnerSession: roundWinner.sessionId,
+                        winnerId: roundWinner.sessionId,
                         winnerInfo: roundWinner.info,
                         roomData: getPublicRoomData(room),
                     },
@@ -221,7 +221,7 @@ async function handlePlayerMessage(data: RawData, connection: Connection) {
                     sendRoom(connection.roomId, {
                         type: "game_over",
                         payload: {
-                            winnerSession: roundWinner.sessionId,
+                            winnerId: roundWinner.sessionId,
                             winnerInfo: roundWinner.info,
                             roomData: getPublicRoomData(room),
                         },
