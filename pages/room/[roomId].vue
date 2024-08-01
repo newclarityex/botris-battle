@@ -201,8 +201,11 @@ onMounted(async () => {
                 throw createError({
                     statusCode: 404,
                     statusMessage: "Room not found",
-                });
+                }); 
+                break;
             default:
+                alert("Server disconnected")
+                navigateTo("/")
                 break;
         }
     });
