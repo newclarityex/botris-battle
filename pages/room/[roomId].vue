@@ -327,7 +327,7 @@ onMounted(async () => {
                                 renderAttackEffect(
                                     playerGraphics,
                                     clearData.piece,
-                                    clearData.attack
+                                    clearData.attack + clearData.cancelled
                                 );
                             };
 
