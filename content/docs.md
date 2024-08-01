@@ -176,7 +176,7 @@ Whenever a player performs an action, the server will send everyone:
     type: 'player_action';
     payload: {
         sessionId: string;
-        commands: string[];
+        commands: <a href="#command" class="type-link">Command</a>[];
         gameState: <a href="#gamestate" class="type-link">GameState</a>;
         events: <a href="#gameevent" class="type-link">GameEvent</a>[];
     }
@@ -235,6 +235,11 @@ When the game is reset early, the server sends:
 
 ## Types
 
+### SessionId
+<pre class='code'>
+type SessionId = string;
+</pre>
+
 ### RoomData
 
 <pre class='code'>
@@ -262,7 +267,7 @@ When the game is reset early, the server sends:
 
 <pre class='code'>
 {
-	sessionId: string;
+	sessionId: <a href="#sessionid" class="type-link">SessionId</a>;
 	playing: boolean;
 	info: <a href="#playerinfo" class="type-link">PlayerInfo</a>;
 	wins: number;
@@ -326,13 +331,19 @@ When the game is reset early, the server sends:
 'move_left' | 'move_right' | 'rotate_cw' | 'rotate_ccw' | 'drop' | 'sonic_drop'
 </pre>
 
+### ClearName
+
+<pre class='code'>
+'Single' | 'Triple' | 'Double' | 'Quad' | 'Perfect Clear' | 'All-Spin Single' | 'All-Spin Double' | 'All-Spin Triple'
+</pre>
+
 ### GameEvent
 <pre class='code'>
 {
     type: 'piece_placed';
     payload: {
-        initial: PieceData;
-        final: PieceData;
+        initial: <a href="#piecedata" class="type-link">PieceData</a>;
+        final: <a href="#piecedata" class="type-link">PieceData</a>;
     };
 } | {
     type: 'damage_tanked';
@@ -342,14 +353,14 @@ When the game is reset early, the server sends:
 } | {
     type: 'clear';
     payload: {
-        clearName: string;
+        clearName: <a href="#clearname" class="type-link">ClearName</a>;
         allSpin: boolean;
         b2b: boolean;
         combo: number;
         pc: boolean;
         attack: number;
         cancelled: number;
-        piece: PieceData;
+        piece: <a href="#piecedata" class="type-link">PieceData</a>;
         clearedLines: {
             height: number;
             blocks: Block[];
