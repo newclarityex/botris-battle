@@ -483,7 +483,42 @@ export function renderAttackEffect(playerGraphics: PlayerGraphics, piece: PieceD
     });
 
     effectSprite.x = (piece.x + x) * CELL_SIZE - effectSprite.width / 2;
+    effectSprite.x += randRange(-8, 8)
     effectSprite.y = (BOARD_HEIGHT - piece.y - y + 1) * CELL_SIZE - effectSprite.height / 2;
+    effectSprite.y += randRange(-8, 8)
+
+    effectsContainer.addChild(effectSprite);
+
+    const fade = ease.add(
+        effectSprite,
+        { alpha: 0, y: effectSprite.y - 32 },
+        { duration: 750, ease: "easeOutQuad" }
+    );
+
+    fade.on("complete", () => {
+        effectsContainer.removeChild(effectSprite);
+    });
+}
+
+export function renderComboEffect(playerGraphics: PlayerGraphics, piece: PieceData, damage: number) {
+    const { effectsContainer } = playerGraphics;
+
+    if (effectsContainer === null) return;
+
+    const pieceMatrix = getPieceMatrix(piece.piece, piece.rotation);
+    const x = pieceMatrix[0].length / 2;
+    const y = pieceMatrix.length / 2;
+
+    const effectSprite = new PIXI.Text(`x${damage}`, {
+        fill: 0x5555FF,
+        fontSize: 32,
+        fontFamily: 'Fira Mono',
+    });
+
+    effectSprite.x = (piece.x + x) * CELL_SIZE - effectSprite.width / 2;
+    effectSprite.x += randRange(-8, 8)
+    effectSprite.y = (BOARD_HEIGHT - piece.y - y + 1) * CELL_SIZE - effectSprite.height / 2;
+    effectSprite.y += randRange(-8, 8)
 
     effectsContainer.addChild(effectSprite);
 

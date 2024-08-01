@@ -11,7 +11,7 @@ import {
     onKeyStroke,
 } from "@vueuse/core";
 import type { PlayerGraphics } from "@/utils/graphics";
-import { renderState } from "@/utils/graphics";
+import { renderComboEffect, renderState } from "@/utils/graphics";
 import { AUDIO_SOURCES } from "~/server/utils/audio";
 import { Application, useApplication } from "vue3-pixi";
 import type { ApplicationInst } from "vue3-pixi";
@@ -332,6 +332,14 @@ onMounted(async () => {
                                     score
                                 );
                             };
+
+                            if (clearData.combo > 1) {
+                                renderComboEffect(
+                                    playerGraphics,
+                                    clearData.piece,
+                                    clearData.combo
+                                );
+                            }
 
                             // if (clearData.pc) {
                             //     AUDIO_SOURCES.all_clear.play();
