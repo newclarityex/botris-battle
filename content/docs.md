@@ -220,7 +220,7 @@ When a round is over, the winner is sent using:
 {
     type: 'round_over';
     payload: {
-        winnerSession: string;
+        winnerId: <a href="#sessionid" class="type-link">SessionId</a>;
         winnerInfo: <a href="#playerinfo" class="type-link">PlayerInfo</a>;
         roomData: <a href="#roomdata" class="type-link">RoomData</a>;
     }
@@ -233,7 +233,7 @@ When the game is over, the winner is sent using:
 {
     type: 'game_over';
     payload: {
-        winnerSession: string;
+        winnerId: <a href="#sessionid" class="type-link">SessionId</a>;
         winnerInfo: <a href="#playerinfo" class="type-link">PlayerInfo</a>;
         roomData: <a href="#roomdata" class="type-link">RoomData</a>;
     }
