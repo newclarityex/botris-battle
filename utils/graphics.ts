@@ -483,9 +483,9 @@ export function renderAttackEffect(playerGraphics: PlayerGraphics, piece: PieceD
     });
 
     effectSprite.x = (piece.x + x) * CELL_SIZE - effectSprite.width / 2;
-    effectSprite.x += randRange(-8, 8)
+    effectSprite.x += randRange(-32, 32)
     effectSprite.y = (BOARD_HEIGHT - piece.y - y + 1) * CELL_SIZE - effectSprite.height / 2;
-    effectSprite.y += randRange(-8, 8)
+    effectSprite.y += randRange(-32, 32)
 
     effectsContainer.addChild(effectSprite);
 
@@ -516,9 +516,9 @@ export function renderComboEffect(playerGraphics: PlayerGraphics, piece: PieceDa
     });
 
     effectSprite.x = (piece.x + x) * CELL_SIZE - effectSprite.width / 2;
-    effectSprite.x += randRange(-8, 8)
+    effectSprite.x += randRange(-32, 32)
     effectSprite.y = (BOARD_HEIGHT - piece.y - y + 1) * CELL_SIZE - effectSprite.height / 2;
-    effectSprite.y += randRange(-8, 8)
+    effectSprite.y += randRange(-32, 32)
 
     effectsContainer.addChild(effectSprite);
 
