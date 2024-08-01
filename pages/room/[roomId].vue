@@ -323,11 +323,13 @@ onMounted(async () => {
                                 clearData.clearedLines
                             );
 
-                            if (clearData.attack > 0) {
+                            let score = clearData.attack + clearData.cancelled;
+
+                            if (score > 0) {
                                 renderAttackEffect(
                                     playerGraphics,
                                     clearData.piece,
-                                    clearData.attack + clearData.cancelled
+                                    score
                                 );
                             };
 
