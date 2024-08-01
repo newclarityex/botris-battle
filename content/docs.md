@@ -34,6 +34,16 @@ The server will respond with:
 }
 </pre>
 
+If authenticated successfully, the server also responds with:
+<pre class='code'>
+{
+    type: "authenticated";
+    payload: {
+        sessionId: <a href="#sessionid" class="type-link">SessionId</a>;
+    };
+}
+</pre>
+
 <br />
 
 
@@ -42,6 +52,14 @@ The game can also be spectated at `/room/{roomId}`.
 ## WS Messages
 
 ### General
+If there's any error, the server will send:
+<pre class='code'>
+{
+    type: "error";
+    payload: string;
+}
+</pre>
+
 When a player joins, the server will send:
 <pre class='code'>
 {
@@ -57,7 +75,7 @@ When a player leaves or gets kicked, the server will send:
 {
     type: "player_left";
     payload: {
-        sessionId: string;
+        sessionId: <a href="#sessionid" class="type-link">SessionId</a>;
     };
 }
 </pre>
@@ -175,7 +193,7 @@ Whenever a player performs an action, the server will send everyone:
 {
     type: 'player_action';
     payload: {
-        sessionId: string;
+        sessionId: <a href="#sessionid" class="type-link">SessionId</a>;
         commands: <a href="#command" class="type-link">Command</a>[];
         gameState: <a href="#gamestate" class="type-link">GameState</a>;
         events: <a href="#gameevent" class="type-link">GameEvent</a>[];
@@ -189,7 +207,7 @@ Whenever a player is sent damage, the server will send everyone:
 {
     type: 'player_damage_received';
     payload: {
-        sessionId: string;
+        sessionId: <a href="#sessionid" class="type-link">SessionId</a>;
         damage: number;
         gameState: <a href="#gamestate" class="type-link">GameState</a>;
     }

@@ -81,7 +81,7 @@ async function authenticateWs(
         JSON.stringify({
             type: "authenticated",
             payload: {
-                id: ws.id,
+                sessionId: ws.id,
             },
         })
     );
