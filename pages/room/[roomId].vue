@@ -724,7 +724,7 @@ onMounted(() => {
                                     {{ board.name }}
                                 </text>
                             </container>
-                            <container :y="21 * CELL_SIZE + 70">
+                            <container :y="21 * CELL_SIZE + 74">
                                 <graphics :pivotX="(10 * CELL_SIZE) / 2" @render="(graphics) => {
                 graphics.clear();
                 graphics.beginFill(0x000000, 0.25);
@@ -732,7 +732,7 @@ onMounted(() => {
                     0,
                     0,
                     10 * CELL_SIZE,
-                    24
+                    36
                 );
                 graphics.endFill();
             }
@@ -740,8 +740,8 @@ onMounted(() => {
                                 <text :x="0" :y="0" :anchorX="0.5" :style="{
                 fill: 'white',
                 fontFamily: 'Fira Mono',
-                fontSize: 16,
-                lineHeight: 24,
+                fontSize: 20,
+                lineHeight: 36,
             }">
                                     {{ board.creator }}
                                 </text>
