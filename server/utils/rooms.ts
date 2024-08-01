@@ -20,6 +20,7 @@ export type PlayerData = {
 	gameState: GameState | null;
 	info: PlayerInfo;
 	moveRequested: boolean;
+	lastMoveTimestamp: number;
 	timeout: NodeJS.Timeout | null;
 };
 

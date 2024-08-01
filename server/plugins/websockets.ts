@@ -133,6 +133,9 @@ async function handlePlayerMessage(data: RawData, connection: Connection) {
                 return;
             }
             player.moveRequested = false;
+
+            let latency = Date.now() - player.lastMoveTimestamp;
+            player.lastMoveTimestamp = Date.now();
             
             let serverCommands: Command[] = messageData.payload.commands;
             serverCommands.push('hard_drop');
@@ -149,7 +152,7 @@ async function handlePlayerMessage(data: RawData, connection: Connection) {
             if (!player.gameState.dead) {
                 setTimeout(() => {
                     requestMove(player, room);
-                }, (1000 * 1) / ppsCap);
+                }, 1000 / ppsCap - latency);
             }
             for (const event of events) {
                 if (event.type === "game_over") {
@@ -400,6 +403,7 @@ export default defineNitroPlugin((event) => {
             gameState: null,
             info: connection.info,
             moveRequested: false,
+            lastMoveTimestamp: Date.now(),
             timeout: null,
         };
 
