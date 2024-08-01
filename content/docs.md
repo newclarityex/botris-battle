@@ -204,7 +204,7 @@ When a round is over, the winner is sent using:
     payload: {
         winnerSession: string;
         winnerInfo: <a href="#playerinfo" class="type-link">PlayerInfo</a>;
-        roomInfo: roomInfo;
+        roomData: <a href="#roomdata" class="type-link">RoomData</a>;
     }
 }
 </pre>
