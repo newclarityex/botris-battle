@@ -666,7 +666,7 @@ onMounted(() => {
                             </text>
                         </template>
                     </container>
-                    <container :y="75">
+                    <container :y="70">
                         <container v-for="(board, index) in allPlayerGraphics" :key="board.id"
                             :x="currentConfig.offsets[index]" :scale="currentConfig.scale"
                             :pivotY="(21 * CELL_SIZE) / 2">
