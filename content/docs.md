@@ -346,7 +346,7 @@ type SessionId = string;
 ### Command
 
 <pre class='code'>
-'move_left' | 'move_right' | 'rotate_cw' | 'rotate_ccw' | 'drop' | 'sonic_drop'
+'hold' | 'move_left' | 'move_right' | 'rotate_cw' | 'rotate_ccw' | 'drop' | 'sonic_drop'
 </pre>
 
 ### ClearName
