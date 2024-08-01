@@ -811,7 +811,7 @@ onMounted(() => {
         </div>
         <dialog ref="gameMenu" v-if="publicRoomData && publicRoomData.host.userId === profile?.id
                 " class="bg-black/40 backdrop:bg-black/20 backdrop:backdrop-blur-sm">
-            <div class="p-6 flex flex-col gap-4 w-[520px]">
+            <div class="p-6 flex flex-col gap-4 w-[520px] text-white">
                 <div class="text-white text-center text-lg">
                     Press ESC to toggle menu
                 </div>
