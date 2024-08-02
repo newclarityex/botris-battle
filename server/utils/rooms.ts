@@ -112,7 +112,8 @@ export function requestMove(player: PlayerData, room: RoomData) {
 			players: getPublicPlayers(room.players),
 		},
 	});
-
+	
+	player.lastRequestTimestamp = Date.now();
 	player.moveRequested = true;
 	if (player.timeout) {
 		clearTimeout(player.timeout);

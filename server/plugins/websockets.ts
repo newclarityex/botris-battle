@@ -150,7 +150,6 @@ async function handlePlayerMessage(data: RawData, connection: Connection) {
             
             if (!player.gameState.dead) {
                 setTimeout(() => {
-                    player.lastRequestTimestamp = Date.now();
                     requestMove(player, room);
                 }, 1000 / ppsCap - latency);
             }

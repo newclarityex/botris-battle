@@ -325,17 +325,15 @@ onMounted(async () => {
                                 clearData.clearedLines
                             );
 
-                            let score = clearData.attack + clearData.cancelled;
-
-                            if (score > 0) {
+                            if (clearData.score > 0) {
                                 renderAttackEffect(
                                     playerGraphics,
                                     clearData.piece,
-                                    score
+                                    clearData.score
                                 );
                             };
 
-                            if (clearData.combo > 1) {
+                            if (clearData.combo > 2) {
                                 renderComboEffect(
                                     playerGraphics,
                                     clearData.piece,
