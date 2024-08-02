@@ -540,12 +540,12 @@ export function renderClearName(playerGraphics: PlayerGraphics, clearName: Clear
 
     const effectSprite = new PIXI.Text(`${clearName}`, {
         fill: 0xFFFFFF,
-        fontSize: 48,
+        fontSize: 32,
         fontFamily: 'Fira Mono',
     });
 
     effectSprite.x = BOARD_DIMENSIONS.width * 0.5 - effectSprite.width / 2;
-    effectSprite.y = BOARD_DIMENSIONS.height * 0.75 - effectSprite.height / 2;
+    effectSprite.y = BOARD_DIMENSIONS.height * 0.25 - effectSprite.height / 2;
 
     effectsContainer.addChild(effectSprite);
 
