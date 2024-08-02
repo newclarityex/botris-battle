@@ -123,6 +123,7 @@ export function requestMove(player: PlayerData, room: RoomData) {
 			return;
 
 		player.gameState.dead = true;
+		checkWinner(room);
 		// sendRoom(room.id, {
 		//     type: "player_died",
 		//     payload: {
@@ -168,6 +169,50 @@ export async function startRound(room: RoomData) {
 			requestMove(player, room);
 		});
 	}, 3000);
+}
+
+export function checkWinner(room: RoomData) {
+	const playersAlive = [...room.players.values()].filter(
+		(player) =>
+			player.playing && player.gameState && !player.gameState.dead
+	);
+
+	if (playersAlive.length < 2) {
+		const roundWinner = playersAlive[0];
+		roundWinner.wins++;
+		room.roundOngoing = false;
+		room.lastWinner = roundWinner.sessionId;
+		sendRoom(room.id, {
+			type: "round_over",
+			payload: {
+				winnerId: roundWinner.sessionId,
+				winnerInfo: roundWinner.info,
+				roomData: getPublicRoomData(room),
+			},
+		});
+		if (roundWinner.wins >= room.ft) {
+			room.gameOngoing = false;
+			room.endedAt = Date.now();
+			sendRoom(room.id, {
+				type: "game_over",
+				payload: {
+					winnerId: roundWinner.sessionId,
+					winnerInfo: roundWinner.info,
+					roomData: getPublicRoomData(room),
+				},
+			});
+			sendRoom(room.id, {
+				type: "game_reset",
+				payload: {
+					roomData: getPublicRoomData(room),
+				},
+			});
+		} else {
+			setTimeout(() => {
+				startRound(room);
+			}, 3000);
+		}
+	}
 }
 
 export function getPublicPlayerData(player: PlayerData): PublicPlayerData {

@@ -1,8 +1,4 @@
 <script setup lang="ts">
-const props = defineProps<{
-    modelValue: boolean;
-}>()
-
 const emit = defineEmits<{
     (event: 'close'): void;
     (event: 'tokenCreated'): void;

@@ -8,6 +8,7 @@ import {
     getPublicRoomData,
     requestMove,
     startRound,
+    checkWinner,
 } from "~/server/utils/rooms";
 import type { Connection } from "~/server/utils/rooms";
 import { checkAuthToken } from "../utils/auth";
@@ -199,47 +200,7 @@ async function handlePlayerMessage(data: RawData, connection: Connection) {
                 },
             });
 
-            const playersAlive = [...room.players.values()].filter(
-                (player) =>
-                    player.playing && player.gameState && !player.gameState.dead
-            );
-
-            if (playersAlive.length < 2) {
-                const roundWinner = playersAlive[0];
-                roundWinner.wins++;
-                room.roundOngoing = false;
-                room.lastWinner = roundWinner.sessionId;
-                sendRoom(connection.roomId, {
-                    type: "round_over",
-                    payload: {
-                        winnerId: roundWinner.sessionId,
-                        winnerInfo: roundWinner.info,
-                        roomData: getPublicRoomData(room),
-                    },
-                });
-                if (roundWinner.wins >= room.ft) {
-                    room.gameOngoing = false;
-                    room.endedAt = Date.now();
-                    sendRoom(connection.roomId, {
-                        type: "game_over",
-                        payload: {
-                            winnerId: roundWinner.sessionId,
-                            winnerInfo: roundWinner.info,
-                            roomData: getPublicRoomData(room),
-                        },
-                    });
-                    sendRoom(connection.roomId, {
-                        type: "game_reset",
-                        payload: {
-                            roomData: getPublicRoomData(room),
-                        },
-                    });
-                } else {
-                    setTimeout(() => {
-                        startRound(room);
-                    }, 3000);
-                }
-            }
+            checkWinner(room);
             break;
         }
     }

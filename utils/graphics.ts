@@ -1,6 +1,6 @@
 import { getPieceMatrix, type PublicGameState } from 'libtris';
 import * as PIXI from 'pixi.js';
-import type { PieceData } from 'libtris'
+import type { ClearName, PieceData } from 'libtris'
 
 export const CELL_SIZE = 32;
 const BOARD_HEIGHT = 21;
@@ -519,6 +519,33 @@ export function renderComboEffect(playerGraphics: PlayerGraphics, piece: PieceDa
     effectSprite.x += randRange(-32, 32)
     effectSprite.y = (BOARD_HEIGHT - piece.y - y + 1) * CELL_SIZE - effectSprite.height / 2;
     effectSprite.y += randRange(-32, 32)
+
+    effectsContainer.addChild(effectSprite);
+
+    const fade = ease.add(
+        effectSprite,
+        { alpha: 0, y: effectSprite.y - 32 },
+        { duration: 750, ease: "easeOutQuad" }
+    );
+
+    fade.on("complete", () => {
+        effectsContainer.removeChild(effectSprite);
+    });
+}
+
+export function renderClearName(playerGraphics: PlayerGraphics, clearName: ClearName) {
+    const { effectsContainer } = playerGraphics;
+
+    if (effectsContainer === null) return;
+
+    const effectSprite = new PIXI.Text(`${clearName}`, {
+        fill: 0xFFFFFF,
+        fontSize: 48,
+        fontFamily: 'Fira Mono',
+    });
+
+    effectSprite.x = BOARD_HEIGHT * 0.5 * CELL_SIZE - effectSprite.width / 2;
+    effectSprite.y = BOARD_HEIGHT * 0.75 * CELL_SIZE - effectSprite.height / 2;
 
     effectsContainer.addChild(effectSprite);
 

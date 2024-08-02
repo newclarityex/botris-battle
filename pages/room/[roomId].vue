@@ -11,7 +11,7 @@ import {
     onKeyStroke,
 } from "@vueuse/core";
 import type { PlayerGraphics } from "@/utils/graphics";
-import { renderComboEffect, renderState } from "@/utils/graphics";
+import { renderClearName, renderComboEffect, renderState } from "@/utils/graphics";
 import { AUDIO_SOURCES } from "~/server/utils/audio";
 import { Application, useApplication } from "vue3-pixi";
 import type { ApplicationInst } from "vue3-pixi";
@@ -202,9 +202,7 @@ onMounted(async () => {
                     statusCode: 404,
                     statusMessage: "Room not found",
                 });
-                break;
             default:
-                navigateTo("/")
                 break;
         }
     });
@@ -215,6 +213,12 @@ onMounted(async () => {
         switch (data.type) {
             case "room_data": {
                 publicRoomData.value = data.payload.roomData;
+                roomOptions.value.ft = publicRoomData.value.ft;
+                roomOptions.value.startMargin = publicRoomData.value.startMargin;
+                roomOptions.value.endMargin = publicRoomData.value.endMargin;
+                roomOptions.value.initialPps = publicRoomData.value.initialPps;
+                roomOptions.value.finalPps = publicRoomData.value.finalPps;
+                roomOptions.value.private = publicRoomData.value.private;
                 break;
             }
             case "round_started": {
@@ -340,6 +344,15 @@ onMounted(async () => {
                                     clearData.combo
                                 );
                             }
+
+                            switch (clearData.clearName) {
+                                case 'All-Spin Single':
+                                case 'All-Spin Double':
+                                case 'All-Spin Triple':
+                                case 'Quad':
+                                case 'Perfect Clear':
+                                    renderClearName(playerGraphics, clearData.clearName);
+                            };
 
                             // if (clearData.pc) {
                             //     AUDIO_SOURCES.all_clear.play();
