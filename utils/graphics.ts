@@ -544,8 +544,8 @@ export function renderClearName(playerGraphics: PlayerGraphics, clearName: Clear
         fontFamily: 'Fira Mono',
     });
 
-    effectSprite.x = BOARD_HEIGHT * 0.5 * CELL_SIZE - effectSprite.width / 2;
-    effectSprite.y = BOARD_HEIGHT * 0.75 * CELL_SIZE - effectSprite.height / 2;
+    effectSprite.x = BOARD_DIMENSIONS.width * 0.5 - effectSprite.width / 2;
+    effectSprite.y = BOARD_DIMENSIONS.height * 0.75 - effectSprite.height / 2;
 
     effectsContainer.addChild(effectSprite);
 
