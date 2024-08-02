@@ -204,7 +204,6 @@ onMounted(async () => {
                 }); 
                 break;
             default:
-                alert("Server disconnected")
                 navigateTo("/")
                 break;
         }
