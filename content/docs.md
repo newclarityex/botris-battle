@@ -333,7 +333,6 @@ type SessionId = string;
     garbageQueued: number;
     held: <a href="#piece" class="type-link">Piece</a> | null;
     current: <a href="#piecedata" class="type-link">PieceData</a>;
-    isImmobile: boolean;
     canHold: boolean;
     combo: number;
     b2b: boolean;
@@ -346,7 +345,7 @@ type SessionId = string;
 ### Command
 
 <pre class='code'>
-'hold' | 'move_left' | 'move_right' | 'rotate_cw' | 'rotate_ccw' | 'drop' | 'sonic_drop'
+'hold' | 'move_left' | 'move_right' | 'sonic_left' | 'sonic_right' | 'rotate_cw' | 'rotate_ccw' | 'drop' | 'sonic_drop'
 </pre>
 
 ### ClearName
