@@ -103,7 +103,7 @@ export function sendRoom(roomId: string, message: GeneralServerMessage) {
 
 const MOVE_TIMEOUT = 5 * 1000;
 export function requestMove(player: PlayerData, room: RoomData) {
-	if (!player.gameState || !player.playing) return;
+	if (!player.gameState || !player.playing || !room.roundOngoing) return;
 
 	sendClient(player.ws, {
 		type: "request_move",
