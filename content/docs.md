@@ -27,7 +27,7 @@ The server will respond with:
 
 <pre class='code'>
 {
-    type: 'room_data';
+    type: "room_data";
     payload: {
         roomData: <a href="#roomdata" class="type-link">RoomData</a>
     }
@@ -130,15 +130,15 @@ Game Info
     boardHeight: 20,
     garbageMessiness: 0.05,
     attackTable: {
-        'single': 0,
-        'double': 1,
-        'triple': 2,
-        'quad': 4,
-        'asd': 4,
-        'ass': 2,
-        'ast': 6,
-        'pc': 10,
-        'b2b': 1,
+        "single": 0,
+        "double": 1,
+        "triple": 2,
+        "quad": 4,
+        "asd": 4,
+        "ass": 2,
+        "ast": 6,
+        "pc": 10,
+        "b2b": 1,
     },
     comboTable: [0, 0, 1, 1, 1, 2, 2, 3, 3, 4],
 }
@@ -147,14 +147,14 @@ Game Info
 When the game starts, the server will send:
 <pre class='code'>
 {
-    type: 'game_started';
+    type: "game_started";
 }
 </pre>
 
 When a round is about to start, the server will send:
 <pre class='code'>
 {
-    type: 'round_started';
+    type: "round_started";
     payload: {
         startsAt: number;
         roomData: <a href="#roomdata" class="type-link">RoomData</a>;
@@ -180,7 +180,7 @@ After the server requests a move, you may place a piece. Actions are sent from a
 
 <pre class='code'>
 {
-    type: 'action';
+    type: "action";
     payload: {
         commands: <a href="#command" class="type-link">Command</a>[];
     }
@@ -191,7 +191,7 @@ Whenever a player performs an action, the server will send everyone:
 
 <pre class='code'>
 {
-    type: 'player_action';
+    type: "player_action";
     payload: {
         sessionId: <a href="#sessionid" class="type-link">SessionId</a>;
         commands: <a href="#command" class="type-link">Command</a>[];
@@ -205,7 +205,7 @@ Whenever a player is sent damage, the server will send everyone:
 
 <pre class='code'>
 {
-    type: 'player_damage_received';
+    type: "player_damage_received";
     payload: {
         sessionId: <a href="#sessionid" class="type-link">SessionId</a>;
         damage: number;
@@ -218,7 +218,7 @@ When a round is over, the winner is sent using:
 
 <pre class='code'>
 {
-    type: 'round_over';
+    type: "round_over";
     payload: {
         winnerId: <a href="#sessionid" class="type-link">SessionId</a>;
         winnerInfo: <a href="#playerinfo" class="type-link">PlayerInfo</a>;
@@ -231,7 +231,7 @@ When the game is over, the winner is sent using:
 
 <pre class='code'>
 {
-    type: 'game_over';
+    type: "game_over";
     payload: {
         winnerId: <a href="#sessionid" class="type-link">SessionId</a>;
         winnerInfo: <a href="#playerinfo" class="type-link">PlayerInfo</a>;
@@ -306,12 +306,12 @@ type SessionId = string;
 ### Piece
 
 <pre class='code'>
-'I' | 'O' | 'J' | 'L' | 'S' | 'Z' | 'T'
+"I" | "O" | "J" | "L" | "S" | "Z" | "T"
 </pre>
 
 ### Block
 <pre class='code'>
-<a href="#piece" class="type-link">Piece</a> | 'G' | null
+<a href="#piece" class="type-link">Piece</a> | "G" | null
 </pre>
 
 ### PieceData
@@ -345,30 +345,30 @@ type SessionId = string;
 ### Command
 
 <pre class='code'>
-'hold' | 'move_left' | 'move_right' | 'sonic_left' | 'sonic_right' | 'rotate_cw' | 'rotate_ccw' | 'drop' | 'sonic_drop'
+"hold" | "move_left" | "move_right" | "sonic_left" | "sonic_right" | "rotate_cw" | "rotate_ccw" | "drop" | "sonic_drop"
 </pre>
 
 ### ClearName
 
-<pre class='code'>
-'Single' | 'Triple' | 'Double' | 'Quad' | 'Perfect Clear' | 'All-Spin Single' | 'All-Spin Double' | 'All-Spin Triple'
+<pre class="code">
+"Single" | "Triple" | "Double" | "Quad" | "Perfect Clear" | "All-Spin Single" | "All-Spin Double" | "All-Spin Triple"
 </pre>
 
 ### GameEvent
 <pre class='code'>
 {
-    type: 'piece_placed';
+    type: "piece_placed";
     payload: {
         initial: <a href="#piecedata" class="type-link">PieceData</a>;
         final: <a href="#piecedata" class="type-link">PieceData</a>;
     };
 } | {
-    type: 'damage_tanked';
+    type: "damage_tanked";
     payload: {
         holeIndices: number[];
     };
 } | {
-    type: 'clear';
+    type: "clear";
     payload: {
         clearName: <a href="#clearname" class="type-link">ClearName</a>;
         allSpin: boolean;
@@ -384,7 +384,7 @@ type SessionId = string;
         }[];
     };
 } | {
-    type: 'game_over';
+    type: "game_over";
 };
 </pre>
 
