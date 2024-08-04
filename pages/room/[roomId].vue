@@ -72,15 +72,15 @@ function getPlayerStats() {
             return [
                 {
                     title: "attack/min",
-                    value: 0,
+                    value: (0).toFixed(2),
                 },
                 {
                     title: "efficiency",
-                    value: 0,
+                    value: (0).toFixed(2),
                 },
                 {
                     title: "piece/sec",
-                    value: 0,
+                    value: (0).toFixed(2),
                 },
                 {
                     title: "pieces placed",
@@ -92,21 +92,19 @@ function getPlayerStats() {
         return [
             {
                 title: "attack/min",
-                value:
-                    (gameState.score / (timePassed)) *
-                    60 *
-                    1000,
+                value: ((gameState.score / (timePassed)) * 60 * 1000).toFixed(2),
             },
             {
                 title: "efficiency",
-                value:
+                value: (
                     gameState.piecesPlaced > 0
                         ? gameState.score / gameState.piecesPlaced
-                        : 0,
+                        : 0
+                    ).toFixed(2),
             },
             {
                 title: "piece/sec",
-                value: (gameState.piecesPlaced / timePassed) * 1000,
+                value: ((gameState.piecesPlaced / timePassed) * 1000).toFixed(2),
             },
             {
                 title: "pieces placed",
@@ -806,7 +804,7 @@ onMounted(() => {
                                             fontFamily: 'Fira Mono',
                                             fontSize: 36,
                                         }" :y="36">
-                                            {{ stat.value.toFixed(2) }}
+                                            {{ stat.value }}
                                         </text>
                                     </container>
                                 </template>
