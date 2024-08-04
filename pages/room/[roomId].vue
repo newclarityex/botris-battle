@@ -623,7 +623,10 @@ onMounted(() => {
         } else {
             displayTime.value = null;
             currentPps.value = initialPps;
-            countdownTime.value = Math.ceil((timeLeft) / 1000);
+            countdownTime.value = Math.floor((timeLeft) / 1000);
+            if (countdownTime.value === 0) {
+                countdownTime.value = null;
+            };
         }
     }, 1000 / 60);
 
