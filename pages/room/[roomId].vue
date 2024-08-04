@@ -79,7 +79,7 @@ function getPlayerStats() {
                     value: 0,
                 },
                 {
-                    title: "bumpiness",
+                    title: "piece/sec",
                     value: 0,
                 },
                 {
@@ -87,11 +87,13 @@ function getPlayerStats() {
                     value: 0,
                 },
             ];
+
+        let timePassed = (endedAt ?? Date.now()) - startedAt;
         return [
             {
                 title: "attack/min",
                 value:
-                    (gameState.score / ((endedAt ?? Date.now()) - startedAt)) *
+                    (gameState.score / (timePassed)) *
                     60 *
                     1000,
             },
@@ -103,8 +105,8 @@ function getPlayerStats() {
                         : 0,
             },
             {
-                title: "bumpiness",
-                value: getBoardBumpiness(gameState.board),
+                title: "piece/sec",
+                value: (gameState.piecesPlaced / timePassed) * 1000,
             },
             {
                 title: "pieces placed",
