@@ -79,7 +79,7 @@ function getPlayerStats() {
                     value: (0).toFixed(2),
                 },
                 {
-                    title: "(ds + attack)/piece",
+                    title: "ds+a/piece",
                     value: (0).toFixed(2),
                 },
                 {
