@@ -103,7 +103,7 @@ function getPlayerStats() {
                     ).toFixed(2),
             },
             {
-                title: "(ds + attack)/piece",
+                title: "(ds+a)/piece",
                 value: ((gameState.score + gameState.garbageCleared) / gameState.piecesPlaced).toFixed(2),
             },
             {
@@ -624,7 +624,6 @@ onMounted(() => {
             displayTime.value = null;
             currentPps.value = initialPps;
             countdownTime.value = Math.ceil((timeLeft) / 1000);
-            countdownTime.value = null;
         }
     }, 1000 / 60);
 
