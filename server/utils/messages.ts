@@ -1,6 +1,6 @@
 import { z } from "zod";
-import { PlayerInfo, PublicPlayerData, PublicRoomData } from "./rooms";
-import { GameEvent, GameState, PublicGameState } from "libtris";
+import type { PlayerInfo, PublicPlayerData, PublicRoomData } from "./rooms";
+import type { GameEvent, PublicGameState } from "libtris";
 
 export const AuthSchema = z.object({
 	type: z.literal("auth"),

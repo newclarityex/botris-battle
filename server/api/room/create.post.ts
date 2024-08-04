@@ -3,7 +3,7 @@ import { createRoomKey, rooms } from "~/server/utils/rooms";
 import { checkAuth } from "~/server/utils/auth";
 import { customAlphabet, nanoid } from "nanoid";
 import { numbers, lowercase } from "nanoid-dictionary";
-import { Block } from "~/utils/game";
+import type { Block } from "~/utils/game";
 
 const genRoomId = customAlphabet(numbers + lowercase, 8);
 

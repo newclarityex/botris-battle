@@ -324,13 +324,20 @@ type SessionId = string;
 }
 </pre>
 
+### GarbageLine
+<pre class='code'>
+{
+    delay: number;
+}
+</pre>
+
 ### GameState
 **Sent board data is *upside-down* to prevent line clipping**
 <pre class='code'>
 {
     board: <a href="#block" class="type-link">Block</a>[][];
     queue: <a href="#piece" class="type-link">Piece</a>[];
-    garbageQueued: number;
+    garbageQueued: <a href="#garbageline" class="type-link">GarbageLine</a>[];
     held: <a href="#piece" class="type-link">Piece</a> | null;
     current: <a href="#piecedata" class="type-link">PieceData</a>;
     canHold: boolean;

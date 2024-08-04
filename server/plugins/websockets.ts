@@ -1,4 +1,4 @@
-import { RawData, WebSocket, WebSocketServer } from "ws";
+import { type RawData, WebSocket, WebSocketServer } from "ws";
 import { zu } from "zod_utilz";
 import { v4 as uuid } from "uuid";
 import {
@@ -18,7 +18,7 @@ import {
 import { calculatePps } from "~/utils/game";
 
 import {
-    Command,
+    type Command,
     executeCommands,
     generateGarbage,
     getPublicGameState,

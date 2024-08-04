@@ -1,7 +1,7 @@
 import type { WebSocket } from "ws";
-import { getPublicGameState, type GameState, PublicGameState, createGameState } from "libtris";
-import { GeneralServerMessage } from "./messages";
-import { Block } from "~/utils/game";
+import { getPublicGameState, type GameState, type PublicGameState, createGameState } from "libtris";
+import type { GeneralServerMessage } from "./messages";
+import type { Block } from "~/utils/game";
 import { customAlphabet } from "nanoid";
 import { numbers, lowercase } from "nanoid-dictionary";
 

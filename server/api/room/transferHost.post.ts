@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { rooms } from '~/server/utils/rooms';
-import { Block } from '~/utils/game';
+import type { Block } from '~/utils/game';
 
 const TransferHostSchema = z.object({ roomId: z.string(), targetId: z.string() });
 

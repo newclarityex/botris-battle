@@ -255,6 +255,8 @@ export function renderAvatar(avatar: Block[][]) {
     return avatarContainer;
 }
 
+const GARBAGE_COLORS = [0xff0000, 0xffff00]
+
 export function renderState(playerGraphics: PlayerGraphics, gameState: PublicGameState | null) {
     const { heldContainer, boardContainer, queueContainer } = playerGraphics
 
@@ -364,10 +366,16 @@ export function renderState(playerGraphics: PlayerGraphics, gameState: PublicGam
     }
 
     const damageBar = new PIXI.Graphics();
-    damageBar.beginFill(0xff0000, 0.75);
-    damageBar.drawRect(0, 0, 8, CELL_SIZE * gameState.garbageQueued);
     damageBar.zIndex = 2;
-    damageBar.y = (BOARD_HEIGHT - gameState.garbageQueued) * CELL_SIZE;
+
+    // unnecessary but just in case ig
+    let ascendingDelay = gameState.garbageQueued.toSorted((a, b) => a.delay - b.delay);
+    for (const [index, line] of ascendingDelay.entries()) {
+        damageBar.beginFill(GARBAGE_COLORS[line.delay], 0.75);
+        damageBar.drawRect(0, -1 * CELL_SIZE * (index + 1), 8, CELL_SIZE);
+    };
+
+    damageBar.y = BOARD_HEIGHT * CELL_SIZE;
     boardContainer.addChild(damageBar);
 }
 

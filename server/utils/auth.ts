@@ -1,5 +1,5 @@
 import { PrismaAdapter } from "@lucia-auth/adapter-prisma";
-import { Lucia, User } from "lucia";
+import { Lucia, type User } from "lucia";
 import { prisma } from "./prisma";
 import { GitHub } from "arctic";
 
