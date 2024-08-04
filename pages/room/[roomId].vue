@@ -83,7 +83,7 @@ function getPlayerStats() {
                     value: 0,
                 },
                 {
-                    title: "avg height",
+                    title: "pieces placed",
                     value: 0,
                 },
             ];
@@ -107,8 +107,8 @@ function getPlayerStats() {
                 value: getBoardBumpiness(gameState.board),
             },
             {
-                title: "avg height",
-                value: getBoardAvgHeight(gameState.board),
+                title: "pieces placed",
+                value: gameState.piecesPlaced,
             },
         ];
     });
