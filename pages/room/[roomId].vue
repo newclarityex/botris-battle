@@ -75,11 +75,11 @@ function getPlayerStats() {
                     value: (0).toFixed(2),
                 },
                 {
-                    title: "efficiency",
+                    title: "attack/piece",
                     value: (0).toFixed(2),
                 },
                 {
-                    title: "piece/sec",
+                    title: "(ds + attack)/piece",
                     value: (0).toFixed(2),
                 },
                 {
@@ -95,7 +95,7 @@ function getPlayerStats() {
                 value: ((gameState.score / (timePassed)) * 60 * 1000).toFixed(2),
             },
             {
-                title: "efficiency",
+                title: "attack/piece",
                 value: (
                     gameState.piecesPlaced > 0
                         ? gameState.score / gameState.piecesPlaced
@@ -103,8 +103,8 @@ function getPlayerStats() {
                     ).toFixed(2),
             },
             {
-                title: "piece/sec",
-                value: ((gameState.piecesPlaced / timePassed) * 1000).toFixed(2),
+                title: "(ds + attack)/piece",
+                value: ((gameState.score + gameState.garbageCleared) / gameState.piecesPlaced).toFixed(2),
             },
             {
                 title: "pieces placed",
