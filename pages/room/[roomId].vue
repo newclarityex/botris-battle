@@ -89,6 +89,12 @@ function getPlayerStats() {
             ];
 
         let timePassed = (endedAt ?? Date.now()) - startedAt;
+        let app = gameState.piecesPlaced > 0
+                        ? gameState.score / gameState.piecesPlaced
+                        : 0;
+        let dsapp = gameState.piecesPlaced > 0
+                        ? (gameState.score + gameState.garbageCleared)
+                        : 0
         return [
             {
                 title: "attack/min",
@@ -96,15 +102,11 @@ function getPlayerStats() {
             },
             {
                 title: "attack/piece",
-                value: (
-                    gameState.piecesPlaced > 0
-                        ? gameState.score / gameState.piecesPlaced
-                        : 0
-                    ).toFixed(2),
+                value: app.toFixed(2),
             },
             {
                 title: "(ds+a)/piece",
-                value: ((gameState.score + gameState.garbageCleared) / gameState.piecesPlaced).toFixed(2),
+                value: dsapp.toFixed(2),
             },
             {
                 title: "pieces placed",
