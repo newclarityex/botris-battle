@@ -305,6 +305,7 @@ export default defineNitroPlugin((event) => {
                     }
                 });
                 room.gameOngoing = false;
+                room.roundOngoing = false;
                 sendRoom(room.id, {
                     type: "game_reset",
                     payload: {

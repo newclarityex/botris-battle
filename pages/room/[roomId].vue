@@ -93,7 +93,7 @@ function getPlayerStats() {
                         ? gameState.score / gameState.piecesPlaced
                         : 0;
         let dsapp = gameState.piecesPlaced > 0
-                        ? (gameState.score + gameState.garbageCleared)
+                        ? (gameState.score + gameState.garbageCleared) / gameState.piecesPlaced
                         : 0
         return [
             {
