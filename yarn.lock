@@ -5195,10 +5195,10 @@ lazystream@^1.0.0:
   dependencies:
     readable-stream "^2.0.5"
 
-libtris@^0.5.1:
-  version "0.5.1"
-  resolved "https://registry.yarnpkg.com/libtris/-/libtris-0.5.1.tgz#3aa1e5847dddc0d230b960001fc6edbc6af9353c"
-  integrity sha512-KAkRO1RTWluEkHLArnWJAZInGSRR9Jd93Iob1eNAu5vF91bHXdpgr/4S1vkyadxOhG3IzUMIU6K+OhdipyPXxA==
+libtris@^0.5.2:
+  version "0.5.2"
+  resolved "https://registry.yarnpkg.com/libtris/-/libtris-0.5.2.tgz#73d9f1814c75504c50be26f7c0a5cf14353b5c06"
+  integrity sha512-lfg+/7OyDD2M1rEGFoJlPa2yZQYl7ATcxwasOiXm5GbVZMgw6N2BJDi4hYa1Hpt6X2mBuS8F4VEjqkDvR8nhAA==
   dependencies:
     shuffle-array "^1.0.1"
 

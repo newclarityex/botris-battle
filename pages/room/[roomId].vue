@@ -314,7 +314,10 @@ onMounted(async () => {
                 };
 
                 renderState(playerGraphics, getPublicGameState(tempGameState));
-                const delay = (1 / publicRoomData.value.pps) / (commands.length + 1);
+                const delay =
+                    (1 / publicRoomData.value.pps) /
+                    (commands.length + 1)
+                    * 0.75;
                 for (const command of commands as Command[]) {
                     await sleep(delay);
                     ({ gameState: tempGameState } = executeCommand(tempGameState, command));
