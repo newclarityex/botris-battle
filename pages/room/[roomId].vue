@@ -202,7 +202,7 @@ async function startRenderingSession(sessionId: string) {
     const ppsDelay = 1000 / publicRoomData.value.pps;
     const commandDelay =
         ppsDelay /
-        (first.commands.length + 1)
+        (first.commands.length + 2)
         * 0.85;
 
     currentlyRendering.add(sessionId);
