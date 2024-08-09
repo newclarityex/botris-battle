@@ -42,6 +42,7 @@ export type PlayerGraphics = {
     boardContainer: PIXI.Container | null;
     effectsContainer: PIXI.Container | null;
     queueContainer: PIXI.Container | null;
+    damageBar: PIXI.Graphics | null;
 };
 // export function renderPlayers(pixiApp: PIXI.Application, playersContainer: PIXI.Container, players: PublicPlayerData[]) {
 //     playersContainer.removeChildren();
@@ -365,8 +366,15 @@ export function renderState(playerGraphics: PlayerGraphics, gameState: PublicGam
         queueContainer.addChild(pieceContainer);
     }
 
-    const damageBar = new PIXI.Graphics();
-    damageBar.zIndex = 2;
+    renderDamage(playerGraphics, gameState);
+}
+
+export function renderDamage(playerGraphics: PlayerGraphics, gameState: PublicGameState | null) {
+    const { damageBar } = playerGraphics;
+
+    if (damageBar === null || gameState === null) return;
+
+    damageBar.clear();
 
     // unnecessary but just in case ig
     let ascendingDelay = gameState.garbageQueued.toSorted((a, b) => a.delay - b.delay);
@@ -376,7 +384,6 @@ export function renderState(playerGraphics: PlayerGraphics, gameState: PublicGam
     };
 
     damageBar.y = BOARD_HEIGHT * CELL_SIZE;
-    boardContainer.addChild(damageBar);
 }
 
 // import placedEffect from "@/public/images/placedEffect.png";

@@ -11,7 +11,7 @@ import {
     onKeyStroke,
 } from "@vueuse/core";
 import type { PlayerGraphics } from "@/utils/graphics";
-import { renderClearName, renderComboEffect, renderState } from "@/utils/graphics";
+import { renderClearName, renderComboEffect, renderDamage, renderState } from "@/utils/graphics";
 import { AUDIO_SOURCES } from "~/server/utils/audio";
 import { Application, useApplication } from "vue3-pixi";
 import type { ApplicationInst } from "vue3-pixi";
@@ -60,6 +60,7 @@ allPlayerGraphics.value = initialRoomData.players.map((player) => ({
     effectsContainer: null,
     heldContainer: null,
     queueContainer: null,
+    damageBar: null,
 }));
 
 function getPlayerStats() {
@@ -200,8 +201,6 @@ async function startRenderingSession(sessionId: string) {
 
     currentlyRendering.add(sessionId);
 
-    console.log("Starting session render", sessionId);
-
     while (renderQueue.length > 0) {
         if (renderQueue.length >= FORCE_UPDATE_PIECES) {
             // Only leave final render if we are severely behind
@@ -211,7 +210,7 @@ async function startRenderingSession(sessionId: string) {
         const { gameState, prevGameState, commands, events } = renderQueue.shift()!;
         const commandDelay =
             (ppsDelay / (commands.length + 1))
-            * 0.85;
+            * 0.90;
         const player = publicRoomData.value.players.find(
             (p) => p.sessionId === sessionId
         );
@@ -307,8 +306,6 @@ async function startRenderingSession(sessionId: string) {
         }
     }
 
-    console.log("Ending session render", sessionId);
-
     currentlyRendering.delete(sessionId);
 }
 
@@ -399,6 +396,7 @@ onMounted(async () => {
                     effectsContainer: null,
                     heldContainer: null,
                     queueContainer: null,
+                    damageBar: null,
                 });
 
                 break;
@@ -450,7 +448,7 @@ onMounted(async () => {
                 ) as PlayerGraphics | undefined;
                 if (!playerGraphics)
                     return console.error("player graphics not found");
-                renderState(playerGraphics, player.gameState);
+                renderDamage(playerGraphics, player.gameState);
                 break;
             }
             case "settings_changed": {
@@ -773,6 +771,8 @@ onMounted(() => {
                                 <container :ref="(el: any) => board.effectsContainer = el" />
                                 <!-- Board Container -->
                                 <container :ref="(el: any) => board.boardContainer = el" :sortable-children="true" />
+                                <!-- Damage Bar Graphic -->
+                                <graphics :ref="(el: any) => board.damageBar = el" :z-index="2" />
                                 <text :anchorX="0.5" :anchorY="0.5" :x="10 * CELL_SIZE / 2" :y="200" :style="{
                 fill: 'white',
                 fontSize: '48px',
