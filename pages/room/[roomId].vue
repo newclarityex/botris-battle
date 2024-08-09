@@ -878,12 +878,12 @@ onMounted(() => {
                         <input type="text" v-model.number="roomOptions.pps" class="w-12 px-1 bg-white/20 text-right" />
                     </div>
                     <div class="flex justify-between items-center">
-                        <label>Initial Messiness (max: 30):</label>
+                        <label>Initial Messiness (0 - 1):</label>
                         <input type="text" v-model.number="roomOptions.initialMessiness"
                             class="w-12 px-1 bg-white/20 text-right" />
                     </div>
                     <div class="flex justify-between items-center">
-                        <label>Final Messiness (max: 30):</label>
+                        <label>Final Messiness (0 - 1):</label>
                         <input type="text" v-model.number="roomOptions.finalMessiness"
                             class="w-12 px-1 bg-white/20 text-right" />
                     </div>
