@@ -9,28 +9,34 @@ export default defineNuxtConfig({
       link: [{ rel: 'icon', type: 'image/png', href: '/favicon.png' }],
     },
   },
+
   experimental: {
     asyncContext: true
   },
+
   devtools: { enabled: true },
   css: ['~/assets/css/main.css'],
+
   modules: [
     '@pinia/nuxt',
     '@nuxt/content',
     '@nuxt/ui'
   ],
+
   content: {
     highlight: {
       theme: "dark-plus",
       preload: ['typescript']
     }
   },
+
   postcss: {
     plugins: {
       tailwindcss: {},
       autoprefixer: {},
     },
   },
+
   runtimeConfig: {
     build: process.env.NUXT_BUILD === "true",
     secret: process.env.NUXT_SECRET,
@@ -42,20 +48,24 @@ export default defineNuxtConfig({
       environment: process.env.NUXT_PUBLIC_ENVIRONMENT,
     }
   },
+
   alias: {
     cookie: resolve(__dirname, "node_modules/cookie"),
     jwt: resolve(__dirname, "node_modules/jwt"),
     crypto: resolve(__dirname, "node_modules/crypto"),
   },
+
   routeRules: {
     '/**': { ssr: false },
     '/room/**': { ssr: false },
   },
+
   vue: {
     compilerOptions: {
       isCustomElement,
     }
   },
+
   ignore: [
     // 'pages/docs.vue',
     // 'pages/dashboard.vue',
@@ -65,7 +75,7 @@ export default defineNuxtConfig({
 
     // 'api/room/**',
     // 'api/rooms/**',
-  ]
+  ],
+
+  compatibilityDate: '2024-08-08'
 })
-
-
