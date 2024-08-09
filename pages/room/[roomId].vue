@@ -240,6 +240,7 @@ async function startRenderingSession(sessionId: string) {
         await sleep(commandDelay);
 
         renderState(playerGraphics, gameState);
+        renderDamage(playerGraphics, gameState);
 
         if (documentVisible.value === "hidden") continue;
 

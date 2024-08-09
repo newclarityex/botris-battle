@@ -365,8 +365,6 @@ export function renderState(playerGraphics: PlayerGraphics, gameState: PublicGam
 
         queueContainer.addChild(pieceContainer);
     }
-
-    renderDamage(playerGraphics, gameState);
 }
 
 export function renderDamage(playerGraphics: PlayerGraphics, gameState: PublicGameState | null) {
