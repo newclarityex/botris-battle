@@ -6,8 +6,9 @@ const emit = defineEmits<{
 const roomData = ref({
     ft: 5,
     private: false,
-    initialPps: 2.5,
-    finalPps: 5,
+    pps: 2.5,
+    initialMessiness: 0.05,
+    finalMessiness: 1,
     startMargin: 90,
     endMargin: 150,
 });
@@ -42,14 +43,19 @@ async function createRoom(event: Event) {
                     <input type="checkbox" id="room-private" class="bg-black/40" v-model="roomData.private">
                 </div>
                 <div class="w-full gap-4 flex flex-row items-center justify-between">
-                    <label for="initial-pps">Inital PPS (max: 30)</label>
-                    <input type="number" id="initial-pps" class="bg-black/40 w-16 px-1" required
-                        v-model="roomData.initialPps" step="0.01">
+                    <label for="pps">PPS (max: 30)</label>
+                    <input type="number" id="pps" class="bg-black/40 w-16 px-1" required v-model="roomData.pps"
+                        step="0.01">
                 </div>
                 <div class="w-full gap-4 flex flex-row items-center justify-between">
-                    <label for="final-pps">Final PPS (max: 30)</label>
-                    <input type="number" id="final-pps" class="bg-black/40 w-16 px-1" required
-                        v-model="roomData.finalPps" step="0.01">
+                    <label for="initial-messiness">Initial Messiness (0 - 1)</label>
+                    <input type="number" id="initial-messiness" class="bg-black/40 w-16 px-1" required
+                        v-model="roomData.initialMessiness" step="0.01">
+                </div>
+                <div class="w-full gap-4 flex flex-row items-center justify-between">
+                    <label for="final-messiness">Final Messiness (0 - 1)</label>
+                    <input type="number" id="final-messiness" class="bg-black/40 w-16 px-1" required
+                        v-model="roomData.finalMessiness" step="0.01">
                 </div>
                 <div class="w-full gap-4 flex flex-row items-center justify-between">
                     <label for="start-margin">Start Margin (secs)</label>

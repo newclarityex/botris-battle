@@ -18,7 +18,6 @@ import type { ApplicationInst } from "vue3-pixi";
 import { getBoardBumpiness, getBoardAvgHeight } from "libtris";
 import FontFaceObserver from "fontfaceobserver";
 import { Text } from "pixi.js";
-import { calculatePps } from "~/utils/game";
 
 const { status, profile } = toRefs(useAuthStore());
 
@@ -90,11 +89,11 @@ function getPlayerStats() {
 
         let timePassed = (endedAt ?? Date.now()) - startedAt;
         let app = gameState.piecesPlaced > 0
-                        ? gameState.score / gameState.piecesPlaced
-                        : 0;
+            ? gameState.score / gameState.piecesPlaced
+            : 0;
         let dsapp = gameState.piecesPlaced > 0
-                        ? (gameState.score + gameState.garbageCleared) / gameState.piecesPlaced
-                        : 0
+            ? (gameState.score + gameState.garbageCleared) / gameState.piecesPlaced
+            : 0
         return [
             {
                 title: "attack/min",
@@ -218,8 +217,9 @@ onMounted(async () => {
                 roomOptions.value.ft = publicRoomData.value.ft;
                 roomOptions.value.startMargin = publicRoomData.value.startMargin;
                 roomOptions.value.endMargin = publicRoomData.value.endMargin;
-                roomOptions.value.initialPps = publicRoomData.value.initialPps;
-                roomOptions.value.finalPps = publicRoomData.value.finalPps;
+                roomOptions.value.pps = publicRoomData.value.pps;
+                roomOptions.value.initialMessiness = publicRoomData.value.initialMessiness;
+                roomOptions.value.finalMessiness = publicRoomData.value.finalMessiness;
                 roomOptions.value.private = publicRoomData.value.private;
                 break;
             }
@@ -397,8 +397,9 @@ onMounted(async () => {
                 const { roomData } = data.payload;
                 publicRoomData.value = roomData;
                 roomOptions.value.ft = roomData.ft;
-                roomOptions.value.initialPps = roomData.initialPps;
-                roomOptions.value.finalPps = roomData.finalPps;
+                roomOptions.value.pps = roomData.pps;
+                roomOptions.value.initialMessiness = roomData.initialMessiness;
+                roomOptions.value.finalMessiness = roomData.finalMessiness;
                 roomOptions.value.startMargin = roomData.startMargin;
                 roomOptions.value.endMargin = roomData.endMargin;
                 roomOptions.value.private = roomData.private;
@@ -517,8 +518,9 @@ onKeyStroke("Escape", (e) => {
 const roomOptions = ref({
     ft: 5,
     private: false,
-    initialPps: 2.5,
-    finalPps: 5,
+    pps: 2.5,
+    initialMessiness: 0.05,
+    finalMessiness: 1,
     startMargin: 90,
     endMargin: 150,
 });
@@ -570,8 +572,9 @@ async function saveSettings() {
             roomId,
             private: roomOptions.value.private,
             ft,
-            initialPps: roomOptions.value.initialPps,
-            finalPps: roomOptions.value.finalPps,
+            pps: roomOptions.value.pps,
+            initialMessiness: roomOptions.value.initialMessiness,
+            finalMessiness: roomOptions.value.finalMessiness,
             startMargin: roomOptions.value.startMargin,
             endMargin: roomOptions.value.endMargin,
         }
@@ -585,10 +588,13 @@ const settingsChanged = computed(() => {
     if (publicRoomData.value.ft !== roomOptions.value.ft) {
         return true;
     };
-    if (publicRoomData.value.initialPps !== roomOptions.value.initialPps) {
+    if (publicRoomData.value.pps !== roomOptions.value.pps) {
         return true;
     };
-    if (publicRoomData.value.finalPps !== roomOptions.value.finalPps) {
+    if (publicRoomData.value.initialMessiness !== roomOptions.value.initialMessiness) {
+        return true;
+    };
+    if (publicRoomData.value.finalMessiness !== roomOptions.value.finalMessiness) {
         return true;
     };
     if (publicRoomData.value.startMargin !== roomOptions.value.startMargin) {
@@ -602,15 +608,13 @@ const settingsChanged = computed(() => {
 
 const countdownTime = ref<number | null>(null);
 const displayTime = ref<number | null>(null);
-const currentPps = ref<number>(0);
 
 onMounted(() => {
     const interval = setInterval(() => {
-        const { initialPps, finalPps, startMargin, endMargin } = publicRoomData.value;
+        const { startMargin, endMargin } = publicRoomData.value;
         if (!publicRoomData.value.startedAt) {
             countdownTime.value = null;
             displayTime.value = null;
-            currentPps.value = initialPps;
             return;
         }
 
@@ -620,11 +624,9 @@ onMounted(() => {
 
         if (timePassed > 0) {
             countdownTime.value = null;
-            currentPps.value = calculatePps(timePassed, initialPps, finalPps, startMargin, endMargin);
             displayTime.value = Math.floor((timePassed) / 1000);
         } else {
             displayTime.value = null;
-            currentPps.value = initialPps;
             countdownTime.value = Math.ceil((timeLeft) / 1000);
         }
     }, 1000 / 60);
@@ -641,52 +643,52 @@ onMounted(() => {
             <Application :backgroundAlpha="0" ref="pixiInst" :antialias="true">
                 <tiling-sprite texture="/images/tiling.png" :width="width" :height="height" :tile-scale="8 * scale"
                     :tilePosition="[
-                        backgroundOffset * scale,
-                        backgroundOffset * scale,
-                    ]" />
+                backgroundOffset * scale,
+                backgroundOffset * scale,
+            ]" />
                 <container :x="width / 2" :y="height / 2" :scale="scale" ref="scaledContainer">
                     <container :y="-425">
                         <graphics :pivotX="650 / 2" :pivotY="100 / 2" @render="(graphics: PIXI.Graphics) => {
-                            graphics.clear();
-                            graphics.beginFill(0x000000, 0.2);
-                            graphics.drawRect(0, 0, 650, 100);
-                            graphics.endFill();
-                        }
-                            " />
+                graphics.clear();
+                graphics.beginFill(0x000000, 0.2);
+                graphics.drawRect(0, 0, 650, 100);
+                graphics.endFill();
+            }
+                " />
                         <text :anchor="0.5" :x="0" :y="0" :style="{
-                            fill: 'white',
-                            fontSize: '32px',
-                            fontFamily: 'Fira Mono',
-                        }" v-if="publicRoomData.players.length === 0">
+                fill: 'white',
+                fontSize: '32px',
+                fontFamily: 'Fira Mono',
+            }" v-if="publicRoomData.players.length === 0">
                             Waiting For Players...
                         </text>
                         <template v-else>
                             <text :anchor="0.5" :x="0" :y="-12" :style="{
-                                fill: 'white',
-                                fontSize: '30px',
-                                fontFamily: 'Fira Mono',
-                            }">
+                fill: 'white',
+                fontSize: '30px',
+                fontFamily: 'Fira Mono',
+            }">
                                 win@{{ publicRoomData.ft }}
                             </text>
                             <text :anchor="0.5" :x="0" :y="20" :style="{
-                                fill: 'white',
-                                fontSize: '20px',
-                                fontFamily: 'Fira Mono',
-                            }">
-                                {{ displayTime }} - {{ currentPps.toFixed(1) }} PPS
+                fill: 'white',
+                fontSize: '20px',
+                fontFamily: 'Fira Mono',
+            }">
+                                {{ displayTime }} - {{ publicRoomData.pps.toFixed(1) }} PPS
                             </text>
                             <text :anchorX="0" :anchorY="0.5" :x="-650 / 2 + 24" :y="0" :style="{
-                                fill: 'white',
-                                fontSize: '32px',
-                                fontFamily: 'Fira Mono',
-                            }">
+                fill: 'white',
+                fontSize: '32px',
+                fontFamily: 'Fira Mono',
+            }">
                                 {{ winStrs[0] }}
                             </text>
                             <text :anchorX="1" :anchorY="0.5" :x="650 / 2 - 24" :y="0" :style="{
-                                fill: 'white',
-                                fontSize: '32px',
-                                fontFamily: 'Fira Mono',
-                            }">
+                fill: 'white',
+                fontSize: '32px',
+                fontFamily: 'Fira Mono',
+            }">
                                 {{ winStrs[1] }}
                             </text>
                         </template>
@@ -697,88 +699,88 @@ onMounted(() => {
                             :pivotY="(21 * CELL_SIZE) / 2">
                             <container :pivotX="5 * CELL_SIZE" :pivotY="0">
                                 <graphics :pivotX="0" :pivotY="0" @render="(graphics: PIXI.Graphics) => {
-                                    graphics.clear();
-                                    graphics.beginFill(0x000000, 0.5);
-                                    graphics.drawRect(
-                                        0,
-                                        0,
-                                        10 * CELL_SIZE,
-                                        21 * CELL_SIZE
-                                    );
-                                    graphics.endFill();
-                                }" />
+                graphics.clear();
+                graphics.beginFill(0x000000, 0.5);
+                graphics.drawRect(
+                    0,
+                    0,
+                    10 * CELL_SIZE,
+                    21 * CELL_SIZE
+                );
+                graphics.endFill();
+            }" />
                                 <!-- Effects Container -->
                                 <container :ref="(el: any) => board.effectsContainer = el" />
                                 <!-- Board Container -->
                                 <container :ref="(el: any) => board.boardContainer = el" :sortable-children="true" />
                                 <text :anchorX="0.5" :anchorY="0.5" :x="10 * CELL_SIZE / 2" :y="200" :style="{
-                                    fill: 'white',
-                                    fontSize: '48px',
-                                    fontFamily: 'Fira Mono',
-                                }">
+                fill: 'white',
+                fontSize: '48px',
+                fontFamily: 'Fira Mono',
+            }">
                                     {{ countdownTime }}
                                 </text>
                                 <text v-if="publicRoomData.lastWinner === board.id" :anchorX="0.5" :anchorY="0.5"
                                     :x="10 * CELL_SIZE / 2" :y="200" :style="{
-                                        fill: 'white',
-                                        fontSize: '36px',
-                                        fontFamily: 'Fira Mono',
-                                    }">
+                fill: 'white',
+                fontSize: '36px',
+                fontFamily: 'Fira Mono',
+            }">
                                     winner
                                 </text>
                             </container>
                             <container :y="21 * CELL_SIZE + 12">
                                 <graphics :pivotX="(10 * CELL_SIZE) / 2" @render="(graphics: PIXI.Graphics) => {
-                                    graphics.clear();
-                                    graphics.beginFill(0x000000, 0.25);
-                                    graphics.drawRect(
-                                        0,
-                                        0,
-                                        10 * CELL_SIZE,
-                                        50
-                                    );
-                                    graphics.endFill();
-                                }
-                                    " />
+                graphics.clear();
+                graphics.beginFill(0x000000, 0.25);
+                graphics.drawRect(
+                    0,
+                    0,
+                    10 * CELL_SIZE,
+                    50
+                );
+                graphics.endFill();
+            }
+                " />
                                 <text :x="0" :y="0" :anchorX="0.5" :style="{
-                                    fill: 'white',
-                                    fontFamily: 'Fira Mono',
-                                    fontSize: 24,
-                                    lineHeight: 50,
-                                }">
+                fill: 'white',
+                fontFamily: 'Fira Mono',
+                fontSize: 24,
+                lineHeight: 50,
+            }">
                                     {{ board.name }}
                                 </text>
                             </container>
                             <container :y="21 * CELL_SIZE + 74">
                                 <graphics :pivotX="(10 * CELL_SIZE) / 2" @render="(graphics: PIXI.Graphics) => {
-                                    graphics.clear();
-                                    graphics.beginFill(0x000000, 0.25);
-                                    graphics.drawRect(
-                                        0,
-                                        0,
-                                        10 * CELL_SIZE,
-                                        36
-                                    );
-                                    graphics.endFill();
-                                }
-                                    " />
+                graphics.clear();
+                graphics.beginFill(0x000000, 0.25);
+                graphics.drawRect(
+                    0,
+                    0,
+                    10 * CELL_SIZE,
+                    36
+                );
+                graphics.endFill();
+            }
+                " />
                                 <text :x="0" :y="0" :anchorX="0.5" :style="{
-                                    fill: 'white',
-                                    fontFamily: 'Fira Mono',
-                                    fontSize: 20,
-                                    lineHeight: 36,
-                                }">
+                fill: 'white',
+                fontFamily: 'Fira Mono',
+                fontSize: 20,
+                lineHeight: 36,
+            }">
                                     {{ board.creator }}
                                 </text>
                             </container>
                             <container :x="-5 * CELL_SIZE - 20" :pivotX="200" :pivotY="0">
                                 <graphics :pivot="0" @render="(graphics: PIXI.Graphics) => {
-                                    graphics.clear();
-                                    graphics.beginFill(0x000000, 0.25);
-                                    graphics.drawRect(0, 0, 200, 200);
-                                    graphics.endFill();
-                                }
-                                    " />
+                graphics.clear();
+                graphics.beginFill(0x000000, 0.25);
+                graphics.drawRect(0, 0, 200, 200);
+                graphics.endFill();
+            }
+                " />
                                 <!-- <text :anchorX="0.5" :x="200 / 2" :y="24"
                                     :style="{ fill: 'white', fontSize: '32px', fontFamily: 'Fira Mono' }">
                                     [held]
@@ -789,20 +791,20 @@ onMounted(() => {
 
                                 <template v-if="playerStats[index]">
                                     <container v-for="(stat, statIndex) in playerStats[
-                                        index
-                                    ]" :y="224 + 112 * statIndex">
+                index
+            ]" :y="224 + 112 * statIndex">
                                         <text :style="{
-                                            fill: '#FFFFFFBB',
-                                            fontFamily: 'Fira Mono',
-                                            fontSize: 24,
-                                        }">
+                fill: '#FFFFFFBB',
+                fontFamily: 'Fira Mono',
+                fontSize: 24,
+            }">
                                             {{ stat.title }}
                                         </text>
                                         <text :style="{
-                                            fill: 'white',
-                                            fontFamily: 'Fira Mono',
-                                            fontSize: 36,
-                                        }" :y="36">
+                fill: 'white',
+                fontFamily: 'Fira Mono',
+                fontSize: 36,
+            }" :y="36">
                                             {{ stat.value }}
                                         </text>
                                     </container>
@@ -810,17 +812,17 @@ onMounted(() => {
                             </container>
                             <container :x="5 * CELL_SIZE + 20" :pivotX="0" :pivotY="0">
                                 <graphics :pivot="0" @render="(graphics: PIXI.Graphics) => {
-                                    graphics.clear();
-                                    graphics.beginFill(0x000000, 0.25);
-                                    graphics.drawRect(
-                                        0,
-                                        0,
-                                        200,
-                                        21 * CELL_SIZE
-                                    );
-                                    graphics.endFill();
-                                }
-                                    " />
+                graphics.clear();
+                graphics.beginFill(0x000000, 0.25);
+                graphics.drawRect(
+                    0,
+                    0,
+                    200,
+                    21 * CELL_SIZE
+                );
+                graphics.endFill();
+            }
+                " />
                                 <!-- <text :anchorX="0.5" :x="200 / 2" :y="24"
                                     :style="{ fill: 'white', fontSize: '32px', fontFamily: 'Fira Mono' }">
                                     [queue]
@@ -835,7 +837,7 @@ onMounted(() => {
             </Application>
         </div>
         <dialog ref="gameMenu" v-if="publicRoomData && publicRoomData.host.userId === profile?.id
-        " class="bg-black/40 backdrop:bg-black/20 backdrop:backdrop-blur-sm">
+                " class="bg-black/40 backdrop:bg-black/20 backdrop:backdrop-blur-sm">
             <div class="p-6 flex flex-col gap-4 w-[520px] text-white">
                 <div class="text-white text-center text-lg">
                     Press ESC to toggle menu
@@ -854,8 +856,8 @@ onMounted(() => {
                                 v-if="!showMasterKey">
                             </button>
                             <div class="px-1" :class="{
-                                'opacity-0': !showMasterKey
-                            }">
+                'opacity-0': !showMasterKey
+            }">
                                 {{ masterKey?.key }}
                             </div>
                         </div>
@@ -872,13 +874,17 @@ onMounted(() => {
                         <input type="text" v-model.number="roomOptions.ft" class="w-12 px-1 bg-white/20 text-right" />
                     </div>
                     <div class="flex justify-between items-center">
-                        <label>Initial PPS (max: 30):</label>
-                        <input type="text" v-model.number="roomOptions.initialPps"
+                        <label>PPS (max: 30):</label>
+                        <input type="text" v-model.number="roomOptions.pps" class="w-12 px-1 bg-white/20 text-right" />
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <label>Initial Messiness (max: 30):</label>
+                        <input type="text" v-model.number="roomOptions.initialMessiness"
                             class="w-12 px-1 bg-white/20 text-right" />
                     </div>
                     <div class="flex justify-between items-center">
-                        <label>Final PPS (max: 30):</label>
-                        <input type="text" v-model.number="roomOptions.finalPps"
+                        <label>Final Messiness (max: 30):</label>
+                        <input type="text" v-model.number="roomOptions.finalMessiness"
                             class="w-12 px-1 bg-white/20 text-right" />
                     </div>
                     <div class="flex justify-between items-center">
@@ -948,9 +954,9 @@ onMounted(() => {
                         Reset Game
                     </button>
                     <button class="underline disabled:opacity-60 text-lg" @click="startGame" :disabled="!publicRoomData ||
-                        publicRoomData.gameOngoing ||
-                        publicRoomData.players.length < 2
-                        ">
+                publicRoomData.gameOngoing ||
+                publicRoomData.players.length < 2
+                ">
                         Start Game
                     </button>
                 </div>

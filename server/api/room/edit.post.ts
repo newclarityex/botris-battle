@@ -6,8 +6,9 @@ const EditGameSchema = z.object({
 	roomId: z.string(),
 	private: z.boolean(),
 	ft: z.number().min(1).max(99),
-	initialPps: z.number().gt(0).max(30),
-	finalPps: z.number().gt(0).max(30),
+	pps: z.number().gt(0).max(30),
+	initialMessiness: z.number().gt(0).max(1),
+	finalMessiness: z.number().gt(0).max(1),
 	startMargin: z.number().gt(0),
 	endMargin: z.number().gt(0),
 });
@@ -32,15 +33,16 @@ export default defineEventHandler(async (event) => {
 
 	const room = rooms.get(data.roomId);
 
-    if (!room) {
-        throw createError({
-            statusCode: 404,
-            statusMessage: "Room not found."
-        });
-    };
+	if (!room) {
+		throw createError({
+			statusCode: 404,
+			statusMessage: "Room not found."
+		});
+	};
 
-	room.initialPps = data.initialPps;
-	room.finalPps = data.finalPps;
+	room.pps = data.pps;
+	room.initialMessiness = data.initialMessiness;
+	room.finalMessiness = data.finalMessiness;
 	room.startMargin = data.startMargin;
 	room.endMargin = data.endMargin;
 	room.ft = data.ft;
@@ -51,5 +53,5 @@ export default defineEventHandler(async (event) => {
 		payload: { roomData: getPublicRoomData(room) },
 	});
 
-    return { success: true };
+	return { success: true };
 });

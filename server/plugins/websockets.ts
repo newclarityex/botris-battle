@@ -15,7 +15,7 @@ import { checkAuthToken } from "../utils/auth";
 import {
     PlayerMessageSchema,
 } from "../utils/messages";
-import { calculatePps } from "~/utils/game";
+import { calculateMessiness } from "~/utils/game";
 
 import {
     type Command,
@@ -136,7 +136,7 @@ async function handlePlayerMessage(data: RawData, connection: Connection) {
             player.moveRequested = false;
 
             let latency = Date.now() - player.lastRequestTimestamp;
-            
+
             let serverCommands: Command[] = messageData.payload.commands;
             serverCommands.push('hard_drop');
             const { gameState: newGameState, events } = executeCommands(
@@ -145,14 +145,14 @@ async function handlePlayerMessage(data: RawData, connection: Connection) {
             );
             player.gameState = newGameState;
 
-            const { initialPps, finalPps, startMargin, endMargin } = room;
+            const { initialMessiness, finalMessiness, startMargin, endMargin } = room;
             const timePassed = Date.now() - room.startedAt!;
-            const ppsCap = calculatePps(timePassed, initialPps, finalPps, startMargin, endMargin);
-            
+            const messiness = calculateMessiness(timePassed, initialMessiness, finalMessiness, startMargin, endMargin);
+
             if (!player.gameState.dead) {
                 setTimeout(() => {
                     requestMove(player, room);
-                }, 1000 / ppsCap - latency);
+                }, 1000 / room.pps - latency);
             }
             for (const event of events) {
                 if (event.type === "game_over") {
@@ -172,7 +172,7 @@ async function handlePlayerMessage(data: RawData, connection: Connection) {
                     for (const player of room.players.values()) {
                         if (player.sessionId === connection.id) continue;
                         if (!player.gameState || !player.playing) continue;
-                        const garbage = generateGarbage(amount);
+                        const garbage = generateGarbage(amount, { garbageMessiness: messiness });
                         player.gameState = queueGarbage(
                             player.gameState!,
                             garbage

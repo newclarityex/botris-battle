@@ -38,8 +38,9 @@ export type RoomData = {
 	host: PlayerInfo;
 	private: boolean;
 	ft: number;
-	initialPps: number;
-	finalPps: number;
+	pps: number;
+	initialMessiness: number;
+	finalMessiness: number;
 	startMargin: number;
 	endMargin: number;
 	maxPlayers: number;
@@ -58,8 +59,9 @@ export type PublicRoomData = {
 	host: PlayerInfo;
 	private: boolean;
 	ft: number;
-	initialPps: number;
-	finalPps: number;
+	pps: number;
+	initialMessiness: number;
+	finalMessiness: number;
 	startMargin: number;
 	endMargin: number;
 	maxPlayers: number;
@@ -239,8 +241,9 @@ export function getPublicRoomData(roomData: RoomData): PublicRoomData {
 		host: roomData.host,
 		private: roomData.private,
 		ft: roomData.ft,
-		initialPps: roomData.initialPps,
-		finalPps: roomData.finalPps,
+		pps: roomData.pps,
+		initialMessiness: roomData.initialMessiness,
+		finalMessiness: roomData.finalMessiness,
 		startMargin: roomData.startMargin,
 		endMargin: roomData.endMargin,
 		maxPlayers: roomData.maxPlayers,
