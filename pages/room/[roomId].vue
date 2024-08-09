@@ -211,10 +211,6 @@ async function startRenderingSession(sessionId: string) {
         let commandDelay =
             (ppsDelay / (commands.length + 1))
             * 0.90;
-        if (roomOptions.value.pps > 10) {
-            commandDelay = 0;
-        };
-        commandDelay = Math.floor(commandDelay)
 
         const player = publicRoomData.value.players.find(
             (p) => p.sessionId === sessionId
@@ -236,13 +232,16 @@ async function startRenderingSession(sessionId: string) {
             garbageQueue: [],
         };
 
-        renderState(playerGraphics, getPublicGameState(tempGameState));
-        for (const command of commands as Command[]) {
-            await sleep(commandDelay);
-            ({ gameState: tempGameState } = executeCommand(tempGameState, command));
+        // if each move is less than 10 ms, dont interpolate
+        if (commandDelay > 10) {
             renderState(playerGraphics, getPublicGameState(tempGameState));
-        };
-        await sleep(commandDelay);
+            for (const command of commands as Command[]) {
+                await sleep(commandDelay);
+                ({ gameState: tempGameState } = executeCommand(tempGameState, command));
+                renderState(playerGraphics, getPublicGameState(tempGameState));
+            };
+            await sleep(commandDelay);
+        }
 
         renderState(playerGraphics, gameState);
         renderDamage(playerGraphics, gameState);
