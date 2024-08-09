@@ -176,7 +176,7 @@ The server will request a move from the player by sending:
 **If you are unable to make a move within 5 seconds of the request, you will forfeit the round.**
 After the server requests a move, you may place a piece. Actions are sent from a client to a server to perform commands, and after every action the player will automatically harddrop.
 <br>
-**An action can be sent to the server using**:
+**An action can be sent to the server using** (max 64 commands):
 
 <pre class='code'>
 {

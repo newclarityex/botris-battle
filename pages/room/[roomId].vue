@@ -208,9 +208,14 @@ async function startRenderingSession(sessionId: string) {
         };
 
         const { gameState, prevGameState, commands, events } = renderQueue.shift()!;
-        const commandDelay =
+        let commandDelay =
             (ppsDelay / (commands.length + 1))
             * 0.90;
+        if (roomOptions.value.pps > 10) {
+            commandDelay = 0;
+        };
+        commandDelay = Math.floor(commandDelay)
+
         const player = publicRoomData.value.players.find(
             (p) => p.sessionId === sessionId
         );

@@ -105,6 +105,16 @@ async function handlePlayerMessage(data: RawData, connection: Connection) {
 
     switch (messageData.type) {
         case "action": {
+            if (messageData.payload.commands.length > 64) {
+                connection.ws.send(
+                    JSON.stringify({
+                        type: "error",
+                        payload: "Action longer than 64 commands",
+                    })
+                );
+                return;
+            }
+
             const player = room.players.get(connection.id);
             if (!player) return;
             if (!room.gameOngoing) {
@@ -114,6 +124,7 @@ async function handlePlayerMessage(data: RawData, connection: Connection) {
                         payload: "Game not started",
                     })
                 );
+                return;
             }
             if (!room.roundOngoing) {
                 connection.ws.send(
@@ -155,6 +166,8 @@ async function handlePlayerMessage(data: RawData, connection: Connection) {
 
             if (!player.gameState.dead) {
                 setTimeout(() => {
+                    if (player.gameState !== null && player.gameState.dead) return;
+
                     requestMove(player, room);
                 }, requestDelay);
             }
