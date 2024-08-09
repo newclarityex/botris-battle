@@ -51,25 +51,25 @@ export type GeneralServerMessage =
 		payload: {
 			sessionId: string;
 		};
-	} 
+	}
 	| {
 		type: "player_banned";
 		payload: {
 			playerInfo: PlayerInfo
 		};
-	} 
+	}
 	| {
 		type: "player_unbanned";
 		payload: {
 			playerInfo: PlayerInfo
 		};
-	} 
+	}
 	| {
 		type: "settings_changed";
 		payload: {
 			roomData: PublicRoomData
 		};
-	} 
+	}
 	| {
 		type: "host_changed";
 		payload: {
@@ -78,27 +78,28 @@ export type GeneralServerMessage =
 	}
 	| {
 		type: "game_started";
-	} 
+	}
 	| {
 		type: "round_started";
 		payload: {
 			startsAt: number;
 			roomData: PublicRoomData;
 		};
-	} 
+	}
 	| {
 		type: "request_move";
 		payload: {
 			gameState: PublicGameState;
 			players: PublicPlayerData[];
 		};
-	} 
+	}
 	| {
 		type: "player_action";
 		payload: {
 			sessionId: string;
 			commands: string[];
 			gameState: PublicGameState;
+			prevGameState: PublicGameState;
 			events: GameEvent[];
 		};
 	}
@@ -132,16 +133,16 @@ export type GeneralServerMessage =
 			roomData: PublicRoomData;
 		};
 	};
-	// | {
-	// 	type: "game_info";
-	// 	payload: {
-	// 		roomData: PublicRoomData;
-	// 		players: PublicPlayerData[];
-	// 	};
-	// }
-	// | {
-	// 	type: "player_died";
-	// 	payload: {
-	// 		sessionId: string;
-	// 	};
-	// };
+// | {
+// 	type: "game_info";
+// 	payload: {
+// 		roomData: PublicRoomData;
+// 		players: PublicPlayerData[];
+// 	};
+// }
+// | {
+// 	type: "player_died";
+// 	payload: {
+// 		sessionId: string;
+// 	};
+// };

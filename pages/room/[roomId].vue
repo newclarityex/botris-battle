@@ -15,7 +15,7 @@ import { renderClearName, renderComboEffect, renderState } from "@/utils/graphic
 import { AUDIO_SOURCES } from "~/server/utils/audio";
 import { Application, useApplication } from "vue3-pixi";
 import type { ApplicationInst } from "vue3-pixi";
-import { getBoardBumpiness, getBoardAvgHeight } from "libtris";
+import { getBoardBumpiness, getBoardAvgHeight, executeCommand, type GameState, type Command, getPublicGameState } from "libtris";
 import FontFaceObserver from "fontfaceobserver";
 import { Text } from "pixi.js";
 
@@ -208,7 +208,7 @@ onMounted(async () => {
         }
     });
 
-    ws.addEventListener("message", (event) => {
+    ws.addEventListener("message", async (event) => {
         const data = JSON.parse(event.data) as GeneralServerMessage;
 
         switch (data.type) {
@@ -292,7 +292,7 @@ onMounted(async () => {
             case "player_action": {
                 if (!publicRoomData.value) return console.error("no room info");
 
-                const { sessionId, gameState, events } = data.payload;
+                const { sessionId, gameState, prevGameState, commands, events } = data.payload;
                 const player = publicRoomData.value.players.find(
                     (p) => p.sessionId === sessionId
                 );
@@ -307,7 +307,22 @@ onMounted(async () => {
                 if (!playerGraphics)
                     return console.error("player graphics not found");
 
-                renderState(playerGraphics, player.gameState);
+                let tempGameState: GameState = {
+                    ...prevGameState,
+                    isImmobile: false,
+                    garbageQueue: [],
+                };
+
+                renderState(playerGraphics, getPublicGameState(tempGameState));
+                const delay = (1 / publicRoomData.value.pps) / (commands.length + 1);
+                for (const command of commands as Command[]) {
+                    await sleep(delay);
+                    ({ gameState: tempGameState } = executeCommand(tempGameState, command));
+                    renderState(playerGraphics, getPublicGameState(tempGameState));
+                };
+                await sleep(delay);
+
+                renderState(playerGraphics, gameState);
 
                 if (documentVisible.value === "hidden") return;
 

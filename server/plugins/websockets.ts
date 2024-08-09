@@ -139,6 +139,9 @@ async function handlePlayerMessage(data: RawData, connection: Connection) {
 
             let serverCommands: Command[] = messageData.payload.commands;
             serverCommands.push('hard_drop');
+
+            const oldGameState = player.gameState!;
+
             const { gameState: newGameState, events } = executeCommands(
                 player.gameState!,
                 serverCommands
@@ -196,6 +199,7 @@ async function handlePlayerMessage(data: RawData, connection: Connection) {
                     sessionId: connection.id,
                     commands: messageData.payload.commands,
                     gameState: getPublicGameState(newGameState),
+                    prevGameState: getPublicGameState(oldGameState),
                     events,
                 },
             });

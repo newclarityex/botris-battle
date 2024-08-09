@@ -196,6 +196,7 @@ Whenever a player performs an action, the server will send everyone:
         sessionId: <a href="#sessionid" class="type-link">SessionId</a>;
         commands: <a href="#command" class="type-link">Command</a>[];
         gameState: <a href="#gamestate" class="type-link">GameState</a>;
+        prevGameState: <a href="#gamestate" class="type-link">GameState</a>;
         events: <a href="#gameevent" class="type-link">GameEvent</a>[];
     }
 }
