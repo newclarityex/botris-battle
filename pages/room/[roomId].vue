@@ -195,9 +195,7 @@ const currentlyRendering: Set<string> = new Set();
 const FORCE_UPDATE_PIECES = 5;
 
 async function startRenderingSession(sessionId: string) {
-    const renderQueue = renderQueueMap.get(sessionId);
-    if (renderQueue === undefined) return;
-
+    const renderQueue = renderQueueMap.get(sessionId)!;
     const ppsDelay = 1000 / publicRoomData.value.pps;
 
     currentlyRendering.add(sessionId);
@@ -210,12 +208,12 @@ async function startRenderingSession(sessionId: string) {
 
         const { gameState, prevGameState, commands, events } = renderQueue.shift()!;
         const commandDelay =
-            (ppsDelay / (commands.length + 2))
+            (ppsDelay / (commands.length + 1))
             * 0.85;
         const player = publicRoomData.value.players.find(
             (p) => p.sessionId === sessionId
         );
-        if (!player) return console.error("player not found");
+        if (!player) continue;
 
         player.gameState = gameState;
 
@@ -224,8 +222,7 @@ async function startRenderingSession(sessionId: string) {
         const playerGraphics = allPlayerGraphics.value.find(
             (p) => p.id === player.sessionId
         ) as PlayerGraphics | undefined;
-        if (!playerGraphics)
-            return console.error("player graphics not found");
+        if (!playerGraphics) continue;
 
         let tempGameState: GameState = {
             ...prevGameState,
@@ -243,7 +240,7 @@ async function startRenderingSession(sessionId: string) {
 
         renderState(playerGraphics, gameState);
 
-        if (documentVisible.value === "hidden") return;
+        if (documentVisible.value === "hidden") continue;
 
         for (const event of events) {
             switch (event.type) {
