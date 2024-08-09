@@ -1,6 +1,6 @@
 import { z } from "zod";
 import type { PlayerInfo, PublicPlayerData, PublicRoomData } from "./rooms";
-import type { GameEvent, PublicGameState } from "libtris";
+import type { Command, GameEvent, PublicGameState } from "libtris";
 
 export const AuthSchema = z.object({
 	type: z.literal("auth"),
@@ -97,10 +97,9 @@ export type GeneralServerMessage =
 		type: "player_action";
 		payload: {
 			sessionId: string;
-			commands: string[];
+			commands: Command[];
 			gameState: PublicGameState;
 			prevGameState: PublicGameState;
-			requestDelay: number;
 			events: GameEvent[];
 		};
 	}

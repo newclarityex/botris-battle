@@ -15,7 +15,7 @@ import { renderClearName, renderComboEffect, renderState } from "@/utils/graphic
 import { AUDIO_SOURCES } from "~/server/utils/audio";
 import { Application, useApplication } from "vue3-pixi";
 import type { ApplicationInst } from "vue3-pixi";
-import { getBoardBumpiness, getBoardAvgHeight, executeCommand, type GameState, type Command, getPublicGameState } from "libtris";
+import { getBoardBumpiness, getBoardAvgHeight, executeCommand, type GameState, type Command, getPublicGameState, type PublicGameState, type GameEvent } from "libtris";
 import FontFaceObserver from "fontfaceobserver";
 import { Text } from "pixi.js";
 
@@ -184,6 +184,134 @@ function resizeRenderer() {
 
 watch([width, height], resizeRenderer);
 
+const renderQueueMap: Map<string, {
+    gameState: PublicGameState,
+    prevGameState: PublicGameState,
+    commands: Command[],
+    events: GameEvent[]
+}[]> = new Map();
+
+const currentlyRendering: Set<string> = new Set();
+const FORCE_UPDATE_PIECES = 5;
+
+async function startRenderingSession(sessionId: string) {
+    const renderQueue = renderQueueMap.get(sessionId);
+    if (renderQueue === undefined) return;
+
+    let first = renderQueue[0];
+    const ppsDelay = 1000 / publicRoomData.value.pps;
+    const commandDelay =
+        ppsDelay /
+        (first.commands.length + 1)
+        * 0.85;
+
+    currentlyRendering.add(sessionId);
+
+    while (renderQueue.length > 0) {
+        if (renderQueue.length >= FORCE_UPDATE_PIECES) {
+            // Only leave final render if we are severely behind
+            renderQueue.splice(0, renderQueue.length - 1);
+        };
+
+        const { gameState, prevGameState, commands, events } = renderQueue.shift()!;
+        const player = publicRoomData.value.players.find(
+            (p) => p.sessionId === sessionId
+        );
+        if (!player) return console.error("player not found");
+
+        player.gameState = gameState;
+
+        playerStats.value = getPlayerStats();
+
+        const playerGraphics = allPlayerGraphics.value.find(
+            (p) => p.id === player.sessionId
+        ) as PlayerGraphics | undefined;
+        if (!playerGraphics)
+            return console.error("player graphics not found");
+
+        let tempGameState: GameState = {
+            ...prevGameState,
+            isImmobile: false,
+            garbageQueue: [],
+        };
+
+        renderState(playerGraphics, getPublicGameState(tempGameState));
+        for (const command of commands as Command[]) {
+            await sleep(commandDelay);
+            ({ gameState: tempGameState } = executeCommand(tempGameState, command));
+            renderState(playerGraphics, getPublicGameState(tempGameState));
+        };
+        await sleep(commandDelay);
+
+        renderState(playerGraphics, gameState);
+
+        if (documentVisible.value === "hidden") return;
+
+        for (const event of events) {
+            switch (event.type) {
+                case "piece_placed": {
+                    const { final } = event.payload;
+                    renderPlacedEffect(playerGraphics, final);
+                    // AUDIO_SOURCES.place_piece.play();
+                    break;
+                }
+                // case 'damage_tanked': {
+                //     AUDIO_SOURCES.tank_garbage.play();
+                //     break;
+                // }
+                case "clear": {
+                    const clearData = event.payload;
+
+                    renderClearEffect(
+                        playerGraphics,
+                        clearData.clearedLines
+                    );
+
+                    if (clearData.score > 0) {
+                        renderAttackEffect(
+                            playerGraphics,
+                            clearData.piece,
+                            clearData.score
+                        );
+                    };
+
+                    if (clearData.combo > 2) {
+                        renderComboEffect(
+                            playerGraphics,
+                            clearData.piece,
+                            clearData.combo
+                        );
+                    }
+
+                    switch (clearData.clearName) {
+                        case 'All-Spin Single':
+                        case 'All-Spin Double':
+                        case 'All-Spin Triple':
+                        case 'Quad':
+                        case 'Perfect Clear':
+                            renderClearName(playerGraphics, clearData.clearName);
+                    };
+
+                    // if (clearData.pc) {
+                    //     AUDIO_SOURCES.all_clear.play();
+                    // } else if (clearData.allSpin) {
+                    //     AUDIO_SOURCES.all_spin_clear.play();
+                    // } else {
+                    //     if (clearData.combo > 0) {
+                    //         AUDIO_SOURCES.combo[clearData.combo - 1].play();
+                    //     } else {
+                    //         AUDIO_SOURCES.line_clear.play();
+                    //     }
+                    //     // const combo = Math.min(7, newGameState.combo);
+                    // }
+                    break;
+                }
+            }
+        }
+    }
+    currentlyRendering.delete(sessionId);
+}
+
 onMounted(async () => {
     resizeRenderer();
 
@@ -292,104 +420,18 @@ onMounted(async () => {
             case "player_action": {
                 if (!publicRoomData.value) return console.error("no room info");
 
-                const { sessionId, gameState, prevGameState, requestDelay, commands, events } = data.payload;
-                const player = publicRoomData.value.players.find(
-                    (p) => p.sessionId === sessionId
-                );
-                if (!player) return console.error("player not found");
-                player.gameState = gameState;
+                const { sessionId, gameState, prevGameState, commands, events } = data.payload;
 
-                playerStats.value = getPlayerStats();
-
-                const playerGraphics = allPlayerGraphics.value.find(
-                    (p) => p.id === player.sessionId
-                ) as PlayerGraphics | undefined;
-                if (!playerGraphics)
-                    return console.error("player graphics not found");
-
-                let tempGameState: GameState = {
-                    ...prevGameState,
-                    isImmobile: false,
-                    garbageQueue: [],
+                if (!renderQueueMap.has(sessionId)) {
+                    renderQueueMap.set(sessionId, []);
                 };
 
-                renderState(playerGraphics, getPublicGameState(tempGameState));
-                const delay =
-                    requestDelay /
-                    (commands.length + 1)
-                    * 0.85;
-                for (const command of commands as Command[]) {
-                    await sleep(delay);
-                    ({ gameState: tempGameState } = executeCommand(tempGameState, command));
-                    renderState(playerGraphics, getPublicGameState(tempGameState));
-                };
-                await sleep(delay);
+                const renderQueue = renderQueueMap.get(sessionId)!;
+                renderQueue.push({ gameState, prevGameState, commands, events })
 
-                renderState(playerGraphics, gameState);
+                if (currentlyRendering.has(sessionId)) return;
 
-                if (documentVisible.value === "hidden") return;
-
-                for (const event of events) {
-                    switch (event.type) {
-                        case "piece_placed": {
-                            const { final } = event.payload;
-                            renderPlacedEffect(playerGraphics, final);
-                            // AUDIO_SOURCES.place_piece.play();
-                            break;
-                        }
-                        // case 'damage_tanked': {
-                        //     AUDIO_SOURCES.tank_garbage.play();
-                        //     break;
-                        // }
-                        case "clear": {
-                            const clearData = event.payload;
-
-                            renderClearEffect(
-                                playerGraphics,
-                                clearData.clearedLines
-                            );
-
-                            if (clearData.score > 0) {
-                                renderAttackEffect(
-                                    playerGraphics,
-                                    clearData.piece,
-                                    clearData.score
-                                );
-                            };
-
-                            if (clearData.combo > 2) {
-                                renderComboEffect(
-                                    playerGraphics,
-                                    clearData.piece,
-                                    clearData.combo
-                                );
-                            }
-
-                            switch (clearData.clearName) {
-                                case 'All-Spin Single':
-                                case 'All-Spin Double':
-                                case 'All-Spin Triple':
-                                case 'Quad':
-                                case 'Perfect Clear':
-                                    renderClearName(playerGraphics, clearData.clearName);
-                            };
-
-                            // if (clearData.pc) {
-                            //     AUDIO_SOURCES.all_clear.play();
-                            // } else if (clearData.allSpin) {
-                            //     AUDIO_SOURCES.all_spin_clear.play();
-                            // } else {
-                            //     if (clearData.combo > 0) {
-                            //         AUDIO_SOURCES.combo[clearData.combo - 1].play();
-                            //     } else {
-                            //         AUDIO_SOURCES.line_clear.play();
-                            //     }
-                            //     // const combo = Math.min(7, newGameState.combo);
-                            // }
-                            break;
-                        }
-                    }
-                }
+                startRenderingSession(sessionId);
 
                 break;
             }

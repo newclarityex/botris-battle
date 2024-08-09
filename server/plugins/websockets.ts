@@ -201,7 +201,6 @@ async function handlePlayerMessage(data: RawData, connection: Connection) {
                     commands: messageData.payload.commands,
                     gameState: getPublicGameState(newGameState),
                     prevGameState: getPublicGameState(oldGameState),
-                    requestDelay,
                     events,
                 },
             });
