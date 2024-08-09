@@ -292,7 +292,7 @@ onMounted(async () => {
             case "player_action": {
                 if (!publicRoomData.value) return console.error("no room info");
 
-                const { sessionId, gameState, prevGameState, commands, events } = data.payload;
+                const { sessionId, gameState, prevGameState, requestDelay, commands, events } = data.payload;
                 const player = publicRoomData.value.players.find(
                     (p) => p.sessionId === sessionId
                 );
@@ -315,9 +315,9 @@ onMounted(async () => {
 
                 renderState(playerGraphics, getPublicGameState(tempGameState));
                 const delay =
-                    (1000 / publicRoomData.value.pps) /
+                    requestDelay /
                     (commands.length + 1)
-                    * 0.75;
+                    * 0.85;
                 for (const command of commands as Command[]) {
                     await sleep(delay);
                     ({ gameState: tempGameState } = executeCommand(tempGameState, command));

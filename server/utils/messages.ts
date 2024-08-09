@@ -100,6 +100,7 @@ export type GeneralServerMessage =
 			commands: string[];
 			gameState: PublicGameState;
 			prevGameState: PublicGameState;
+			requestDelay: number;
 			events: GameEvent[];
 		};
 	}

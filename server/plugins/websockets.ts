@@ -151,11 +151,12 @@ async function handlePlayerMessage(data: RawData, connection: Connection) {
             const { initialMessiness, finalMessiness, startMargin, endMargin } = room;
             const timePassed = Date.now() - room.startedAt!;
             const messiness = calculateMessiness(timePassed, initialMessiness, finalMessiness, startMargin, endMargin);
+            const requestDelay = 1000 / room.pps - latency;
 
             if (!player.gameState.dead) {
                 setTimeout(() => {
                     requestMove(player, room);
-                }, 1000 / room.pps - latency);
+                }, requestDelay);
             }
             for (const event of events) {
                 if (event.type === "game_over") {
@@ -200,6 +201,7 @@ async function handlePlayerMessage(data: RawData, connection: Connection) {
                     commands: messageData.payload.commands,
                     gameState: getPublicGameState(newGameState),
                     prevGameState: getPublicGameState(oldGameState),
+                    requestDelay,
                     events,
                 },
             });
