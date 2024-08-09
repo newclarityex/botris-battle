@@ -201,9 +201,8 @@ async function startRenderingSession(sessionId: string) {
     let first = renderQueue[0];
     const ppsDelay = 1000 / publicRoomData.value.pps;
     const commandDelay =
-        ppsDelay /
-        (first.commands.length + 2)
-        * 0.85;
+        (ppsDelay / (first.commands.length + 2))
+        * 0.75;
 
     currentlyRendering.add(sessionId);
 
