@@ -198,11 +198,7 @@ async function startRenderingSession(sessionId: string) {
     const renderQueue = renderQueueMap.get(sessionId);
     if (renderQueue === undefined) return;
 
-    let first = renderQueue[0];
     const ppsDelay = 1000 / publicRoomData.value.pps;
-    const commandDelay =
-        (ppsDelay / (first.commands.length + 2))
-        * 0.75;
 
     currentlyRendering.add(sessionId);
 
@@ -213,6 +209,9 @@ async function startRenderingSession(sessionId: string) {
         };
 
         const { gameState, prevGameState, commands, events } = renderQueue.shift()!;
+        const commandDelay =
+            (ppsDelay / (commands.length + 2))
+            * 0.85;
         const player = publicRoomData.value.players.find(
             (p) => p.sessionId === sessionId
         );
