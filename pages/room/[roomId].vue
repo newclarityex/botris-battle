@@ -200,6 +200,8 @@ async function startRenderingSession(sessionId: string) {
 
     currentlyRendering.add(sessionId);
 
+    console.log("Starting session render", sessionId);
+
     while (renderQueue.length > 0) {
         if (renderQueue.length >= FORCE_UPDATE_PIECES) {
             // Only leave final render if we are severely behind
@@ -304,6 +306,9 @@ async function startRenderingSession(sessionId: string) {
             }
         }
     }
+
+    console.log("Ending session render", sessionId);
+
     currentlyRendering.delete(sessionId);
 }
 
