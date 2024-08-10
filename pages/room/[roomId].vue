@@ -210,7 +210,7 @@ async function startRenderingSession(sessionId: string) {
         const { gameState, prevGameState, commands, events } = renderQueue.shift()!;
         let commandDelay =
             (ppsDelay / (commands.length + 1))
-            * 0.90;
+            * 0.95;
 
         const player = publicRoomData.value.players.find(
             (p) => p.sessionId === sessionId
@@ -234,6 +234,7 @@ async function startRenderingSession(sessionId: string) {
 
         // if each move is less than 10 ms, dont interpolate
         if (commandDelay > 10) {
+            renderDamage(playerGraphics, prevGameState);
             renderState(playerGraphics, getPublicGameState(tempGameState));
             for (const command of commands as Command[]) {
                 await sleep(commandDelay);
@@ -366,6 +367,7 @@ onMounted(async () => {
                         return console.error("player graphics not found");
 
                     renderState(playerGraphics, player.gameState);
+                    renderDamage(playerGraphics, player.gameState);
                 }
 
                 setTimeout(() => {
@@ -439,21 +441,21 @@ onMounted(async () => {
                 break;
             }
             case "player_damage_received": {
-                if (!publicRoomData.value) return console.error("no room info");
+                // if (!publicRoomData.value) return console.error("no room info");
 
-                const { sessionId, gameState } = data.payload;
-                const player = publicRoomData.value.players.find(
-                    (p) => p.sessionId === sessionId
-                );
-                if (!player) return console.error("player not found");
-                player.gameState = gameState;
+                // const { sessionId, gameState } = data.payload;
+                // const player = publicRoomData.value.players.find(
+                //     (p) => p.sessionId === sessionId
+                // );
+                // if (!player) return console.error("player not found");
+                // player.gameState = gameState;
 
-                const playerGraphics = allPlayerGraphics.value.find(
-                    (p) => p.id === sessionId
-                ) as PlayerGraphics | undefined;
-                if (!playerGraphics)
-                    return console.error("player graphics not found");
-                renderDamage(playerGraphics, player.gameState);
+                // const playerGraphics = allPlayerGraphics.value.find(
+                //     (p) => p.id === sessionId
+                // ) as PlayerGraphics | undefined;
+                // if (!playerGraphics)
+                //     return console.error("player graphics not found");
+                // renderDamage(playerGraphics, player.gameState);
                 break;
             }
             case "settings_changed": {
