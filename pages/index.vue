@@ -1,4 +1,3 @@
-
 <template>
     <div class="flex flex-col items-center">
         <main class="flex flex-col items-center">
@@ -9,7 +8,7 @@
             <h2 class="text-xl text-primary py-2">
                 <NuxtLink href="https://twitter.com/newclarityex" class="text-secondary">
                     NukeExplosions
-                </NuxtLink> & 
+                </NuxtLink> &
                 <NuxtLink href="https://www.twitch.tv/puzzlekingdom" class="text-secondary">
                     PuzzleKingdom
                 </NuxtLink>
@@ -22,13 +21,15 @@
                 <h2 class="text-3xl text-primary py-8 underline text-center">Registration</h2>
                 <ol class="max-w-2xl list-decimal">
                     <li>
-                        Register on <a class="text-secondary" target="_blank" href="https://challonge.com/botrisbattle">challonge</a>.
+                        Register on <a class="text-secondary" target="_blank"
+                            href="https://challonge.com/botrisbattle">challonge</a>.
                     </li>
                     <li>
                         Register on this website to test your bots.
                     </li>
                     <li>
-                        Join the <a class="text-secondary" target="_blank" href="https://discord.gg/9nHff39Twz">Nuketris discord</a>.
+                        Join the <a class="text-secondary" target="_blank" href="https://discord.gg/9nHff39Twz">Nuketris
+                            discord</a>.
                     </li>
                     <li>
                         Battles will be held November 9th, competitors must be present!
@@ -51,10 +52,14 @@
                         You may use any public code that you have the rights to use.
                     </li>
                     <li>
-                        If you heavily borrow from an existing bot that you did not write you must credit the original author(s).
+                        If you heavily borrow from an existing bot that you did not write you must credit the original
+                        author(s).
                     </li>
                     <li>
-                        You must be in the Nuketris discord <a class="text-secondary" target="_blank" href="https://discord.gg/9nHff39Twz">here</a> and registered on Challonge <a class="text-secondary" href="https://challonge.com/botrisbattle" target="_blank">here</a> to participate. 
+                        You must be in the Nuketris discord <a class="text-secondary" target="_blank"
+                            href="https://discord.gg/9nHff39Twz">here</a> and registered on Challonge <a
+                            class="text-secondary" href="https://challonge.com/botrisbattle" target="_blank">here</a> to
+                        participate.
                     </li>
                     <li>
                         You must not be banned from PuzzleKingdom events.
@@ -64,8 +69,7 @@
                     </li>
                 </ol>
             </div>
-            <!-- <button class="text-2xl text-primary underline py-6" @click="signIn('github')">Click Here to
-                Participate</button> -->
+            <a class="text-2xl text-primary underline py-6" href="https://discord.gg/9nHff39Twz">Join Discord</a>
         </main>
     </div>
 </template>
