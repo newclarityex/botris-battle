@@ -746,8 +746,9 @@ onMounted(() => {
                 fontSize: '20px',
                 fontFamily: 'Fira Mono',
             }">
-                                {{ displayTime }} - {{ publicRoomData.pps.toFixed(1) }} PPS - {{ multiplier.toFixed(1)
-                                }}
+                                {{ displayTime }} -
+                                {{ publicRoomData.pps.toFixed(1) }} PPS -
+                                {{ multiplier.toFixed(1) }}x
                             </text>
                             <text :anchorX="0" :anchorY="0.5" :x="-650 / 2 + 24" :y="0" :style="{
                 fill: 'white',
