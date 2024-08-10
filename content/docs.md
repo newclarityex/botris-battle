@@ -128,7 +128,7 @@ Game Info
 {
     boardWidth: 10,
     boardHeight: 20,
-    garbageMessiness: 0.05,
+    garbageMultiplier: 0.05,
     attackTable: {
         "single": 0,
         "double": 1,
@@ -268,8 +268,8 @@ type SessionId = string;
 	private: boolean;
 	ft: number;
 	pps: number;
-	initialMessiness: number;
-	finalMessiness: number;
+	initialMultiplier: number;
+	finalMultiplier: number;
 	startMargin: number;
 	endMargin: number;
 	maxPlayers: number;

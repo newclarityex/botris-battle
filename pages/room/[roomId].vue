@@ -352,8 +352,8 @@ onMounted(async () => {
                 roomOptions.value.startMargin = publicRoomData.value.startMargin;
                 roomOptions.value.endMargin = publicRoomData.value.endMargin;
                 roomOptions.value.pps = publicRoomData.value.pps;
-                roomOptions.value.initialMessiness = publicRoomData.value.initialMessiness;
-                roomOptions.value.finalMessiness = publicRoomData.value.finalMessiness;
+                roomOptions.value.initialMultiplier = publicRoomData.value.initialMultiplier;
+                roomOptions.value.finalMultiplier = publicRoomData.value.finalMultiplier;
                 roomOptions.value.private = publicRoomData.value.private;
                 break;
             }
@@ -466,8 +466,8 @@ onMounted(async () => {
                 publicRoomData.value = roomData;
                 roomOptions.value.ft = roomData.ft;
                 roomOptions.value.pps = roomData.pps;
-                roomOptions.value.initialMessiness = roomData.initialMessiness;
-                roomOptions.value.finalMessiness = roomData.finalMessiness;
+                roomOptions.value.initialMultiplier = roomData.initialMultiplier;
+                roomOptions.value.finalMultiplier = roomData.finalMultiplier;
                 roomOptions.value.startMargin = roomData.startMargin;
                 roomOptions.value.endMargin = roomData.endMargin;
                 roomOptions.value.private = roomData.private;
@@ -587,8 +587,8 @@ const roomOptions = ref({
     ft: 5,
     private: false,
     pps: 2.5,
-    initialMessiness: 0.05,
-    finalMessiness: 1,
+    initialMultiplier: 1,
+    finalMultiplier: 10,
     startMargin: 90,
     endMargin: 150,
 });
@@ -641,8 +641,8 @@ async function saveSettings() {
             private: roomOptions.value.private,
             ft,
             pps: roomOptions.value.pps,
-            initialMessiness: roomOptions.value.initialMessiness,
-            finalMessiness: roomOptions.value.finalMessiness,
+            initialMultiplier: roomOptions.value.initialMultiplier,
+            finalMultiplier: roomOptions.value.finalMultiplier,
             startMargin: roomOptions.value.startMargin,
             endMargin: roomOptions.value.endMargin,
         }
@@ -659,10 +659,10 @@ const settingsChanged = computed(() => {
     if (publicRoomData.value.pps !== roomOptions.value.pps) {
         return true;
     };
-    if (publicRoomData.value.initialMessiness !== roomOptions.value.initialMessiness) {
+    if (publicRoomData.value.initialMultiplier !== roomOptions.value.initialMultiplier) {
         return true;
     };
-    if (publicRoomData.value.finalMessiness !== roomOptions.value.finalMessiness) {
+    if (publicRoomData.value.finalMultiplier !== roomOptions.value.finalMultiplier) {
         return true;
     };
     if (publicRoomData.value.startMargin !== roomOptions.value.startMargin) {
@@ -676,19 +676,22 @@ const settingsChanged = computed(() => {
 
 const countdownTime = ref<number | null>(null);
 const displayTime = ref<number | null>(null);
+const multiplier = ref(1);
 
 onMounted(() => {
     const interval = setInterval(() => {
-        const { startMargin, endMargin } = publicRoomData.value;
+        const { initialMultiplier, finalMultiplier, startMargin, endMargin } = publicRoomData.value;
         if (!publicRoomData.value.startedAt) {
             countdownTime.value = null;
             displayTime.value = null;
+            multiplier.value = publicRoomData.value.initialMultiplier;
             return;
         }
 
         const now = Date.now();
         const timePassed = now - publicRoomData.value.startedAt;
         const timeLeft = publicRoomData.value.startedAt - now;
+        multiplier.value = calculateMultiplier(timePassed, initialMultiplier, finalMultiplier, startMargin, endMargin);
 
         if (timePassed > 0) {
             countdownTime.value = null;
@@ -743,7 +746,8 @@ onMounted(() => {
                 fontSize: '20px',
                 fontFamily: 'Fira Mono',
             }">
-                                {{ displayTime }} - {{ publicRoomData.pps.toFixed(1) }} PPS
+                                {{ displayTime }} - {{ publicRoomData.pps.toFixed(1) }} PPS - {{ multiplier.toFixed(1)
+                                }}
                             </text>
                             <text :anchorX="0" :anchorY="0.5" :x="-650 / 2 + 24" :y="0" :style="{
                 fill: 'white',
@@ -948,13 +952,13 @@ onMounted(() => {
                         <input type="text" v-model.number="roomOptions.pps" class="w-12 px-1 bg-white/20 text-right" />
                     </div>
                     <div class="flex justify-between items-center">
-                        <label>Initial Messiness (0 - 1):</label>
-                        <input type="text" v-model.number="roomOptions.initialMessiness"
+                        <label>Initial Multiplier (0 - 29):</label>
+                        <input type="text" v-model.number="roomOptions.initialMultiplier"
                             class="w-12 px-1 bg-white/20 text-right" />
                     </div>
                     <div class="flex justify-between items-center">
-                        <label>Final Messiness (0 - 1):</label>
-                        <input type="text" v-model.number="roomOptions.finalMessiness"
+                        <label>Final Multiplier (0 - 20):</label>
+                        <input type="text" v-model.number="roomOptions.finalMultiplier"
                             class="w-12 px-1 bg-white/20 text-right" />
                     </div>
                     <div class="flex justify-between items-center">

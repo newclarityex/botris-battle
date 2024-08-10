@@ -7,8 +7,8 @@ const roomData = ref({
     ft: 5,
     private: false,
     pps: 2.5,
-    initialMessiness: 0.05,
-    finalMessiness: 1,
+    initialMultiplier: 0.05,
+    finalMultiplier: 1,
     startMargin: 90,
     endMargin: 150,
 });
@@ -48,14 +48,14 @@ async function createRoom(event: Event) {
                         step="0.01">
                 </div>
                 <div class="w-full gap-4 flex flex-row items-center justify-between">
-                    <label for="initial-messiness">Initial Messiness (0 - 1)</label>
-                    <input type="number" id="initial-messiness" class="bg-black/40 w-16 px-1" required
-                        v-model="roomData.initialMessiness" step="0.01">
+                    <label for="initial-multiplier">Initial Multiplier (0 - 20)</label>
+                    <input type="number" id="initial-multiplier" class="bg-black/40 w-16 px-1" required
+                        v-model="roomData.initialMultiplier" step="0.01">
                 </div>
                 <div class="w-full gap-4 flex flex-row items-center justify-between">
-                    <label for="final-messiness">Final Messiness (0 - 1)</label>
-                    <input type="number" id="final-messiness" class="bg-black/40 w-16 px-1" required
-                        v-model="roomData.finalMessiness" step="0.01">
+                    <label for="final-multiplier">Final Multiplier (0 - 20)</label>
+                    <input type="number" id="final-multiplier" class="bg-black/40 w-16 px-1" required
+                        v-model="roomData.finalMultiplier" step="0.01">
                 </div>
                 <div class="w-full gap-4 flex flex-row items-center justify-between">
                     <label for="start-margin">Start Margin (secs)</label>
