@@ -238,6 +238,9 @@ async function startRenderingSession(sessionId: string) {
             renderState(playerGraphics, getPublicGameState(tempGameState));
             for (const command of commands as Command[]) {
                 await sleep(commandDelay);
+                if (command === 'none') {
+                    continue
+                }
                 ({ gameState: tempGameState } = executeCommand(tempGameState, command));
                 renderState(playerGraphics, getPublicGameState(tempGameState));
             };
