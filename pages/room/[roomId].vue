@@ -953,12 +953,12 @@ onMounted(() => {
                         <input type="text" v-model.number="roomOptions.pps" class="w-12 px-1 bg-white/20 text-right" />
                     </div>
                     <div class="flex justify-between items-center">
-                        <label>Initial Multiplier (0 - 29):</label>
+                        <label>Initial Multiplier (0x - 20x):</label>
                         <input type="text" v-model.number="roomOptions.initialMultiplier"
                             class="w-12 px-1 bg-white/20 text-right" />
                     </div>
                     <div class="flex justify-between items-center">
-                        <label>Final Multiplier (0 - 20):</label>
+                        <label>Final Multiplier (0x - 20x):</label>
                         <input type="text" v-model.number="roomOptions.finalMultiplier"
                             class="w-12 px-1 bg-white/20 text-right" />
                     </div>

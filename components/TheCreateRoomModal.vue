@@ -48,12 +48,12 @@ async function createRoom(event: Event) {
                         step="0.01">
                 </div>
                 <div class="w-full gap-4 flex flex-row items-center justify-between">
-                    <label for="initial-multiplier">Initial Multiplier (0 - 20)</label>
+                    <label for="initial-multiplier">Initial Multiplier (0x - 20x)</label>
                     <input type="number" id="initial-multiplier" class="bg-black/40 w-16 px-1" required
                         v-model="roomData.initialMultiplier" step="0.01">
                 </div>
                 <div class="w-full gap-4 flex flex-row items-center justify-between">
-                    <label for="final-multiplier">Final Multiplier (0 - 20)</label>
+                    <label for="final-multiplier">Final Multiplier (0x - 20x)</label>
                     <input type="number" id="final-multiplier" class="bg-black/40 w-16 px-1" required
                         v-model="roomData.finalMultiplier" step="0.01">
                 </div>
