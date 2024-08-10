@@ -590,7 +590,7 @@ const roomOptions = ref({
     initialMultiplier: 1,
     finalMultiplier: 10,
     startMargin: 90,
-    endMargin: 150,
+    endMargin: 600,
 });
 
 const { data: masterKey } = useFetch('/api/room/masterKey', {
@@ -683,7 +683,7 @@ onMounted(() => {
         const { initialMultiplier, finalMultiplier, startMargin, endMargin } = publicRoomData.value;
         if (!publicRoomData.value.startedAt) {
             countdownTime.value = null;
-            displayTime.value = null;
+            displayTime.value = 0;
             multiplier.value = publicRoomData.value.initialMultiplier;
             return;
         }

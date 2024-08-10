@@ -7,8 +7,8 @@ const EditGameSchema = z.object({
 	private: z.boolean(),
 	ft: z.number().min(1).max(99),
 	pps: z.number().gt(0).max(30),
-	initialMultiplier: z.number().gt(0).max(1),
-	finalMultiplier: z.number().gt(0).max(1),
+	initialMultiplier: z.number().gt(0).max(20),
+	finalMultiplier: z.number().gt(0).max(20),
 	startMargin: z.number().gt(0),
 	endMargin: z.number().gt(0),
 });

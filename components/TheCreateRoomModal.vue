@@ -10,7 +10,7 @@ const roomData = ref({
     initialMultiplier: 1,
     finalMultiplier: 10,
     startMargin: 90,
-    endMargin: 150,
+    endMargin: 600,
 });
 
 const disableCreate = ref(false);
