@@ -14,8 +14,8 @@ const CreateGameSchema = z.object({
 	pps: z.number().gt(0).max(30),
 	initialMultiplier: z.number().gte(0).max(20),
 	finalMultiplier: z.number().gte(0).max(20),
-	startMargin: z.number().gt(0),
-	endMargin: z.number().gt(0),
+	startMargin: z.number().gte(0),
+	endMargin: z.number().gte(0),
 });
 
 export default defineEventHandler(async (event) => {

@@ -90,10 +90,10 @@ function getPlayerStats() {
 
         let timePassed = (endedAt ?? Date.now()) - startedAt;
         let app = gameState.piecesPlaced > 0
-            ? gameState.score / gameState.piecesPlaced
+            ? gameState.rawScore / gameState.piecesPlaced
             : 0;
         let dsapp = gameState.piecesPlaced > 0
-            ? (gameState.score + gameState.garbageCleared) / gameState.piecesPlaced
+            ? (gameState.rawScore + gameState.garbageCleared) / gameState.piecesPlaced
             : 0
         return [
             {
@@ -675,7 +675,7 @@ const settingsChanged = computed(() => {
 });
 
 const countdownTime = ref<number | null>(null);
-const displayTime = ref<number | null>(null);
+const displayTime = ref<number>(0);
 const multiplier = ref(1);
 
 onMounted(() => {
@@ -697,7 +697,7 @@ onMounted(() => {
             countdownTime.value = null;
             displayTime.value = Math.floor((timePassed) / 1000);
         } else {
-            displayTime.value = null;
+            displayTime.value = 0;
             countdownTime.value = Math.ceil((timeLeft) / 1000);
         }
     }, 1000 / 60);
