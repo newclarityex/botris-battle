@@ -256,7 +256,7 @@ export function renderAvatar(avatar: Block[][]) {
     return avatarContainer;
 }
 
-const GARBAGE_COLORS = [0xff0000, 0xffff00, 0x00ffff, 0x0000ff, 0x8888ff, 0xffffff]
+const GARBAGE_COLORS = [0xff0000, 0xff6600, 0xffff00, 0x00ffff, 0x0000ff, 0xff00ff]
 
 export function renderState(playerGraphics: PlayerGraphics, gameState: PublicGameState | null) {
     const { heldContainer, boardContainer, queueContainer } = playerGraphics
