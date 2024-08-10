@@ -128,7 +128,7 @@ Game Info
 {
     boardWidth: 10,
     boardHeight: 20,
-    garbageMultiplier: 0.05,
+    garbageMessiness: 0.05,
     attackTable: {
         "single": 0,
         "double": 1,
@@ -141,6 +141,7 @@ Game Info
         "b2b": 1,
     },
     comboTable: [0, 0, 1, 1, 1, 2, 2, 3, 3, 4],
+    multiplier: 1,
 }
 </pre>
 

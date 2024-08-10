@@ -7,8 +7,8 @@ const roomData = ref({
     ft: 5,
     private: false,
     pps: 2.5,
-    initialMultiplier: 0.05,
-    finalMultiplier: 1,
+    initialMultiplier: 1,
+    finalMultiplier: 10,
     startMargin: 90,
     endMargin: 150,
 });
