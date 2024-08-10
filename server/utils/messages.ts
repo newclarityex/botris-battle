@@ -26,6 +26,7 @@ export const PlayerMessageSchema = z.object({
 				z.literal("rotate_cw"),
 				z.literal("rotate_ccw"),
 				z.literal("hold"),
+				z.literal("none"),
 			])
 			.array(),
 	}),

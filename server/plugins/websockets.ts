@@ -105,11 +105,11 @@ async function handlePlayerMessage(data: RawData, connection: Connection) {
 
     switch (messageData.type) {
         case "action": {
-            if (messageData.payload.commands.length > 64) {
+            if (messageData.payload.commands.length > 128) {
                 connection.ws.send(
                     JSON.stringify({
                         type: "error",
-                        payload: "Action longer than 64 commands",
+                        payload: "Action longer than 128 commands",
                     })
                 );
                 return;
