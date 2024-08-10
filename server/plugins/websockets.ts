@@ -191,10 +191,11 @@ async function handlePlayerMessage(data: RawData, connection: Connection) {
                     for (const player of room.players.values()) {
                         if (player.sessionId === connection.id) continue;
                         if (!player.gameState || !player.playing) continue;
-                        const garbage = generateGarbage(amount, { garbageDelay: 5 });
+                        const garbage = generateGarbage(amount);
                         player.gameState = queueGarbage(
                             player.gameState!,
-                            garbage
+                            garbage,
+                            { garbageDelay: 5 }
                         );
                         sendRoom(room.id, {
                             type: "player_damage_received",
