@@ -195,7 +195,6 @@ async function handlePlayerMessage(data: RawData, connection: Connection) {
                         player.gameState = queueGarbage(
                             player.gameState!,
                             garbage,
-                            { garbageDelay: 5 }
                         );
                         sendRoom(room.id, {
                             type: "player_damage_received",
