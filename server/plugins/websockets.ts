@@ -104,6 +104,13 @@ async function handlePlayerMessage(data: RawData, connection: Connection) {
     if (!room) return;
 
     switch (messageData.type) {
+        case "ping": {
+            sendClient(connection.ws, {
+                type: "ping",
+                payload: { timestamp: Date.now() },
+            });
+            return;
+        }
         case "action": {
             if (messageData.payload.commands.length > 128) {
                 connection.ws.send(
@@ -116,7 +123,33 @@ async function handlePlayerMessage(data: RawData, connection: Connection) {
             }
 
             const player = room.players.get(connection.id);
-            if (!player) return;
+            if (!player) {
+                connection.ws.send(
+                    JSON.stringify({
+                        type: "error",
+                        payload: "Not a player",
+                    })
+                );
+                return
+            };
+            if (!player.gameState) {
+                connection.ws.send(
+                    JSON.stringify({
+                        type: "error",
+                        payload: "Missing GameState",
+                    })
+                );
+                return
+            };
+            if (player.gameState.dead) {
+                connection.ws.send(
+                    JSON.stringify({
+                        type: "error",
+                        payload: "Cannot send commands while dead",
+                    })
+                );
+            };
+
             if (!room.gameOngoing) {
                 connection.ws.send(
                     JSON.stringify({

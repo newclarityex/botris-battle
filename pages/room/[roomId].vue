@@ -193,7 +193,7 @@ const renderQueueMap: Map<string, {
 }[]> = new Map();
 
 const currentlyRendering: Set<string> = new Set();
-const FORCE_UPDATE_PIECES = 5;
+const FORCE_UPDATE_PIECES = 10;
 
 async function startRenderingSession(sessionId: string) {
     const renderQueue = renderQueueMap.get(sessionId)!;
@@ -210,7 +210,7 @@ async function startRenderingSession(sessionId: string) {
         const { gameState, prevGameState, commands, events } = renderQueue.shift()!;
         let commandDelay =
             (ppsDelay / (commands.length + 1))
-            * 0.95;
+            * (0.95 - 0.05 * renderQueue.length);
 
         const player = publicRoomData.value.players.find(
             (p) => p.sessionId === sessionId
@@ -230,6 +230,7 @@ async function startRenderingSession(sessionId: string) {
             ...prevGameState,
             isImmobile: false,
             garbageQueue: [],
+            queue: [gameState.current.piece, ...gameState.queue],
         };
 
         // if each move is less than 10 ms, dont interpolate
@@ -689,7 +690,7 @@ onMounted(() => {
         }
 
         const now = Date.now();
-        const timePassed = now - publicRoomData.value.startedAt;
+        const timePassed = (publicRoomData.value.endedAt ?? now) - publicRoomData.value.startedAt;
         const timeLeft = publicRoomData.value.startedAt - now;
         multiplier.value = calculateMultiplier(timePassed, initialMultiplier, finalMultiplier, startMargin, endMargin);
 

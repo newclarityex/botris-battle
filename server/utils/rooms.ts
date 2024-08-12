@@ -184,6 +184,7 @@ export function checkWinner(room: RoomData) {
 		roundWinner.wins++;
 		room.roundOngoing = false;
 		room.lastWinner = roundWinner.sessionId;
+		room.endedAt = Date.now();
 		sendRoom(room.id, {
 			type: "round_over",
 			payload: {
@@ -194,7 +195,6 @@ export function checkWinner(room: RoomData) {
 		});
 		if (roundWinner.wins >= room.ft) {
 			room.gameOngoing = false;
-			room.endedAt = Date.now();
 			sendRoom(room.id, {
 				type: "game_over",
 				payload: {

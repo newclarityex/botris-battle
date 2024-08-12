@@ -253,6 +253,25 @@ When the game is reset early, the server sends:
 }
 </pre>
 
+As a player, you can also ping the server for latency using:
+
+<pre class='code'>
+{
+    type: "ping";
+}
+</pre>
+
+The server will respond with:
+
+<pre class='code'>
+{
+    type: "ping";
+    payload: {
+        timestamp: number;
+    };
+}
+</pre>
+
 ## Types
 
 ### SessionId
