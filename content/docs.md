@@ -141,6 +141,7 @@ Game Info
         "b2b": 1,
     },
     comboTable: [0, 0, 1, 1, 1, 2, 2, 3, 3, 4],
+    multiplier: 1,
 }
 </pre>
 
@@ -252,6 +253,25 @@ When the game is reset early, the server sends:
 }
 </pre>
 
+As a player, you can also ping the server for latency using:
+
+<pre class='code'>
+{
+    type: "ping";
+}
+</pre>
+
+The server will respond with:
+
+<pre class='code'>
+{
+    type: "ping";
+    payload: {
+        timestamp: number;
+    };
+}
+</pre>
+
 ## Types
 
 ### SessionId
@@ -268,8 +288,8 @@ type SessionId = string;
 	private: boolean;
 	ft: number;
 	pps: number;
-	initialMessiness: number;
-	finalMessiness: number;
+	initialMultiplier: number;
+	finalMultiplier: number;
 	startMargin: number;
 	endMargin: number;
 	maxPlayers: number;

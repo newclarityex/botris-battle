@@ -12,29 +12,36 @@ export const AuthSchema = z.object({
 
 export type ClientMessage = z.infer<typeof AuthSchema>;
 
-export const PlayerMessageSchema = z.object({
-	type: z.literal("action"),
-	payload: z.object({
-		commands: z
-			.union([
-				z.literal("move_left"),
-				z.literal("move_right"),
-				z.literal("sonic_left"),
-				z.literal("sonic_right"),
-				z.literal("drop"),
-				z.literal("sonic_drop"),
-				z.literal("rotate_cw"),
-				z.literal("rotate_ccw"),
-				z.literal("hold"),
-				z.literal("none"),
-			])
-			.array(),
-	}),
-});
+export const PlayerMessageSchema = z.union([
+	z.object({
+		type: z.literal("action"),
+		payload: z.object({
+			commands: z
+				.union([
+					z.literal("move_left"),
+					z.literal("move_right"),
+					z.literal("sonic_left"),
+					z.literal("sonic_right"),
+					z.literal("drop"),
+					z.literal("sonic_drop"),
+					z.literal("rotate_cw"),
+					z.literal("rotate_ccw"),
+					z.literal("hold"),
+					z.literal("none"),
+				])
+				.array(),
+		}),
+	}), z.object({ type: z.literal("ping") })]);
 
 export type PlayerMessage = z.infer<typeof PlayerMessageSchema>;
 
 export type GeneralServerMessage =
+	| {
+		type: "ping";
+		payload: {
+			timestamp: number
+		};
+	}
 	| {
 		type: "room_data";
 		payload: {

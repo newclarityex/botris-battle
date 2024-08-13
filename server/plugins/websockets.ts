@@ -15,7 +15,7 @@ import { checkAuthToken } from "../utils/auth";
 import {
     PlayerMessageSchema,
 } from "../utils/messages";
-import { calculateMessiness } from "~/utils/game";
+import { calculateMultiplier } from "~/utils/game";
 
 import {
     type Command,
@@ -104,6 +104,13 @@ async function handlePlayerMessage(data: RawData, connection: Connection) {
     if (!room) return;
 
     switch (messageData.type) {
+        case "ping": {
+            sendClient(connection.ws, {
+                type: "ping",
+                payload: { timestamp: Date.now() },
+            });
+            return;
+        }
         case "action": {
             if (messageData.payload.commands.length > 128) {
                 connection.ws.send(
@@ -116,7 +123,33 @@ async function handlePlayerMessage(data: RawData, connection: Connection) {
             }
 
             const player = room.players.get(connection.id);
-            if (!player) return;
+            if (!player) {
+                connection.ws.send(
+                    JSON.stringify({
+                        type: "error",
+                        payload: "Not a player",
+                    })
+                );
+                return
+            };
+            if (!player.gameState) {
+                connection.ws.send(
+                    JSON.stringify({
+                        type: "error",
+                        payload: "Missing GameState",
+                    })
+                );
+                return
+            };
+            if (player.gameState.dead) {
+                connection.ws.send(
+                    JSON.stringify({
+                        type: "error",
+                        payload: "Cannot send commands while dead",
+                    })
+                );
+            };
+
             if (!room.gameOngoing) {
                 connection.ws.send(
                     JSON.stringify({
@@ -153,15 +186,17 @@ async function handlePlayerMessage(data: RawData, connection: Connection) {
 
             const oldGameState = player.gameState!;
 
+            const { initialMultiplier, finalMultiplier, startMargin, endMargin } = room;
+            const timePassed = Date.now() - room.startedAt!;
+            const multiplier = calculateMultiplier(timePassed, initialMultiplier, finalMultiplier, startMargin, endMargin);
+
             const { gameState: newGameState, events } = executeCommands(
                 player.gameState!,
-                serverCommands
+                serverCommands,
+                { multiplier }
             );
             player.gameState = newGameState;
 
-            const { initialMessiness, finalMessiness, startMargin, endMargin } = room;
-            const timePassed = Date.now() - room.startedAt!;
-            const messiness = calculateMessiness(timePassed, initialMessiness, finalMessiness, startMargin, endMargin);
             const requestDelay = 1000 / room.pps - latency;
 
             if (!player.gameState.dead) {
@@ -189,10 +224,10 @@ async function handlePlayerMessage(data: RawData, connection: Connection) {
                     for (const player of room.players.values()) {
                         if (player.sessionId === connection.id) continue;
                         if (!player.gameState || !player.playing) continue;
-                        const garbage = generateGarbage(amount, { garbageMessiness: messiness });
+                        const garbage = generateGarbage(amount);
                         player.gameState = queueGarbage(
                             player.gameState!,
-                            garbage
+                            garbage,
                         );
                         sendRoom(room.id, {
                             type: "player_damage_received",

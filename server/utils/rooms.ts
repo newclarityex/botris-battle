@@ -39,8 +39,8 @@ export type RoomData = {
 	private: boolean;
 	ft: number;
 	pps: number;
-	initialMessiness: number;
-	finalMessiness: number;
+	initialMultiplier: number;
+	finalMultiplier: number;
 	startMargin: number;
 	endMargin: number;
 	maxPlayers: number;
@@ -60,8 +60,8 @@ export type PublicRoomData = {
 	private: boolean;
 	ft: number;
 	pps: number;
-	initialMessiness: number;
-	finalMessiness: number;
+	initialMultiplier: number;
+	finalMultiplier: number;
 	startMargin: number;
 	endMargin: number;
 	maxPlayers: number;
@@ -114,7 +114,7 @@ export function requestMove(player: PlayerData, room: RoomData) {
 			players: getPublicPlayers(room.players),
 		},
 	});
-	
+
 	player.lastRequestTimestamp = Date.now();
 	player.moveRequested = true;
 	if (player.timeout) {
@@ -184,6 +184,7 @@ export function checkWinner(room: RoomData) {
 		roundWinner.wins++;
 		room.roundOngoing = false;
 		room.lastWinner = roundWinner.sessionId;
+		room.endedAt = Date.now();
 		sendRoom(room.id, {
 			type: "round_over",
 			payload: {
@@ -194,7 +195,6 @@ export function checkWinner(room: RoomData) {
 		});
 		if (roundWinner.wins >= room.ft) {
 			room.gameOngoing = false;
-			room.endedAt = Date.now();
 			sendRoom(room.id, {
 				type: "game_over",
 				payload: {
@@ -242,8 +242,8 @@ export function getPublicRoomData(roomData: RoomData): PublicRoomData {
 		private: roomData.private,
 		ft: roomData.ft,
 		pps: roomData.pps,
-		initialMessiness: roomData.initialMessiness,
-		finalMessiness: roomData.finalMessiness,
+		initialMultiplier: roomData.initialMultiplier,
+		finalMultiplier: roomData.finalMultiplier,
 		startMargin: roomData.startMargin,
 		endMargin: roomData.endMargin,
 		maxPlayers: roomData.maxPlayers,

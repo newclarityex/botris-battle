@@ -7,10 +7,10 @@ const EditGameSchema = z.object({
 	private: z.boolean(),
 	ft: z.number().min(1).max(99),
 	pps: z.number().gt(0).max(30),
-	initialMessiness: z.number().gt(0).max(1),
-	finalMessiness: z.number().gt(0).max(1),
-	startMargin: z.number().gt(0),
-	endMargin: z.number().gt(0),
+	initialMultiplier: z.number().gte(0).max(20),
+	finalMultiplier: z.number().gte(0).max(20),
+	startMargin: z.number().gte(0),
+	endMargin: z.number().gte(0),
 });
 
 export default defineEventHandler(async (event) => {
@@ -41,8 +41,8 @@ export default defineEventHandler(async (event) => {
 	};
 
 	room.pps = data.pps;
-	room.initialMessiness = data.initialMessiness;
-	room.finalMessiness = data.finalMessiness;
+	room.initialMultiplier = data.initialMultiplier;
+	room.finalMultiplier = data.finalMultiplier;
 	room.startMargin = data.startMargin;
 	room.endMargin = data.endMargin;
 	room.ft = data.ft;

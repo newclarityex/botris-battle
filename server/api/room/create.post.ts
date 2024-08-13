@@ -12,10 +12,10 @@ const CreateGameSchema = z.object({
 	ft: z.number().min(1).max(99),
 	// maxPlayers: z.number().min(2).max(4),
 	pps: z.number().gt(0).max(30),
-	initialMessiness: z.number().gt(0).max(1),
-	finalMessiness: z.number().gt(0).max(1),
-	startMargin: z.number().gt(0),
-	endMargin: z.number().gt(0),
+	initialMultiplier: z.number().gte(0).max(20),
+	finalMultiplier: z.number().gte(0).max(20),
+	startMargin: z.number().gte(0),
+	endMargin: z.number().gte(0),
 });
 
 export default defineEventHandler(async (event) => {
@@ -54,8 +54,8 @@ export default defineEventHandler(async (event) => {
 		ft: data.ft,
 		maxPlayers: 2,
 		pps: data.pps,
-		initialMessiness: data.initialMessiness,
-		finalMessiness: data.finalMessiness,
+		initialMultiplier: data.initialMultiplier,
+		finalMultiplier: data.finalMultiplier,
 		startMargin: data.startMargin,
 		endMargin: data.endMargin,
 		gameOngoing: false,
