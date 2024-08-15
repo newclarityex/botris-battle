@@ -228,7 +228,7 @@ async function startRenderingSession(sessionId: string) {
 
         const fullQueue = [gameState.current.piece, ...gameState.queue];
         if (prevGameState.held === null && gameState.held !== null) {
-            fullQueue.unshift(gameState.held);
+            fullQueue.unshift(prevGameState.queue[0]);
         };
 
         let tempGameState: GameState = {
