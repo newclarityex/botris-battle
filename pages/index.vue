@@ -46,7 +46,7 @@
                         Maximum of 8 players per team.
                     </li>
                     <li>
-                        Matches will be played at 2.5pps initially, then scaling to 5pps from 1:30 - 2:30.
+                        Matches will be played at 2.5pps, with multiplier scaling from 1x to 10x from 1:30 - 10:00.
                     </li>
                     <li>
                         You may use any public code that you have the rights to use.
