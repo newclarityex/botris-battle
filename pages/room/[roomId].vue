@@ -172,18 +172,18 @@ const scale = computed(() => {
 
 const documentVisible = useDocumentVisibility();
 
-function resizeRenderer() {
-    if (!pixiApp.value) {
-        console.log("NO PIXI APP")
-        return;
-    };
+// function resizeRenderer() {
+//     if (!pixiApp.value) {
+//         console.log("NO PIXI APP")
+//         return;
+//     };
 
-    pixiApp.value.renderer.resolution = 1 / scale.value;
-    pixiApp.value.renderer.resize(width.value, height.value);
-    pixiApp.value.render();
-}
+//     pixiApp.value.renderer.resolution = 1 / scale.value;
+//     pixiApp.value.renderer.resize(width.value, height.value);
+//     pixiApp.value.render();
+// }
 
-watch([width, height], resizeRenderer);
+// watch([width, height], resizeRenderer);
 
 const renderQueueMap: Map<string, {
     gameState: PublicGameState,
@@ -226,7 +226,7 @@ async function startRenderingSession(sessionId: string) {
         ) as PlayerGraphics | undefined;
         if (!playerGraphics) continue;
 
-        const fullQueue = [gameState.current, ...gameState.queue];
+        const fullQueue = [gameState.current.piece, ...gameState.queue];
         if (prevGameState.held === null && gameState.held !== null) {
             fullQueue.unshift(gameState.held);
         };
@@ -325,7 +325,7 @@ async function startRenderingSession(sessionId: string) {
 }
 
 onMounted(async () => {
-    resizeRenderer();
+    // resizeRenderer();
 
     const urlParams = new URLSearchParams();
     urlParams.append("roomId", roomId as string);
@@ -726,13 +726,16 @@ onMounted(() => {
     return () => {
         clearInterval(interval);
     }
-}); 
+});
+
+const dpi = window.devicePixelRatio;
+const resizeTarget = window;
 </script>
 
 <template>
     <div class="w-full h-full">
         <div class="absolute w-full h-full overflow-hidden -z-10">
-            <Application :backgroundAlpha="0" ref="pixiInst" :antialias="true">
+            <Application :backgroundAlpha="0" ref="pixiInst" :antialias="true" :resolution="dpi" :resize-to="resizeTarget" />
                 <tiling-sprite texture="/images/tiling.png" :width="width" :height="height" :tile-scale="8 * scale"
                     :tilePosition="[
                         backgroundOffset * scale,
@@ -747,7 +750,7 @@ onMounted(() => {
                             graphics.endFill();
                         }
                             " />
-                        <text :anchor="0.5" :x="0" :y="0" :resolution="4" :style="{
+                        <text :anchor="0.5" :x="0" :y="0" :style="{
                             fill: 'white',
                             fontSize: '32px',
                             fontFamily: 'Fira Mono',
@@ -755,14 +758,14 @@ onMounted(() => {
                             Waiting For Players...
                         </text>
                         <template v-else>
-                            <text :anchor="0.5" :x="0" :y="-12" :resolution="4" :style="{
+                            <text :anchor="0.5" :x="0" :y="-12" :style="{
                                 fill: 'white',
                                 fontSize: '30px',
                                 fontFamily: 'Fira Mono',
                             }">
                                 win@{{ publicRoomData.ft }}
                             </text>
-                            <text :anchor="0.5" :x="0" :y="20" :resolution="4" :style="{
+                            <text :anchor="0.5" :x="0" :y="20" :style="{
                                 fill: 'white',
                                 fontSize: '20px',
                                 fontFamily: 'Fira Mono',
@@ -771,14 +774,14 @@ onMounted(() => {
                                 {{ publicRoomData.pps.toFixed(1) }} PPS -
                                 {{ multiplier.toFixed(1) }}x
                             </text>
-                            <text :anchorX="0" :anchorY="0.5" :x="-650 / 2 + 24" :y="0" :resolution="4" :style="{
+                            <text :anchorX="0" :anchorY="0.5" :x="-650 / 2 + 24" :y="0" :style="{
                                 fill: 'white',
                                 fontSize: '32px',
                                 fontFamily: 'Fira Mono',
                             }">
                                 {{ winStrs[0] }}
                             </text>
-                            <text :anchorX="1" :anchorY="0.5" :x="650 / 2 - 24" :y="0" :resolution="4" :style="{
+                            <text :anchorX="1" :anchorY="0.5" :x="650 / 2 - 24" :y="0" :style="{
                                 fill: 'white',
                                 fontSize: '32px',
                                 fontFamily: 'Fira Mono',
@@ -809,7 +812,7 @@ onMounted(() => {
                                 <container :ref="(el: any) => board.boardContainer = el" :sortable-children="true" />
                                 <!-- Damage Bar Graphic -->
                                 <graphics :ref="(el: any) => board.damageBar = el" :z-index="2" />
-                                <text :anchorX="0.5" :anchorY="0.5" :x="10 * CELL_SIZE / 2" :y="200" :resolution="4" :style="{
+                                <text :anchorX="0.5" :anchorY="0.5" :x="10 * CELL_SIZE / 2" :y="200" :style="{
                                     fill: 'white',
                                     fontSize: '48px',
                                     fontFamily: 'Fira Mono',
@@ -817,7 +820,7 @@ onMounted(() => {
                                     {{ countdownTime }}
                                 </text>
                                 <text v-if="publicRoomData.lastWinner === board.id" :anchorX="0.5" :anchorY="0.5"
-                                    :x="10 * CELL_SIZE / 2" :y="200" :resolution="4" :style="{
+                                    :x="10 * CELL_SIZE / 2" :y="200" :style="{
                                         fill: 'white',
                                         fontSize: '36px',
                                         fontFamily: 'Fira Mono',
@@ -838,7 +841,7 @@ onMounted(() => {
                                     graphics.endFill();
                                 }
                                     " />
-                                <text :x="0" :y="0" :anchorX="0.5" :resolution="4" :style="{
+                                <text :x="0" :y="0" :anchorX="0.5" :style="{
                                     fill: 'white',
                                     fontFamily: 'Fira Mono',
                                     fontSize: 24,
@@ -860,7 +863,7 @@ onMounted(() => {
                                     graphics.endFill();
                                 }
                                     " />
-                                <text :x="0" :y="0" :anchorX="0.5" :resolution="4" :style="{
+                                <text :x="0" :y="0" :anchorX="0.5" :style="{
                                     fill: 'white',
                                     fontFamily: 'Fira Mono',
                                     fontSize: 20,
