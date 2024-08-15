@@ -735,7 +735,7 @@ const resizeTarget = window;
 <template>
     <div class="w-full h-full">
         <div class="absolute w-full h-full overflow-hidden -z-10">
-            <Application :backgroundAlpha="0" ref="pixiInst" :antialias="true" :resolution="dpi" :resize-to="resizeTarget" />
+            <Application :backgroundAlpha="0" ref="pixiInst" :antialias="true" :resolution="dpi" :resize-to="resizeTarget" >
                 <tiling-sprite texture="/images/tiling.png" :width="width" :height="height" :tile-scale="8 * scale"
                     :tilePosition="[
                         backgroundOffset * scale,
