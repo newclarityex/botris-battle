@@ -35,12 +35,8 @@ async function createRoom(event: Event) {
             <h2 class="text-center">Create Room</h2>
             <form @submit.prevent="createRoom" class="flex flex-col items-center gap-4">
                 <div class="w-full gap-4 flex flex-row items-center justify-between">
-                    <label for="room-ft">Room FT</label>
+                    <label for="room-ft">FT (max: 999)</label>
                     <input type="number" id="room-ft" class="bg-black/40 w-12 px-1" required v-model="roomData.ft">
-                </div>
-                <div class="w-full gap-4 flex flex-row items-center justify-between">
-                    <label for="room-private">Room Private</label>
-                    <input type="checkbox" id="room-private" class="bg-black/40" v-model="roomData.private">
                 </div>
                 <div class="w-full gap-4 flex flex-row items-center justify-between">
                     <label for="pps">PPS (max: 30)</label>
@@ -66,6 +62,10 @@ async function createRoom(event: Event) {
                     <label for="end-margin">End Margin (secs)</label>
                     <input type="number" id="end-margin" class="bg-black/40 w-16 px-1" required
                         v-model="roomData.endMargin">
+                </div>
+                <div class="w-full gap-4 flex flex-row items-center justify-between">
+                    <label for="room-private">Private</label>
+                    <input type="checkbox" id="room-private" class="bg-black/40" v-model="roomData.private">
                 </div>
                 <button class="text-btn" :disabled="disableCreate" type="submit">Submit</button>
             </form>

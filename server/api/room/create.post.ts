@@ -9,7 +9,7 @@ const genRoomId = customAlphabet(numbers + lowercase, 8);
 
 const CreateGameSchema = z.object({
 	private: z.boolean(),
-	ft: z.number().min(1).max(99),
+	ft: z.number().min(1).max(999),
 	// maxPlayers: z.number().min(2).max(4),
 	pps: z.number().gt(0).max(30),
 	initialMultiplier: z.number().gte(0).max(20),

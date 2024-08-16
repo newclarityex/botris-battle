@@ -636,8 +636,8 @@ async function saveSettings() {
     if (ft < 1) {
         ft = 1;
     }
-    if (ft > 99) {
-        ft = 99;
+    if (ft > 999) {
+        ft = 999;
     }
 
     await $fetch('/api/room/edit', {
@@ -954,7 +954,7 @@ const resizeTarget = window;
                 </div>
                 <div class="p-4 bg-white/10 flex flex-col gap-2 text-sm">
                     <div class="flex justify-between items-center">
-                        <label>FT:</label>
+                        <label>FT (max: 999):</label>
                         <input type="text" v-model.number="roomOptions.ft" class="w-12 px-1 bg-white/20 text-right" />
                     </div>
                     <div class="flex justify-between items-center">
@@ -972,12 +972,12 @@ const resizeTarget = window;
                             class="w-12 px-1 bg-white/20 text-right" />
                     </div>
                     <div class="flex justify-between items-center">
-                        <label>Start Margin:</label>
+                        <label>Start Margin (secs):</label>
                         <input type="text" v-model.number="roomOptions.startMargin"
                             class="w-12 px-1 bg-white/20 text-right" />
                     </div>
                     <div class="flex justify-between items-center">
-                        <label>End Margin:</label>
+                        <label>End Margin (secs):</label>
                         <input type="text" v-model.number="roomOptions.endMargin"
                             class="w-12 px-1 bg-white/20 text-right" />
                     </div>
