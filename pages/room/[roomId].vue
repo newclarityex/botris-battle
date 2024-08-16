@@ -238,8 +238,8 @@ async function startRenderingSession(sessionId: string) {
             queue: fullQueue,
         };
 
-        // if each move is less than 10 ms, dont interpolate
-        if (commandDelay > 10) {
+        // if each move is less than 16 ms, dont interpolate
+        if (commandDelay > 16) {
             renderDamage(playerGraphics, prevGameState);
             renderState(playerGraphics, getPublicGameState(tempGameState));
             for (const command of commands as Command[]) {
@@ -386,21 +386,6 @@ onMounted(async () => {
             }
             case "round_over": {
                 publicRoomData.value = data.payload.roomData;
-                renderQueueMap.forEach((renderQueue, sessionId) => {
-                    const queue = renderQueue.splice(0, renderQueue.length);
-                    if (queue.length > 0) {
-                        const playerGraphics = allPlayerGraphics.value.find(
-                            (p) => p.id === sessionId
-                        ) as PlayerGraphics | undefined;
-
-                        if (!playerGraphics)
-                            return console.error("player graphics not found");
-
-                        const gameState = queue[queue.length - 1].gameState;
-                        renderState(playerGraphics, gameState);
-                        renderDamage(playerGraphics, gameState);
-                    };
-                });
                 break;
             }
             case "game_over": {

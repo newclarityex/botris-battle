@@ -136,6 +136,8 @@ export function requestMove(player: PlayerData, room: RoomData) {
 }
 
 export async function startRound(room: RoomData) {
+	if (room.players.size < 2) return;
+
 	for (const player of room.players.values()) {
 		if (!player.playing) return;
 
