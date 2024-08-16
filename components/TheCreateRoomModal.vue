@@ -36,7 +36,7 @@ async function createRoom(event: Event) {
             <form @submit.prevent="createRoom" class="flex flex-col items-center gap-4">
                 <div class="w-full gap-4 flex flex-row items-center justify-between">
                     <label for="room-ft">FT (max: 999)</label>
-                    <input type="number" id="room-ft" class="bg-black/40 w-12 px-1" required v-model="roomData.ft">
+                    <input type="number" id="room-ft" class="bg-black/40 w-16 px-1" required v-model="roomData.ft">
                 </div>
                 <div class="w-full gap-4 flex flex-row items-center justify-between">
                     <label for="pps">PPS (max: 30)</label>

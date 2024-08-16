@@ -193,11 +193,11 @@ const renderQueueMap: Map<string, {
 }[]> = new Map();
 
 const currentlyRendering: Set<string> = new Set();
-const FORCE_UPDATE_PIECES = 10;
+const FORCE_UPDATE_PIECES = 5;
 
 async function startRenderingSession(sessionId: string) {
     const renderQueue = renderQueueMap.get(sessionId)!;
-    const ppsDelay = 1000 / publicRoomData.value.pps;
+    const ppsDelay = 1000 / Math.max(publicRoomData.value.pps, 1);
 
     currentlyRendering.add(sessionId);
 
