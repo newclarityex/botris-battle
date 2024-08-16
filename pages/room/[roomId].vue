@@ -11,13 +11,12 @@ import {
     onKeyStroke,
 } from "@vueuse/core";
 import type { PlayerGraphics } from "@/utils/graphics";
-import { renderClearName, renderComboEffect, renderDamage, renderState } from "@/utils/graphics";
+import { renderClearName, renderComboEffect, renderDamage, renderState, CELL_SIZE } from "@/utils/graphics";
 import { AUDIO_SOURCES } from "~/server/utils/audio";
-import { Application, useApplication } from "vue3-pixi";
+import { Application } from "vue3-pixi";
 import type { ApplicationInst } from "vue3-pixi";
-import { getBoardBumpiness, getBoardAvgHeight, executeCommand, type GameState, type Command, getPublicGameState, type PublicGameState, type GameEvent } from "libtris";
+import { executeCommand, type GameState, type Command, getPublicGameState, type PublicGameState, type GameEvent } from "libtris";
 import FontFaceObserver from "fontfaceobserver";
-import { Text } from "pixi.js";
 
 const { status, profile } = toRefs(useAuthStore());
 
