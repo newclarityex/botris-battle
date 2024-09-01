@@ -33,7 +33,7 @@ async function handleRegister(event: Event) {
             </div>
             <div class="flex">
                 <input type="text" id="creator" v-model="registerData.creator"
-                    class="bg-black/40 p-1 text-lg text-center" placeholder="Creator/Team Name" required />
+                    class="bg-black/40 p-1 text-lg text-center" placeholder="Team Name" required />
             </div>
             <!-- <AvatarEditor v-model="avatar" /> -->
             <div class="flex gap-8">
