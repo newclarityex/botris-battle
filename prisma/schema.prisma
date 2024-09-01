@@ -30,25 +30,31 @@ model User {
   githubId Int       @unique
   Profile  Profile?
   Session  Session[]
+  Bots     Bot[]
 }
 
 model Profile {
-  id       String     @id
-  User     User       @relation(fields: [id], references: [id])
-  creator  String
-  name     String
-  email    String?    @unique
-  avatar   Json?
-  ApiToken ApiToken[]
+  id           String  @id
+  User         User    @relation(fields: [id], references: [id])
+  displayName String
+  email        String? @unique
+}
+
+model Bot {
+  id         String     @id @default(uuid())
+  botName    String
+  avatar     Json?
+  developers User[]
+  apiTokens  ApiToken[]
 }
 
 model ApiToken {
-  token     String    @id @default(uuid())
-  name      String?
-  Profile   Profile   @relation(fields: [profileId], references: [id])
-  profileId String
-  temp      Boolean   @default(false)
-  expires   DateTime?
+  token   String    @id @default(uuid())
+  name    String?
+  Bot     Bot       @relation(fields: [botId], references: [id])
+  botId   String
+  temp    Boolean   @default(false)
+  expires DateTime?
 }
 
 model RoomKey {
