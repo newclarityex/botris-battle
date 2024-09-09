@@ -33,27 +33,21 @@ interface DatabaseUserAttributes {
 
 export const github = new GitHub(process.env.GITHUB_CLIENT_ID!, process.env.GITHUB_CLIENT_SECRET!);
 
-export async function checkAuthToken(token: string) {
-    const apiToken = await prisma.apiToken.findUnique({
+export async function checkBotToken(token: string) {
+    const botToken = await prisma.botToken.findUnique({
         where: {
             token,
-            OR: [
-                {
-                    expires: null
-                },
-                {
-                    expires: {
-                        gt: new Date()
-                    }
-                }
-            ]
         },
         include: {
-            Profile: true
+            Bot: {
+                include: {
+                    developers: true,
+                }
+            },
         }
     });
 
-    return apiToken?.Profile ?? null;
+    return botToken?.Bot ?? null;
 }
 
 export async function checkAuth(user: User | null) {

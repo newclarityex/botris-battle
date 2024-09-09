@@ -40,6 +40,13 @@ export default defineEventHandler(async (event) => {
 		});
 	};
 
+    if (room.host.id !== profile.id) {
+        throw createError({
+            statusCode: 401,
+            statusMessage: "You aren't the host for this room."
+        });
+    };
+
 	room.pps = data.pps;
 	room.initialMultiplier = data.initialMultiplier;
 	room.finalMultiplier = data.finalMultiplier;

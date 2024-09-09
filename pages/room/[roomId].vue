@@ -11,12 +11,13 @@ import {
     onKeyStroke,
 } from "@vueuse/core";
 import type { PlayerGraphics } from "@/utils/graphics";
-import { renderClearName, renderComboEffect, renderDamage, renderState, CELL_SIZE } from "@/utils/graphics";
+import { renderAvatar, renderClearName, renderComboEffect, renderDamage, renderState, CELL_SIZE } from "@/utils/graphics";
 import { AUDIO_SOURCES } from "~/server/utils/audio";
 import { Application } from "vue3-pixi";
 import type { ApplicationInst } from "vue3-pixi";
 import { executeCommand, type GameState, type Command, getPublicGameState, type PublicGameState, type GameEvent } from "libtris";
 import FontFaceObserver from "fontfaceobserver";
+import { getBotCreator } from "~/utils/general";
 
 const { status, profile } = toRefs(useAuthStore());
 
@@ -53,8 +54,7 @@ const publicRoomData = ref<PublicRoomData>(initialRoomData);
 const allPlayerGraphics = ref<PlayerGraphics[]>([]);
 allPlayerGraphics.value = initialRoomData.players.map((player) => ({
     id: player.sessionId,
-    name: player.info.bot,
-    creator: player.info.creator,
+    info: player.info,
     boardContainer: null,
     effectsContainer: null,
     heldContainer: null,
@@ -324,14 +324,12 @@ async function startRenderingSession(sessionId: string) {
 }
 
 onMounted(async () => {
-    // resizeRenderer();
-
     const urlParams = new URLSearchParams();
     urlParams.append("roomId", roomId as string);
     urlParams.append("spectate", "true");
 
     const runtimeConfig = useRuntimeConfig();
-    const wsUrl = runtimeConfig.public.environment === "production" ? `wss://${location.host}/ws?${urlParams.toString()}` : `ws://localhost:8080/api/ws?${urlParams.toString()}`;
+    const wsUrl = runtimeConfig.public.environment === "production" ? `wss://${location.host}/ws?${urlParams.toString()}` : `ws://localhost:8080/ws?${urlParams.toString()}`;
     ws = new WebSocket(wsUrl);
 
     ws.addEventListener("close", (event) => {
@@ -405,8 +403,7 @@ onMounted(async () => {
 
                 allPlayerGraphics.value.push({
                     id: playerData.sessionId,
-                    name: playerData.info.bot,
-                    creator: playerData.info.creator,
+                    info: playerData.info,
                     boardContainer: null,
                     effectsContainer: null,
                     heldContainer: null,
@@ -479,12 +476,12 @@ onMounted(async () => {
                 break;
             }
             case "player_banned": {
-                publicRoomData.value.banned.push(data.payload.playerInfo);
+                publicRoomData.value.banned.push(data.payload.botInfo);
                 break;
             }
             case "player_unbanned": {
                 publicRoomData.value.banned = publicRoomData.value.banned.filter(
-                    (banned) => banned.userId !== data.payload.playerInfo.userId
+                    (banned) => banned.id !== data.payload.botInfo.id
                 );
                 break;
             }
@@ -727,6 +724,29 @@ const resizeTarget = window;
                     ]" />
                 <container :x="width / 2" :y="height / 2" :scale="scale" ref="scaledContainer">
                     <container :y="-425">
+                        <!-- <container v-if="allPlayerGraphics[0]" :ref="(container: PIXI.Container) => {
+                            container.removeChildren();
+
+                            const avatar = renderAvatar(allPlayerGraphics[0].info.avatar);
+                            avatar.scale.set(0.39);
+
+                            avatar.y -= avatar.height / 2;
+                            avatar.x -= avatar.width;
+                            avatar.x -= 650 / 2 + 10;
+
+                            container.addChild(avatar);
+                            }" />
+                        <container v-if="allPlayerGraphics[1]" :ref="(container: PIXI.Container) => {
+                            container.removeChildren();
+
+                            const avatar = renderAvatar(allPlayerGraphics[1].info.avatar);
+                            avatar.scale.set(0.39);
+
+                            avatar.y -= avatar.height / 2;
+                            avatar.x += 650 / 2 + 10;
+
+                            container.addChild(avatar);
+                            }" /> -->
                         <graphics :pivotX="650 / 2" :pivotY="100 / 2" @render="(graphics: PIXI.Graphics) => {
                             graphics.clear();
                             graphics.beginFill(0x000000, 0.2);
@@ -791,11 +811,11 @@ const resizeTarget = window;
                                     graphics.endFill();
                                 }" />
                                 <!-- Effects Container -->
-                                <container :ref="(el: any) => board.effectsContainer = el" />
+                                <container :ref="(el: PIXI.Container) => board.effectsContainer = el" />
                                 <!-- Board Container -->
-                                <container :ref="(el: any) => board.boardContainer = el" :sortable-children="true" />
+                                <container :ref="(el: PIXI.Container) => board.boardContainer = el" :sortable-children="true" />
                                 <!-- Damage Bar Graphic -->
-                                <graphics :ref="(el: any) => board.damageBar = el" :z-index="2" />
+                                <graphics :ref="(el: PIXI.Graphics) => board.damageBar = el" :z-index="2" />
                                 <text :anchorX="0.5" :anchorY="0.5" :x="10 * CELL_SIZE / 2" :y="200" :style="{
                                     fill: 'white',
                                     fontSize: '48px',
@@ -812,6 +832,7 @@ const resizeTarget = window;
                                     winner
                                 </text>
                             </container>
+                            <!-- Bot Name -->
                             <container :y="21 * CELL_SIZE + 12">
                                 <graphics :pivotX="(10 * CELL_SIZE) / 2" @render="(graphics: PIXI.Graphics) => {
                                     graphics.clear();
@@ -831,9 +852,10 @@ const resizeTarget = window;
                                     fontSize: 24,
                                     lineHeight: 50,
                                 }">
-                                    {{ board.name }}
+                                    {{ board.info.name }}
                                 </text>
                             </container>
+                            <!-- Bot Creator -->
                             <container :y="21 * CELL_SIZE + 74">
                                 <graphics :pivotX="(10 * CELL_SIZE) / 2" @render="(graphics: PIXI.Graphics) => {
                                     graphics.clear();
@@ -853,9 +875,33 @@ const resizeTarget = window;
                                     fontSize: 20,
                                     lineHeight: 36,
                                 }">
-                                    {{ board.creator }}
+                                    {{ getBotCreator(board.info) }}
                                 </text>
                             </container>
+                            <!-- Bot Avatar -->
+                             
+                        <container :y="21 * CELL_SIZE + 12" :ref="(container: PIXI.Container) => {
+                            container.removeChildren();
+
+                            const avatar = renderAvatar(board.info.avatar);
+                            avatar.scale.set(0.3075);
+
+                            avatar.x += 100;
+                            avatar.x -= avatar.width / 2;
+                            avatar.x += 5 * CELL_SIZE + 20;
+                            // if (index === 0) {
+                            //     // avatar.x -= avatar.width;
+                            //     // avatar.x -= 5 * CELL_SIZE + 20;
+                            //     avatar.x += 100;
+                            //     avatar.x -= avatar.width / 2;
+                            //     avatar.x += 5 * CELL_SIZE + 20;
+                            // } else if (index === 1) {
+                            //     avatar.x += 5 * CELL_SIZE + 20;
+                            // }
+
+                            container.addChild(avatar);
+                            }" />
+                            <!-- Stats -->
                             <container :x="-5 * CELL_SIZE - 20" :pivotX="200" :pivotY="0">
                                 <graphics :pivot="0" @render="(graphics: PIXI.Graphics) => {
                                     graphics.clear();
@@ -919,7 +965,7 @@ const resizeTarget = window;
                 </container>
             </Application>
         </div>
-        <dialog ref="gameMenu" v-if="publicRoomData && publicRoomData.host.userId === profile?.id
+        <dialog ref="gameMenu" v-if="publicRoomData && publicRoomData.host.id === profile?.id
         " class="bg-black/40 backdrop:bg-black/20 backdrop:backdrop-blur-sm">
             <div class="p-6 flex flex-col gap-4 w-[520px] text-white">
                 <div class="text-white text-center text-lg">
@@ -999,29 +1045,29 @@ const resizeTarget = window;
                     <ul v-else class="flex flex-col gap-2 text-sm">
                         <li class="w-full flex justify-between" v-for="player in publicRoomData.players ">
                             <div>
-                                {{ player.info.bot }}
+                                {{ player.info.name }}
                                 <span class="opacity-50">
-                                    {{ player.info.creator }}
+                                    {{ getBotCreator(player.info) }}
                                 </span>
                             </div>
                             <div class="flex gap-2">
                                 <button class="underline" @click="kickPlayer(player.sessionId)">
                                     Kick
                                 </button>
-                                <button class="underline" @click="banPlayer(player.info.userId)">
+                                <button class="underline" @click="banPlayer(player.info.id)">
                                     Ban
                                 </button>
                             </div>
                         </li>
                         <li class="flex justify-between" v-for=" player in publicRoomData.banned">
                             <div class="text-red-400">
-                                {{ player.bot }}
+                                {{ player.name }}
                                 <span class="opacity-50">
-                                    {{ player.creator }}
+                                    {{ getBotCreator(player) }}
                                 </span>
                             </div>
                             <div class="flex gap-2">
-                                <button class="underline" @click="unbanPlayer(player.userId)">
+                                <button class="underline" @click="unbanPlayer(player.id)">
                                     Unban
                                 </button>
                             </div>

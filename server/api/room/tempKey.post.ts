@@ -35,12 +35,12 @@ export default defineEventHandler(async (event) => {
 		});
 	}
 
-	if (room.host.userId !== profile.id) {
-		throw createError({
-			statusCode: 403,
-			message: "You are not the owner of this room",
-		});
-	}
+    if (room.host.id !== profile.id) {
+        throw createError({
+            statusCode: 401,
+            statusMessage: "You aren't the host for this room."
+        });
+    };
 
 	const roomKey = await prisma.roomKey.create({
 		data: {

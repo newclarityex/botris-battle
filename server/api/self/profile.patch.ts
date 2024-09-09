@@ -1,19 +1,8 @@
 import { z } from 'zod';
 import { prisma } from '@/server/utils/prisma';
 
-const RegisterSchema = z.object({
-    avatar: z.union([
-        z.literal('I'),
-        z.literal('O'),
-        z.literal('L'),
-        z.literal('J'),
-        z.literal('S'),
-        z.literal('Z'),
-        z.literal('T'),
-        z.literal(null),
-    ]).array().length(8).array().length(8),
-    name: z.string(),
-    creator: z.string(),
+const ProfileSchema = z.object({
+    displayName: z.string().min(1).max(32),
 });
 
 export default defineEventHandler(async (event) => {
@@ -25,7 +14,7 @@ export default defineEventHandler(async (event) => {
 		});
 	}
 
-    const body = await readValidatedBody(event, body => RegisterSchema.safeParse(body));
+    const body = await readValidatedBody(event, body => ProfileSchema.safeParse(body));
 	if (!body.success) {
 		throw createError({
 			statusCode: 400,
@@ -34,15 +23,12 @@ export default defineEventHandler(async (event) => {
 	};
 	const data = body.data;
 
-
     const newProfile = await prisma.profile.update({
         where: {
             id: profile.id
         },
         data: {
-            creator: data.creator,
-            name: data.name,
-            avatar: data.avatar,
+            displayName: data.displayName,
         }
     });
 

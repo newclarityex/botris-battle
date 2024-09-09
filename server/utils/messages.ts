@@ -1,6 +1,7 @@
 import { z } from "zod";
-import type { PlayerInfo, PublicPlayerData, PublicRoomData } from "./rooms";
+import type { PublicPlayerData, PublicRoomData } from "./rooms";
 import type { Command, GameEvent, PublicGameState } from "libtris";
+import type { PublicBot } from "~/utils/general";
 
 export const AuthSchema = z.object({
 	type: z.literal("auth"),
@@ -63,25 +64,19 @@ export type GeneralServerMessage =
 	| {
 		type: "player_banned";
 		payload: {
-			playerInfo: PlayerInfo
+			botInfo: PublicBot
 		};
 	}
 	| {
 		type: "player_unbanned";
 		payload: {
-			playerInfo: PlayerInfo
+			botInfo: PublicBot
 		};
 	}
 	| {
 		type: "settings_changed";
 		payload: {
 			roomData: PublicRoomData
-		};
-	}
-	| {
-		type: "host_changed";
-		payload: {
-			hostInfo: PlayerInfo;
 		};
 	}
 	| {
@@ -123,7 +118,7 @@ export type GeneralServerMessage =
 		type: "round_over";
 		payload: {
 			winnerId: string;
-			winnerInfo: PlayerInfo;
+			winnerInfo: PublicBot;
 			roomData: PublicRoomData;
 		};
 	}
@@ -131,7 +126,7 @@ export type GeneralServerMessage =
 		type: "game_over";
 		payload: {
 			winnerId: string;
-			winnerInfo: PlayerInfo;
+			winnerInfo: PublicBot;
 			roomData: PublicRoomData;
 		};
 	}

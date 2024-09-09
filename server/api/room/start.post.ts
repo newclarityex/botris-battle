@@ -30,7 +30,7 @@ export default defineEventHandler(async (event) => {
         });
     };
 
-    if (room.host.userId !== profile.id) {
+    if (room.host.id !== profile.id) {
         throw createError({
             statusCode: 403,
             statusMessage: "You are not the host of this room."

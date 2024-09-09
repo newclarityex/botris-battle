@@ -1,15 +1,12 @@
-import { getPieceMatrix, type PublicGameState } from 'libtris';
+import { getPieceMatrix } from 'libtris';
 import * as PIXI from 'pixi.js';
-import type { ClearName, PieceData } from 'libtris'
+import type { ClearName, PieceData, PublicGameState } from 'libtris'
+import { ease } from 'pixi-ease';
+import type { Bot } from '@prisma/client';
 
 export const CELL_SIZE = 32;
 const BOARD_HEIGHT = 21;
 const PIECE_BORDER_SIZE = 4;
-
-const CONTAINER_OFFSET = {
-    x: 100,
-    y: 300,
-};
 
 const HELD_DIMENSIONS = {
     width: 200,
@@ -25,146 +22,19 @@ const BOARD_DIMENSIONS = {
     height: 21 * CELL_SIZE,
 };
 
-const QUEUE_DIMENSIONS = {
-    x: BOARD_DIMENSIONS.x + BOARD_DIMENSIONS.width + 20,
-    y: 0,
-    width: 200,
-    height: BOARD_DIMENSIONS.height,
-};
-
-const TEXT_RESOLUTION = 8;
-
 export type PlayerGraphics = {
     id: string;
-    name: string;
-    creator: string;
+    info: PublicBot;
     heldContainer: PIXI.Container | null;
     boardContainer: PIXI.Container | null;
     effectsContainer: PIXI.Container | null;
     queueContainer: PIXI.Container | null;
     damageBar: PIXI.Graphics | null;
 };
-// export function renderPlayers(pixiApp: PIXI.Application, playersContainer: PIXI.Container, players: PublicPlayerData[]) {
-//     playersContainer.removeChildren();
-
-//     const allPlayerGraphics: Map<string, PlayerGraphics> = new Map();
-//     for (const [index, player] of players.entries()) {
-//         const mainContainer = new PIXI.Container();
-
-//         const heldContainer = new PIXI.Container();
-//         heldContainer.sortableChildren = true;
-//         const heldGraphics = new PIXI.Container();
-//         heldContainer.x = HELD_DIMENSIONS.x;
-//         heldContainer.y = HELD_DIMENSIONS.y;
-//         heldContainer.addChild(heldGraphics);
-//         mainContainer.addChild(heldContainer);
-
-//         const boardContainer = new PIXI.Container();
-//         boardContainer.sortableChildren = true;
-//         const boardGraphics = new PIXI.Container();
-//         boardGraphics.sortableChildren = true;
-//         const boardEffects = new PIXI.Container();
-//         boardEffects.zIndex = -1;
-//         boardContainer.x = BOARD_DIMENSIONS.x;
-//         boardContainer.y = BOARD_DIMENSIONS.y;
-//         boardContainer.addChild(boardGraphics);
-//         boardContainer.addChild(boardEffects);
-//         mainContainer.addChild(boardContainer);
-
-//         const avatarContainer = renderAvatar(player.info.avatar)
-//         avatarContainer.scale.set(0.5);
-//         const bounds = avatarContainer.getLocalBounds();
-//         avatarContainer.pivot.x = bounds.width / 2;
-//         avatarContainer.pivot.y = bounds.height;
-//         avatarContainer.x = BOARD_DIMENSIONS.width / 2;
-//         avatarContainer.y = -86;
-//         boardContainer.addChild(avatarContainer);
-
-//         const queueContainer = new PIXI.Container();
-//         queueContainer.sortableChildren = true;
-//         const queueGraphics = new PIXI.Container();
-//         queueContainer.x = QUEUE_DIMENSIONS.x;
-//         queueContainer.y = QUEUE_DIMENSIONS.y;
-//         queueContainer.addChild(queueGraphics);
-//         mainContainer.addChild(queueContainer);
-
-//         const heldBg = new PIXI.Graphics();
-//         heldBg.beginFill(0x000000, 0.25);
-//         heldBg.drawRect(0, 0, HELD_DIMENSIONS.width, HELD_DIMENSIONS.height);
-//         heldBg.zIndex = -1;
-//         heldContainer.addChild(heldBg);
-
-//         const heldText = new PIXI.Text('[held]', {
-//             fill: 0xFFFFFF,
-//             fontSize: 32,
-//             fontFamily: 'Fira Mono',
-//         });
-//         heldText.resolution = TEXT_RESOLUTION;
-//         heldText.x = HELD_DIMENSIONS.width / 2 - heldText.width / 2;
-//         heldText.y = 24;
-//         heldContainer.addChild(heldText);
-
-//         const boardBg = new PIXI.Graphics();
-//         boardBg.beginFill(0x000000, 0.5);
-//         boardBg.drawRect(0, 0, BOARD_DIMENSIONS.width, BOARD_DIMENSIONS.height);
-//         boardBg.zIndex = -2;
-//         boardContainer.addChild(boardBg);
-
-//         const queueBg = new PIXI.Graphics();
-//         queueBg.beginFill(0x000000, 0.25);
-//         queueBg.drawRect(0, 0, QUEUE_DIMENSIONS.width, QUEUE_DIMENSIONS.height);
-//         queueBg.zIndex = -1;
-//         queueContainer.addChild(queueBg);
-
-//         const queueText = new PIXI.Text('[queue]', {
-//             fill: 0xFFFFFF,
-//             fontSize: 32,
-//             fontFamily: 'Fira Mono',
-//         });
-//         queueText.resolution = TEXT_RESOLUTION;
-//         queueText.x = QUEUE_DIMENSIONS.width / 2 - queueText.width / 2;
-//         queueText.y = 24;
-//         queueContainer.addChild(queueText);
-
-//         playersContainer.addChild(mainContainer);
-
-//         const playerGraphics: PlayerGraphics = {
-//             mainContainer,
-//             held: {
-//                 container: heldContainer,
-//                 graphics: heldGraphics,
-//             },
-//             board: {
-//                 container: boardContainer,
-//                 graphics: boardGraphics,
-//                 effects: boardEffects,
-//             },
-//             queue: {
-//                 container: queueContainer,
-//                 graphics: queueGraphics,
-//             },
-//         };
-
-//         renderState(playerGraphics, player.gameState);
-
-//         if (index === 0) {
-//             mainContainer.x = CONTAINER_OFFSET.x;
-//             mainContainer.y = CONTAINER_OFFSET.y;
-//         } else if (index === 1) {
-//             // Right Align
-//             mainContainer.x = pixiApp.screen.width - CONTAINER_OFFSET.x - mainContainer.width;
-//             mainContainer.y = CONTAINER_OFFSET.y;
-//         }
-
-//         allPlayerGraphics.set(player.sessionId, playerGraphics);
-//     }
-
-//     return allPlayerGraphics;
-// }
 
 type Block = "I" | "J" | "L" | "O" | "S" | "T" | "Z" | "G" | null;
 
-const PIECE_COLORS = {
+export const PIECE_COLORS = {
     "G": "#8a8a8a",
     "Z": "#ff004d",
     "L": "#f69504",
@@ -384,9 +254,6 @@ export function renderDamage(playerGraphics: PlayerGraphics, gameState: PublicGa
     damageBar.y = BOARD_HEIGHT * CELL_SIZE;
 }
 
-// import placedEffect from "@/public/images/placedEffect.png";
-import { ease } from 'pixi-ease';
-import type { PublicRoomData } from '~/server/utils/rooms';
 export function renderPlacedEffect(playerGraphics: PlayerGraphics, piece: PieceData) {
     const { effectsContainer } = playerGraphics;
     if (effectsContainer === null) return;

@@ -1,10 +1,9 @@
 <script setup lang="ts">
-import { renderBlock } from '@/utils/graphics'
+import { renderBlock, CELL_SIZE } from '@/utils/graphics'
 import * as PIXI from 'pixi.js'
-import { CELL_SIZE } from '@/utils/graphics'
+import { AVATAR_SIZE } from '@/utils/avatar';
 
-type Piece = 'I' | 'O' | 'J' | 'L' | 'S' | 'Z' | 'T';
-const CELL_NUMBER: number = 8;
+type Piece = 'I' | 'O' | 'J' | 'L' | 'S' | 'Z' | 'T' | 'G';
 
 type Block = Piece | null
 
@@ -18,8 +17,8 @@ onMounted(() => {
     if (!canvas.value) return
 
     pixiApp.value = new PIXI.Application({
-        width: CELL_SIZE * CELL_NUMBER,
-        height: CELL_SIZE * CELL_NUMBER,
+        width: CELL_SIZE * AVATAR_SIZE,
+        height: CELL_SIZE * AVATAR_SIZE,
         backgroundColor: 0x000000,
         view: canvas.value,
     });
@@ -30,8 +29,8 @@ async function renderBoard(board: Block[][]) {
 
     pixiApp.value.stage.removeChildren()
 
-    for (let y = 0; y < CELL_NUMBER; y++) {
-        for (let x = 0; x < CELL_NUMBER; x++) {
+    for (let y = 0; y < AVATAR_SIZE; y++) {
+        for (let x = 0; x < AVATAR_SIZE; x++) {
             const block = board[y][x]
             if (block === null) continue
 
@@ -51,5 +50,5 @@ watchEffect(() => {
 </script>
 
 <template>
-    <canvas class="editor-avatar" ref="canvas" :width="CELL_SIZE * CELL_NUMBER" :height="CELL_SIZE * CELL_NUMBER"></canvas>
+    <canvas class="editor-avatar" ref="canvas" :width="CELL_SIZE * AVATAR_SIZE" :height="CELL_SIZE * AVATAR_SIZE"></canvas>
 </template>

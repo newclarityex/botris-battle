@@ -31,12 +31,12 @@ export default defineEventHandler(async (event) => {
         });
     }
 
-    if (room.host.userId !== profile.id) {
+    if (room.host.id !== profile.id) {
         throw createError({
-            statusCode: 403,
-            message: 'You are not the owner of this room'
+            statusCode: 401,
+            statusMessage: "You aren't the host for this room."
         });
-    }
+    };
 
     const roomKey = await prisma.roomKey.findFirst({
         where: {

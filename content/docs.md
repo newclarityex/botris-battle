@@ -85,7 +85,7 @@ When a player gets banned, the server will send:
 {
     type: "player_banned";
     payload: {
-        playerInfo: <a href="#playerinfo" class="type-link">PlayerInfo</a>
+        botInfo: <a href="#botinfo" class="type-link">BotInfo</a>
     };
 }
 </pre>
@@ -95,7 +95,7 @@ When a player gets unbanned, the server will send:
 {
     type: "player_unbanned";
     payload: {
-        playerInfo: <a href="#playerinfo" class="type-link">PlayerInfo</a>
+        botInfo: <a href="#botinfo" class="type-link">BotInfo</a>
     };
 }
 </pre>
@@ -106,16 +106,6 @@ When the room settings are changed, the server will send:
     type: "settings_changed";
     payload: {
         roomData: <a href="#roomdata" class="type-link">RoomData</a>
-    };
-}
-</pre>
-
-When the host is transfered, the server will send:
-<pre class='code'>
-{
-    type: "host_changed";
-    payload: {
-        hostInfo: PlayerInfo;
     };
 }
 </pre>
@@ -223,7 +213,7 @@ When a round is over, the winner is sent using:
     type: "round_over";
     payload: {
         winnerId: <a href="#sessionid" class="type-link">SessionId</a>;
-        winnerInfo: <a href="#playerinfo" class="type-link">PlayerInfo</a>;
+        winnerInfo: <a href="#botinfo" class="type-link">BotInfo</a>;
         roomData: <a href="#roomdata" class="type-link">RoomData</a>;
     }
 }
@@ -236,7 +226,7 @@ When the game is over, the winner is sent using:
     type: "game_over";
     payload: {
         winnerId: <a href="#sessionid" class="type-link">SessionId</a>;
-        winnerInfo: <a href="#playerinfo" class="type-link">PlayerInfo</a>;
+        winnerInfo: <a href="#botinfo" class="type-link">BotInfo</a>;
         roomData: <a href="#roomdata" class="type-link">RoomData</a>;
     }
 }
@@ -284,7 +274,10 @@ type SessionId = string;
 <pre class='code'>
 {
 	id: string;
-	host: <a href="#playerinfo" class="type-link">PlayerInfo</a>;
+	host: {
+		id: string;
+		displayName: string;
+	};
 	private: boolean;
 	ft: number;
 	pps: number;
@@ -299,7 +292,7 @@ type SessionId = string;
 	endedAt: number | null;
 	lastWinner: <a href="#sessionid" class="type-link">SessionId</a> | null;
 	players: <a href="#playerdata" class="type-link">PlayerData</a>[];
-	banned: <a href="#playerinfo" class="type-link">PlayerInfo</a>[];
+	banned: <a href="#botinfo" class="type-link">BotInfo</a>[];
 }
 </pre>
 
@@ -309,19 +302,25 @@ type SessionId = string;
 {
 	sessionId: <a href="#sessionid" class="type-link">SessionId</a>;
 	playing: boolean;
-	info: <a href="#playerinfo" class="type-link">PlayerInfo</a>;
+	info: <a href="#botinfo" class="type-link">BotInfo</a>;
 	wins: number;
 	gameState: <a href="#gamestate" class="type-link">GameState</a> | null;
 }
 </pre>
 
-### PlayerInfo
+### BotInfo
 
 <pre class='code'>
 {
-    userId: string;
-    creator: string;
-    bot: string;
+	id: string;
+	name: string;
+	avatar: Avatar;
+	team: string | null;
+	language: string | null;
+	eval: string | null;
+	movegen: string | null;
+	search: string | null;
+	developers: { id: string, displayName: string }[];
 }
 </pre>
 

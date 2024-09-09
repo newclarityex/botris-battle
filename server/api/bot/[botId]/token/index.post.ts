@@ -5,7 +5,6 @@ const CreateTokenSchema = z.object({
     name: z.string(),
 });
 
-
 export default defineEventHandler(async (event) => {
 	const profile = await checkAuth(event.context.user);
 	if (!profile) {
@@ -24,9 +23,32 @@ export default defineEventHandler(async (event) => {
 	};
 	const data = body.data;
 
-    const token = await prisma.apiToken.create({
+    const botId = getRouterParam(event, 'botId');
+	if (botId === undefined) {
+		throw createError({
+			statusCode: 400,
+			statusMessage: "Missing botId."
+		});
+	}
+
+	const bot = await prisma.bot.findFirst({
+        where: {
+            id: botId,
+        },
+        include: {
+            developers: true,
+        }
+    });
+	if (bot?.developers.find(dev => dev.id === profile.id) == null) {
+        throw createError({
+			statusCode: 403,
+            statusMessage: "You aren't a developer for this bot.",
+        });
+    };
+
+    const token = await prisma.botToken.create({
         data: {
-            profileId: profile.id,
+            botId: botId,
             name: data.name,
         }
     });

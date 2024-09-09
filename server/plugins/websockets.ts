@@ -10,8 +10,8 @@ import {
     startRound,
     checkWinner,
 } from "~/server/utils/rooms";
-import type { Connection } from "~/server/utils/rooms";
-import { checkAuthToken } from "../utils/auth";
+import type { Connection, PlayerData } from "~/server/utils/rooms";
+import { checkBotToken } from "../utils/auth";
 import {
     PlayerMessageSchema,
 } from "../utils/messages";
@@ -24,7 +24,6 @@ import {
     getPublicGameState,
     queueGarbage,
 } from "libtris";
-import type { Block } from "~/utils/game";
 
 interface IDWebSocket extends WebSocket {
     id?: string;
@@ -38,9 +37,9 @@ async function authenticateWs(
 ) {
     if (!ws.id) return null;
 
-    const profile = await checkAuthToken(token);
+    const bot = await checkBotToken(token);
 
-    if (!profile) return null;
+    if (!bot) return null;
 
     // roomKey can be null when room is public.
     if (roomKey) {
@@ -68,12 +67,7 @@ async function authenticateWs(
         token,
         status: "idle",
         roomId,
-        info: {
-            userId: profile.id,
-            creator: profile.creator,
-            bot: profile.name,
-            avatar: profile.avatar as Block[][],
-        },
+        info: toPublicBot(bot),
     };
 
     connections.set(ws.id, connection);
@@ -408,10 +402,9 @@ export default defineNitroPlugin((event) => {
             return;
         }
 
-        const playerData = {
+        const playerData: PlayerData = {
             sessionId: connection.id,
             ws,
-            ready: false,
             playing: false,
             wins: 0,
             gameState: null,
