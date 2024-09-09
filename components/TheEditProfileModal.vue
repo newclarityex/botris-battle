@@ -20,6 +20,7 @@ async function handleRegister(event: Event) {
     });
 
     await authStore.tryAuthenticate();
+    emit('close')
 }
 </script>
 

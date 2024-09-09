@@ -14,9 +14,12 @@ async function signOut() {
 
     navigateTo("/")
 };
+
+const showEditProfile = ref(false);
 </script>
 
 <template>
+    <TheEditProfileModal @close="showEditProfile = false" v-if="showEditProfile" />
     <div class="w-full h-full">
         <div class="w-full h-full fixed pointer-events-none z-20" id="modals"></div>
         <TheRegisterProfileModal v-if="authStore.status === 'authenticated' && authStore.profile === null" />
@@ -38,6 +41,7 @@ async function signOut() {
                     <NuxtLink to="/bots" :class="{
                         'underline text-secondary': route.path !== '/bots'
                     }">Bots</NuxtLink>
+                    <button to="/bots" @click="showEditProfile = true" class="underline text-secondary">Config</button>
                     <button class="bg-white/20 p-2" @click="signOut">
                         Sign Out
                     </button>

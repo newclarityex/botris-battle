@@ -3,7 +3,7 @@ import { AVATAR_SIZE, type Avatar } from '@/utils/avatar'
 import { renderBlock, PIECE_COLORS, CELL_SIZE } from '@/utils/graphics'
 import * as PIXI from 'pixi.js'
 
-type Color = 'I' | 'O' | 'J' | 'L' | 'S' | 'Z' | 'T' | 'G' | null;
+type Color = 'I' | 'O' | 'J' | 'L' | 'S' | 'Z' | 'T' | 'G';
 
 const model = defineModel<Avatar>({ required: true });
 
@@ -16,7 +16,6 @@ onMounted(() => {
         width: CELL_SIZE * AVATAR_SIZE,
         height: CELL_SIZE * AVATAR_SIZE,
         backgroundColor: 0x000000,
-        backgroundAlpha: 0.25,
         view: canvas.value,
     });
 })
@@ -50,16 +49,18 @@ async function renderBoard(board: Block[][]) {
 }
 
 
-const selectedPiece = ref<Color>(null)
+const selectedPiece = ref<Color>("I")
 function setColor(color: Color) {
     selectedPiece.value = color;
 }
 
+const brushState = ref<'erase' | 'fill'>('fill');
 function handleMouseDown(event: MouseEvent) {
     const x = Math.floor(event.offsetX / CELL_SIZE)
     const y = Math.floor(event.offsetY / CELL_SIZE)
-    // hoveredCell.value = null
-    model.value[y][x] = selectedPiece.value
+    const selectedCell = model.value[y][x]
+    brushState.value = selectedCell ? 'erase' : 'fill'
+    drawCell(x, y)
 }
 
 function handleMouseMove(event: MouseEvent) {
@@ -71,9 +72,17 @@ function handleMouseMove(event: MouseEvent) {
         return
     }
     if (x >= 0 && y >= 0 && x < AVATAR_SIZE && y < AVATAR_SIZE) {
-        model.value[y][x] = selectedPiece.value
+        drawCell(x, y);
     }
 }
+
+function drawCell(x: number, y: number) {
+    if (brushState.value === 'erase') {
+        model.value[y][x] = null
+    } else {
+        model.value[y][x] = selectedPiece.value
+    }
+};
 
 function handleMouseLeave() {
     hoveredCell.value = null
@@ -106,13 +115,7 @@ const colors = ['I', 'O', 'J', 'L', 'S', 'Z', 'T', 'G'] as const;
         <canvas class="editor-avatar" @mousemove="handleMouseMove" @mousedown='handleMouseDown'
         @mouseleave="handleMouseLeave" ref="canvas" :width="CELL_SIZE * AVATAR_SIZE"
         :height="CELL_SIZE * AVATAR_SIZE"></canvas>
-        <div class="flex gap-1">
-                <button class="color-btn" @click='setColor(null)'
-                    type="button"
-                    :style="{ backgroundColor: 'black', borderColor: 'black', borderWidth: '4px', borderStyle: 'solid' }"
-                    :class="{ 'color-selected': selectedPiece === null }">
-                    <div class="w-full h-full" :style="{ backgroundColor: 'black', opacity: 0.5 }" />
-                </button>
+        <div class="flex gap-1.5">
             <div v-for="color in colors">
                 <button class="color-btn" @click='setColor(color)'
                     type="button"

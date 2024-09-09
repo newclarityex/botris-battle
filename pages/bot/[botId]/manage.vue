@@ -10,11 +10,11 @@ const botId = typeof route.params.botId === 'string' ? route.params.botId : '';
 const { data: botData, refresh: refreshBot } = await useFetch(`/api/bot/${route.params.botId}`);
 
 const editBotModal = ref(false);
-const owned = computed(() => botData.value !== null && botData.value.developers.find(
+const owned = computed(() => botData.value !== null && botData.value.developers.some(
     developer =>
         authStore.profile !== null &&
         developer.id === authStore.profile.id
-) !== null);
+));
 
 const { data: tokens, refresh: refreshTokens } = useFetch(`/api/bot/${botId}/tokens`);
 
@@ -62,9 +62,8 @@ async function createInvite() {
     const code = await $fetch(`/api/bot/${botId}/invite`, {
         method: "POST",
     });
-    console.log(code)
-    prompt("Copy Invite Link:", `${useRequestURL().origin}/invite/${code}`);
 
+    prompt("Copy Invite Link:", `${useRequestURL().origin}/invite/${code}`);
 }
 </script>
 

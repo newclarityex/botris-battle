@@ -42,27 +42,24 @@ const initialRoomData = await $fetch(`/api/room/info`, {
     return null;
 });
 
-if (!initialRoomData) {
-    throw createError({
-        statusCode: 404,
-        statusMessage: "Room not found",
-    });
-}
-
-const publicRoomData = ref<PublicRoomData>(initialRoomData);
+const publicRoomData = ref<PublicRoomData | null>(initialRoomData);
 
 const allPlayerGraphics = ref<PlayerGraphics[]>([]);
-allPlayerGraphics.value = initialRoomData.players.map((player) => ({
-    id: player.sessionId,
-    info: player.info,
-    boardContainer: null,
-    effectsContainer: null,
-    heldContainer: null,
-    queueContainer: null,
-    damageBar: null,
-}));
+if (initialRoomData !== null) {
+    allPlayerGraphics.value = initialRoomData.players.map((player) => ({
+        id: player.sessionId,
+        info: player.info,
+        boardContainer: null,
+        effectsContainer: null,
+        heldContainer: null,
+        queueContainer: null,
+        damageBar: null,
+    }));
+}
 
 function getPlayerStats() {
+    if (publicRoomData.value === null) return [];
+
     const { startedAt, endedAt } = publicRoomData.value;
     return publicRoomData.value.players.map((player) => {
         const { gameState } = player;
@@ -117,11 +114,13 @@ function getPlayerStats() {
 
 const playerStats = ref(getPlayerStats());
 useIntervalFn(() => {
+    if (publicRoomData.value === null) return;
     if (!publicRoomData.value.roundOngoing) return;
     playerStats.value = getPlayerStats();
 }, 1000 / 60);
 
 onMounted(() => {
+    if (initialRoomData === null) return;
     for (const player of initialRoomData.players) {
         const playerGraphics = allPlayerGraphics.value.find(
             (p) => p.id === player.sessionId
@@ -195,6 +194,8 @@ const currentlyRendering: Set<string> = new Set();
 const FORCE_UPDATE_PIECES = 3;
 
 async function startRenderingSession(sessionId: string) {
+    if (publicRoomData.value === null) return console.error("no room info");
+
     const renderQueue = renderQueueMap.get(sessionId)!;
     const ppsDelay = 1000 / Math.max(publicRoomData.value.pps, 1);
 
@@ -346,6 +347,8 @@ onMounted(async () => {
     });
 
     ws.addEventListener("message", async (event) => {
+        if (!publicRoomData.value) return console.error("no room info");
+
         const data = JSON.parse(event.data) as GeneralServerMessage;
 
         switch (data.type) {
@@ -361,7 +364,6 @@ onMounted(async () => {
                 break;
             }
             case "round_started": {
-                if (!publicRoomData.value) return console.error("no room info");
                 publicRoomData.value = data.payload.roomData;
 
                 for (const player of publicRoomData.value.players) {
@@ -377,6 +379,8 @@ onMounted(async () => {
                 }
 
                 setTimeout(() => {
+                    if (publicRoomData.value === null) return console.error("no room info");
+
                     publicRoomData.value.roundOngoing = true;
                 }, data.payload.startsAt - Date.now());
                 break;
@@ -390,14 +394,10 @@ onMounted(async () => {
                 break;
             }
             case "game_reset": {
-                if (!publicRoomData.value) return console.error("no room info");
-
                 publicRoomData.value = data.payload.roomData;
                 break;
             }
             case "player_joined": {
-                if (!publicRoomData.value) return console.error("no room info");
-
                 const { playerData } = data.payload;
                 publicRoomData.value.players.push(playerData);
 
@@ -572,16 +572,27 @@ onMounted(() => {
     gameMenu.value.showModal();
 });
 
+function closeMenu() {
+    if (!gameMenu.value) return;
+    gameMenu.value.close();
+    showMasterKey.value = false;
+}
+
+function openMenu() {
+    if (!gameMenu.value) return;
+
+    gameMenu.value.showModal();
+}
+
 onKeyStroke("Escape", (e) => {
     if (!gameMenu.value) return;
 
     e.preventDefault();
 
     if (gameMenu.value.open) {
-        gameMenu.value.close();
-        showMasterKey.value = false;
+        closeMenu()
     } else {
-        gameMenu.value.showModal();
+        openMenu()
     }
 }, { dedupe: true });
 
@@ -652,6 +663,8 @@ async function saveSettings() {
 };
 
 const settingsChanged = computed(() => {
+    if (publicRoomData.value === null) return console.error("no room info");
+
     if (publicRoomData.value.private !== roomOptions.value.private) {
         return true;
     };
@@ -682,6 +695,8 @@ const multiplier = ref(1);
 
 onMounted(() => {
     const interval = setInterval(() => {
+        if (publicRoomData.value === null) return;
+
         const { initialMultiplier, finalMultiplier, startMargin, endMargin } = publicRoomData.value;
         if (!publicRoomData.value.startedAt) {
             countdownTime.value = null;
@@ -714,9 +729,10 @@ const resizeTarget = window;
 </script>
 
 <template>
-    <div class="w-full h-full">
+    <div class="w-full h-full" v-if="publicRoomData">
         <div class="absolute w-full h-full overflow-hidden -z-10">
-            <Application :backgroundAlpha="0" ref="pixiInst" :antialias="true" :resolution="dpi" :resize-to="resizeTarget" >
+            <Application :backgroundAlpha="0" ref="pixiInst" :antialias="true" :resolution="dpi"
+                :resize-to="resizeTarget">
                 <tiling-sprite texture="/images/tiling.png" :width="width" :height="height" :tile-scale="8 * scale"
                     :tilePosition="[
                         backgroundOffset * scale,
@@ -813,7 +829,8 @@ const resizeTarget = window;
                                 <!-- Effects Container -->
                                 <container :ref="(el: PIXI.Container) => board.effectsContainer = el" />
                                 <!-- Board Container -->
-                                <container :ref="(el: PIXI.Container) => board.boardContainer = el" :sortable-children="true" />
+                                <container :ref="(el: PIXI.Container) => board.boardContainer = el"
+                                    :sortable-children="true" />
                                 <!-- Damage Bar Graphic -->
                                 <graphics :ref="(el: PIXI.Graphics) => board.damageBar = el" :z-index="2" />
                                 <text :anchorX="0.5" :anchorY="0.5" :x="10 * CELL_SIZE / 2" :y="200" :style="{
@@ -878,28 +895,30 @@ const resizeTarget = window;
                                     {{ getBotCreator(board.info) }}
                                 </text>
                             </container>
+
                             <!-- Bot Avatar -->
-                             
-                        <container :y="21 * CELL_SIZE + 12" :ref="(container: PIXI.Container) => {
-                            container.removeChildren();
+                            <container :y="21 * CELL_SIZE + 12" :ref="(container: PIXI.Container) => {
+                                if (container === null) return;
 
-                            const avatar = renderAvatar(board.info.avatar);
-                            avatar.scale.set(0.3075);
+                                container.removeChildren();
 
-                            avatar.x += 100;
-                            avatar.x -= avatar.width / 2;
-                            avatar.x += 5 * CELL_SIZE + 20;
-                            // if (index === 0) {
-                            //     // avatar.x -= avatar.width;
-                            //     // avatar.x -= 5 * CELL_SIZE + 20;
-                            //     avatar.x += 100;
-                            //     avatar.x -= avatar.width / 2;
-                            //     avatar.x += 5 * CELL_SIZE + 20;
-                            // } else if (index === 1) {
-                            //     avatar.x += 5 * CELL_SIZE + 20;
-                            // }
+                                const avatar = renderAvatar(board.info.avatar);
+                                avatar.scale.set(0.3075);
 
-                            container.addChild(avatar);
+                                avatar.x += 100;
+                                avatar.x -= avatar.width / 2;
+                                avatar.x += 5 * CELL_SIZE + 20;
+                                // if (index === 0) {
+                                //     // avatar.x -= avatar.width;
+                                //     // avatar.x -= 5 * CELL_SIZE + 20;
+                                //     avatar.x += 100;
+                                //     avatar.x -= avatar.width / 2;
+                                //     avatar.x += 5 * CELL_SIZE + 20;
+                                // } else if (index === 1) {
+                                //     avatar.x += 5 * CELL_SIZE + 20;
+                                // }
+
+                                container.addChild(avatar);
                             }" />
                             <!-- Stats -->
                             <container :x="-5 * CELL_SIZE - 20" :pivotX="200" :pivotY="0">
@@ -965,133 +984,192 @@ const resizeTarget = window;
                 </container>
             </Application>
         </div>
-        <dialog ref="gameMenu" v-if="publicRoomData && publicRoomData.host.id === profile?.id
-        " class="bg-black/40 backdrop:bg-black/20 backdrop:backdrop-blur-sm">
+        <dialog ref="gameMenu" v-if="publicRoomData" class="bg-black/40 backdrop:bg-black/20 backdrop:backdrop-blur-sm">
             <div class="p-6 flex flex-col gap-4 w-[520px] text-white">
+                <button class="absolute top-6 right-6 px-2" @click="closeMenu">X</button>
                 <div class="text-white text-center text-lg">
                     Press ESC to toggle menu
                 </div>
-                <div class="p-4 bg-white/10 flex flex-col gap-2 text-sm">
-                    <div class="flex justify-between">
-                        <div>Room ID:</div>
-                        <div>
-                            {{ publicRoomData.id }}
-                        </div>
-                    </div>
-                    <div class="flex justify-between">
-                        <div>Master Key:</div>
-                        <div class="relative">
-                            <button class="h-full w-full absolute bg-stone-950/80 z-10" @click="showMasterKey = true"
-                                v-if="!showMasterKey">
-                            </button>
-                            <div class="px-1" :class="{
-                                'opacity-0': !showMasterKey
-                            }">
-                                {{ masterKey?.key }}
-                            </div>
-                        </div>
-                    </div>
-                    <div class="flex justify-between">
-                        <div>Single Use Key:</div>
-                        <button class="underline disabled:opacity-50" @click="generateTempKey"
-                            :disabled="loadingTempKey">Generate</button>
-                    </div>
-                </div>
-                <div class="p-4 bg-white/10 flex flex-col gap-2 text-sm">
-                    <div class="flex justify-between items-center">
-                        <label>FT (max: 999):</label>
-                        <input type="text" v-model.number="roomOptions.ft" class="w-12 px-1 bg-white/20 text-right" />
-                    </div>
-                    <div class="flex justify-between items-center">
-                        <label>PPS (max: 30):</label>
-                        <input type="text" v-model.number="roomOptions.pps" class="w-12 px-1 bg-white/20 text-right" />
-                    </div>
-                    <div class="flex justify-between items-center">
-                        <label>Initial Multiplier (0x - 20x):</label>
-                        <input type="text" v-model.number="roomOptions.initialMultiplier"
-                            class="w-12 px-1 bg-white/20 text-right" />
-                    </div>
-                    <div class="flex justify-between items-center">
-                        <label>Final Multiplier (0x - 20x):</label>
-                        <input type="text" v-model.number="roomOptions.finalMultiplier"
-                            class="w-12 px-1 bg-white/20 text-right" />
-                    </div>
-                    <div class="flex justify-between items-center">
-                        <label>Start Margin (secs):</label>
-                        <input type="text" v-model.number="roomOptions.startMargin"
-                            class="w-12 px-1 bg-white/20 text-right" />
-                    </div>
-                    <div class="flex justify-between items-center">
-                        <label>End Margin (secs):</label>
-                        <input type="text" v-model.number="roomOptions.endMargin"
-                            class="w-12 px-1 bg-white/20 text-right" />
-                    </div>
-                    <div class="flex justify-between items-center">
-                        <label>Private:</label>
-                        <input type="checkbox" v-model.number="roomOptions.private" class="w-4 h-4" />
-                    </div>
-                    <div class="flex justify-center">
-                        <button class="bg-white/10 w-full py-1 hover:bg-white/20" @click="saveSettings">
-                            Save{{ settingsChanged ? '*' : '' }}
-                        </button>
-                    </div>
-                </div>
-                <div class="p-4 bg-white/10 flex flex-col gap-2">
-                    <h2 class="text-lg">Players</h2>
-                    <div v-if="publicRoomData.players.length === 0 && publicRoomData.banned.length === 0"
-                        class="italic opacity-50">
-                        No Players Joined
-                    </div>
-                    <ul v-else class="flex flex-col gap-2 text-sm">
-                        <li class="w-full flex justify-between" v-for="player in publicRoomData.players ">
+                <template v-if="publicRoomData.host.id === profile?.id">
+                    <div class="p-4 bg-white/10 flex flex-col gap-2 text-sm">
+                        <div class="flex justify-between">
+                            <div>Room ID:</div>
                             <div>
-                                {{ player.info.name }}
-                                <span class="opacity-50">
-                                    {{ getBotCreator(player.info) }}
-                                </span>
+                                {{ publicRoomData.id }}
                             </div>
-                            <div class="flex gap-2">
-                                <button class="underline" @click="kickPlayer(player.sessionId)">
-                                    Kick
+                        </div>
+                        <div class="flex justify-between">
+                            <div>Master Key:</div>
+                            <div class="relative">
+                                <button class="h-full w-full absolute bg-stone-950/80 z-10"
+                                    @click="showMasterKey = true" v-if="!showMasterKey">
                                 </button>
-                                <button class="underline" @click="banPlayer(player.info.id)">
-                                    Ban
-                                </button>
+                                <div class="px-1" :class="{
+                                    'opacity-0': !showMasterKey
+                                }">
+                                    {{ masterKey?.key }}
+                                </div>
                             </div>
-                        </li>
-                        <li class="flex justify-between" v-for=" player in publicRoomData.banned">
-                            <div class="text-red-400">
-                                {{ player.name }}
-                                <span class="opacity-50">
-                                    {{ getBotCreator(player) }}
-                                </span>
-                            </div>
-                            <div class="flex gap-2">
-                                <button class="underline" @click="unbanPlayer(player.id)">
-                                    Unban
-                                </button>
-                            </div>
-                        </li>
-                    </ul>
-                </div>
+                        </div>
+                        <div class="flex justify-between">
+                            <div>Single Use Key:</div>
+                            <button class="underline disabled:opacity-50" @click="generateTempKey"
+                                :disabled="loadingTempKey">Generate</button>
+                        </div>
+                    </div>
+                    <div class="p-4 bg-white/10 flex flex-col gap-2 text-sm">
+                        <div class="flex justify-between items-center">
+                            <label>FT (max: 999):</label>
+                            <input type="text" v-model.number="roomOptions.ft"
+                                class="w-12 px-1 bg-white/20 text-right" />
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <label>PPS (max: 30):</label>
+                            <input type="text" v-model.number="roomOptions.pps"
+                                class="w-12 px-1 bg-white/20 text-right" />
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <label>Initial Multiplier (0x - 20x):</label>
+                            <input type="text" v-model.number="roomOptions.initialMultiplier"
+                                class="w-12 px-1 bg-white/20 text-right" />
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <label>Final Multiplier (0x - 20x):</label>
+                            <input type="text" v-model.number="roomOptions.finalMultiplier"
+                                class="w-12 px-1 bg-white/20 text-right" />
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <label>Start Margin (secs):</label>
+                            <input type="text" v-model.number="roomOptions.startMargin"
+                                class="w-12 px-1 bg-white/20 text-right" />
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <label>End Margin (secs):</label>
+                            <input type="text" v-model.number="roomOptions.endMargin"
+                                class="w-12 px-1 bg-white/20 text-right" />
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <label>Private:</label>
+                            <input type="checkbox" v-model.number="roomOptions.private" class="w-4 h-4" />
+                        </div>
+                        <div class="flex justify-center">
+                            <button class="bg-white/10 w-full py-1 hover:bg-white/20" @click="saveSettings">
+                                Save{{ settingsChanged ? '*' : '' }}
+                            </button>
+                        </div>
+                    </div>
+                    <div class="p-4 bg-white/10 flex flex-col gap-2">
+                        <h2 class="text-lg">Players</h2>
+                        <div v-if="publicRoomData.players.length === 0 && publicRoomData.banned.length === 0"
+                            class="italic opacity-50">
+                            No Players Joined
+                        </div>
+                        <ul v-else class="flex flex-col gap-2 text-sm">
+                            <li class="flex justify-between" v-for="player in publicRoomData.players">
+                                <div class="flex gap-2">
+                                    <NuxtLink :href="`/bot/${player.info.id}`" target="_blank" class="text-btn">{{ player.info.name }}</NuxtLink>
+                                    <span class="opacity-50">
+                                        {{ getBotCreator(player.info) }}
+                                    </span>
+                                </div>
+                                <div class="flex gap-2">
+                                    <button class="underline" @click="kickPlayer(player.sessionId)">
+                                        Kick
+                                    </button>
+                                    <button class="underline" @click="banPlayer(player.info.id)">
+                                        Ban
+                                    </button>
+                                </div>
+                            </li>
+                            <li class="flex justify-between" v-for=" player in publicRoomData.banned">
+                                <div class="text-red-400">
+                                    {{ player.name }}
+                                    <span class="opacity-50">
+                                        {{ getBotCreator(player) }}
+                                    </span>
+                                </div>
+                                <div class="flex gap-2">
+                                    <button class="underline" @click="unbanPlayer(player.id)">
+                                        Unban
+                                    </button>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                </template>
+                <template v-else>
+                    <div class="p-4 bg-white/10 flex flex-col gap-2 text-sm">
+                        <div class="flex justify-between items-center">
+                            <div>FT (max: 999):</div>
+                            <div>{{ publicRoomData.ft }}</div>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <label>PPS (max: 30):</label>
+                            <div>{{ publicRoomData.pps }}</div>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <label>Initial Multiplier (0x - 20x):</label>
+                            <div>{{ publicRoomData.initialMultiplier }}</div>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <label>Final Multiplier (0x - 20x):</label>
+                            <div>{{ publicRoomData.finalMultiplier }}</div>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <label>Start Margin (secs):</label>
+                            <div>{{ publicRoomData.startMargin }}</div>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <label>End Margin (secs):</label>
+                            <div>{{ publicRoomData.endMargin }}</div>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <label>Private:</label>
+                            <div>{{ publicRoomData.private }}</div>
+                        </div>
+                    </div>
+                    <div class="p-4 bg-white/10 flex flex-col gap-2">
+                        <h2 class="text-lg">Players</h2>
+                        <div v-if="publicRoomData.players.length === 0 && publicRoomData.banned.length === 0"
+                            class="italic opacity-50">
+                            No Players Joined
+                        </div>
+                        <ul v-else class="flex flex-col gap-2 text-sm">
+                            <li class="w-full flex justify-start" v-for="player in publicRoomData.players ">
+                                <div>
+                                    {{ player.info.name }}
+                                    <span class="opacity-50">
+                                        {{ getBotCreator(player.info) }}
+                                    </span>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                </template>
                 <div class="flex justify-evenly">
                     <NuxtLink class="underline text-lg" to="/rooms">
                         Leave Game
                     </NuxtLink>
-                    <button class="underline disabled:opacity-60 text-lg" @click="resetGame"
-                        :disabled="!publicRoomData || !publicRoomData.gameOngoing">
-                        Reset Game
-                    </button>
-                    <button class="underline disabled:opacity-60 text-lg" @click="startGame" :disabled="!publicRoomData ||
-                        publicRoomData.gameOngoing ||
-                        publicRoomData.players.length < 2
-                        ">
-                        Start Game
-                    </button>
+                    <template v-if="publicRoomData.host.id === profile?.id">
+                        <button class="underline disabled:opacity-60 text-lg" @click="resetGame"
+                            :disabled="!publicRoomData || !publicRoomData.gameOngoing">
+                            Reset Game
+                        </button>
+                        <button class="underline disabled:opacity-60 text-lg" @click="startGame" :disabled="!publicRoomData ||
+                            publicRoomData.gameOngoing ||
+                            publicRoomData.players.length < 2
+                            ">
+                            Start Game
+                        </button>
+                    </template>
                 </div>
             </div>
         </dialog>
     </div>
+    <div class="w-full h-full flex flex-col items-center p-8 gap-4" v-else>
+        <h1 class="text-2xl">404 Room Not Found</h1>
+        <NuxtLink class="text-btn text-xl" :href="`/rooms`">Return to Rooms</NuxtLink>
+</div>
 </template>
 
 <style scoped>
