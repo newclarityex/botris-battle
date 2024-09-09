@@ -19,5 +19,5 @@ export default defineNitroPlugin((nitro) => {
         //         rooms.delete(key);
         //     };
         // });
-    }, 1000);
+    }, 5 * 60 * 1000);
 });

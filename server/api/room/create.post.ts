@@ -81,7 +81,7 @@ export default defineEventHandler(async (event) => {
 			rooms.delete(roomId);
 			clearInterval(cleanupInterval);
 		};
-	}, 60 * 1000);
+	}, 5 * 60 * 1000);
 
 	return {
 		roomId,

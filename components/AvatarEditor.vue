@@ -15,7 +15,8 @@ onMounted(() => {
     pixiApp.value = new PIXI.Application({
         width: CELL_SIZE * AVATAR_SIZE,
         height: CELL_SIZE * AVATAR_SIZE,
-        backgroundColor: 0x00000040,
+        backgroundColor: 0x000000,
+        backgroundAlpha: 0.25,
         view: canvas.value,
     });
 })
