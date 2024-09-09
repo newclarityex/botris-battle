@@ -34,6 +34,7 @@ async function removeDeveloper(developer: string) {
     if (!confirm("Are you sure you want to remove this developer?")) return;
 
     await $fetch(`/api/bot/${botId}/removeDeveloper`, {
+        method: "POST",
         body: {
             developer,
         }
