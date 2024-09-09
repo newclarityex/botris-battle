@@ -23,11 +23,11 @@ async function acceptInvite() {
 
 const authStore = useAuthStore();
 
-const owned = computed(() => info.value !== null && info.value.developers.find(
+const owned = computed(() => info.value !== null && info.value.developers.some(
     developer =>
         authStore.profile !== null &&
         developer.id === authStore.profile.id
-) !== null);
+));
 </script>
 <template>
 <div class="flex justify-center" v-if="info && !owned">
@@ -47,7 +47,7 @@ const owned = computed(() => info.value !== null && info.value.developers.find(
         <NuxtLink class="text-btn text-xl" :href="`/`">Home</NuxtLink>
     </main>
 </div>
-<div class="flex justify-center" v-else>
+<div class="flex justify-center" v-if="!info">
     <main class="px-8 flex flex-col items-center">
         <h1>Invalid Invite</h1>
         <NuxtLink class="text-btn text-xl" :href="`/`">Home</NuxtLink>

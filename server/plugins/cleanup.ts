@@ -14,10 +14,10 @@ export default defineNitroPlugin((nitro) => {
             },
         });
 
-        rooms.forEach((val, key) => {
-            if (val.players.size === 0 && val.spectators.size === 0) {
-                rooms.delete(key);
-            };
-        });
+        // rooms.forEach((val, key) => {
+        //     if (val.players.size === 0 && val.spectators.size === 0) {
+        //         rooms.delete(key);
+        //     };
+        // });
     }, 1000);
 });

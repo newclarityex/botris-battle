@@ -1,1 +1,0 @@
-ALTER TABLE "Profile" RENAME COLUMN "creator" TO "displayName";

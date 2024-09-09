@@ -10,11 +10,11 @@ const botId = typeof route.params.botId === 'string' ? route.params.botId : '';
 const { data } = await useFetch(`/api/bot/${botId}`);
 
 const editBotModal = ref(false);
-const owned = computed(() => data.value !== null && data.value.developers.find(
+const owned = computed(() => data.value !== null && data.value.developers.some(
     developer =>
         authStore.profile !== null &&
         developer.id === authStore.profile.id
-) !== null);
+));
 </script>
 
 <template>

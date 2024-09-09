@@ -21,7 +21,7 @@ async function createToken(event: Event) {
         },
     });
 
-    alert(`Token created: ${token}`);
+    prompt("Copy Token:", token);
 
     emit('tokenCreated');
     emit('close');
