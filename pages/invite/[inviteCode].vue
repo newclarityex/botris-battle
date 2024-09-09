@@ -13,6 +13,7 @@ async function acceptInvite() {
     if (info.value === null) return;
 
     await $fetch('/api/invite/join', {
+        method: "POST",
         body: {
             inviteCode,
         },

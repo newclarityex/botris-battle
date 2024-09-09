@@ -40,7 +40,7 @@ export default defineEventHandler(async (event) => {
 		roomId = nanoid();
 	}
 
-	const match: RoomData = {
+	const room: RoomData = {
 		id: roomId,
 		createdAt: Date.now(),
 		host: { id: profile.id, displayName: profile.displayName },
@@ -62,7 +62,7 @@ export default defineEventHandler(async (event) => {
 		spectators: new Map(),
 	};
 
-	rooms.set(roomId, match);
+	rooms.set(roomId, room);
 
 	await prisma.roomKey.create({
 		data: {
@@ -71,6 +71,17 @@ export default defineEventHandler(async (event) => {
 			singleUse: false,
 		},
 	});
+
+	const cleanupInterval = setInterval(() => {
+		if (!rooms.has(roomId)) {
+			clearInterval(cleanupInterval);
+		};
+
+		if (room.players.size === 0 && room.spectators.size === 0) {
+			rooms.delete(roomId);
+			clearInterval(cleanupInterval);
+		};
+	}, 60 * 1000);
 
 	return {
 		roomId,
