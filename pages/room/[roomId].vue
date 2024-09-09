@@ -192,7 +192,7 @@ const renderQueueMap: Map<string, {
 }[]> = new Map();
 
 const currentlyRendering: Set<string> = new Set();
-const FORCE_UPDATE_PIECES = 5;
+const FORCE_UPDATE_PIECES = 3;
 
 async function startRenderingSession(sessionId: string) {
     const renderQueue = renderQueueMap.get(sessionId)!;
@@ -237,8 +237,8 @@ async function startRenderingSession(sessionId: string) {
             queue: fullQueue,
         };
 
-        // if each move is less than 16 ms, dont interpolate
-        if (commandDelay > 16) {
+        // if each move is less than 32 ms, dont interpolate
+        if (commandDelay > 32) {
             renderDamage(playerGraphics, prevGameState);
             renderState(playerGraphics, getPublicGameState(tempGameState));
             for (const command of commands as Command[]) {

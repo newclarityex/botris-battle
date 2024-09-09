@@ -62,7 +62,7 @@ async function createInvite() {
         method: "POST",
     });
     console.log(code)
-    prompt("Copy Invite Link:", `${useRequestURL().host}/invite/${code}`);
+    prompt("Copy Invite Link:", `${useRequestURL().origin}/invite/${code}`);
 
 }
 </script>
