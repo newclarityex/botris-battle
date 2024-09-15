@@ -175,11 +175,12 @@ const documentVisible = useDocumentVisibility();
 type RenderStep = { timestamp: number, type: 'piece_spawned', sessionId: string, gameState: PublicGameState }
     | { timestamp: number, type: 'command', sessionId: string, command: Command }
     | { timestamp: number, type: 'piece_placed', sessionId: string, gameState: PublicGameState, events: GameEvent[] };
-const renderQueue: RenderStep[] = [];
+const renderQueueMap = new Map<string, RenderStep[]>();
 
 const spikeMap = new Map<string, number>();
 const renderMap = new Map<string, GameState>();
 const renderInterval = useIntervalFn(() => {
+    for (const [id, renderQueue] of renderQueueMap.entries())
     while (renderQueue.length > 0) {
         let renderStep = renderQueue[0];
         if (renderStep.timestamp > Date.now()) break;
@@ -193,7 +194,6 @@ const renderInterval = useIntervalFn(() => {
             case 'piece_spawned': {
                 let gameState: GameState = { ...renderStep.gameState, garbageQueue: [], isImmobile: false };
                 renderMap.set(renderStep.sessionId, gameState);
-                renderDamage(playerGraphics, renderStep.gameState);
                 renderState(playerGraphics, renderStep.gameState);
                 break;
             }
@@ -416,6 +416,8 @@ onMounted(async () => {
                     };
                 };
 
+                const renderQueue = renderQueueMap.get(sessionId) ?? [];
+
                 if (commands.length < 100) {
                     renderQueue.push({ timestamp, type: "piece_spawned", sessionId, gameState: prevGameState });
                     timestamp += commandDelay;
@@ -428,35 +430,27 @@ onMounted(async () => {
 
                 renderQueue.push({ timestamp, type: "piece_placed", sessionId, gameState: gameState, events });
 
-                // if (!renderQueueMap.has(sessionId)) {
-                //     renderQueueMap.set(sessionId, []);
-                // };
-
-                // const renderQueue = renderQueueMap.get(sessionId)!;
-                // renderQueue.push({ gameState, prevGameState, commands, events })
-
-                // if (currentlyRendering.has(sessionId)) return;
-
-                // startRenderingSession(sessionId);
-
+                renderQueueMap.set(sessionId, renderQueue);
                 break;
             }
+
             case "player_damage_received": {
-                // if (!publicRoomData.value) return console.error("no room info");
+                if (!publicRoomData.value) return console.error("no room info");
 
-                // const { sessionId, gameState } = data.payload;
-                // const player = publicRoomData.value.players.find(
-                //     (p) => p.sessionId === sessionId
-                // );
-                // if (!player) return console.error("player not found");
-                // player.gameState = gameState;
+                const { sessionId, gameState } = data.payload;
+                const player = publicRoomData.value.players.find(
+                    (p) => p.sessionId === sessionId
+                );
+                if (!player) return console.error("player not found");
+                player.gameState = gameState;
 
-                // const playerGraphics = allPlayerGraphics.value.find(
-                //     (p) => p.id === sessionId
-                // ) as PlayerGraphics | undefined;
-                // if (!playerGraphics)
-                //     return console.error("player graphics not found");
-                // renderDamage(playerGraphics, player.gameState);
+                const playerGraphics = allPlayerGraphics.value.find(
+                    (p) => p.id === sessionId
+                ) as PlayerGraphics | undefined;
+                if (!playerGraphics)
+                    return console.error("player graphics not found");
+
+                renderDamage(playerGraphics, player.gameState);
                 break;
             }
             case "settings_changed": {
