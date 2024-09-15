@@ -416,13 +416,15 @@ onMounted(async () => {
                     };
                 };
 
-                renderQueue.push({ timestamp, type: "piece_spawned", sessionId, gameState: prevGameState });
-                timestamp += commandDelay;
-
-                for (const command of commands) {
-                    renderQueue.push({ timestamp, type: "command", sessionId, command });
+                if (commands.length < 100) {
+                    renderQueue.push({ timestamp, type: "piece_spawned", sessionId, gameState: prevGameState });
                     timestamp += commandDelay;
-                };
+    
+                    for (const command of commands) {
+                        renderQueue.push({ timestamp, type: "command", sessionId, command });
+                        timestamp += commandDelay;
+                    };
+                }
 
                 renderQueue.push({ timestamp, type: "piece_placed", sessionId, gameState: gameState, events });
 
