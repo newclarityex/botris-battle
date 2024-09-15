@@ -180,120 +180,128 @@ const renderQueueMap = new Map<string, RenderStep[]>();
 const spikeMap = new Map<string, number>();
 const renderMap = new Map<string, GameState>();
 const renderInterval = useIntervalFn(() => {
-    for (const [id, renderQueue] of renderQueueMap.entries())
-    while (renderQueue.length > 0) {
-        let renderStep = renderQueue[0];
-        if (renderStep.timestamp > Date.now()) break;
+    for (let [id, renderQueue] of renderQueueMap.entries()) {
+        if (renderQueue.length > 3 * 2) {
+            renderQueue = renderQueue.filter(renderStep => renderStep.type === "piece_placed");
+            renderQueue = [renderQueue[0]];
+            renderQueueMap.set(id, renderQueue);
+        };
 
-        renderQueue.shift();
-
-        const playerGraphics = allPlayerGraphics.value.find(player => player.id === renderStep.sessionId);
-        if (playerGraphics === undefined) break;
-
-        switch (renderStep.type) {
-            case 'piece_spawned': {
-                let gameState: GameState = { ...renderStep.gameState, garbageQueue: [], isImmobile: false };
-                renderMap.set(renderStep.sessionId, gameState);
-                renderState(playerGraphics, renderStep.gameState);
-                break;
-            }
-            case 'command': {
-                let currentGameState = renderMap.get(renderStep.sessionId);
-                if (currentGameState === undefined) break;
-
-
-                const { gameState: newGameState } = executeCommand(currentGameState, renderStep.command);
-                renderState(playerGraphics, getPublicGameState(newGameState));
-
-                renderMap.set(renderStep.sessionId, newGameState);
-                break;
-            }
-            case 'piece_placed': {
-                renderMap.delete(renderStep.sessionId);
-
-                renderState(playerGraphics, renderStep.gameState);
-                renderDamage(playerGraphics, renderStep.gameState);
-
-                if (documentVisible.value === "hidden") break;
-
-                if (renderStep.events.every(event => event.type !== 'clear')) {
-                    spikeMap.delete(renderStep.sessionId);
+        while (renderQueue.length > 0) {
+            let renderStep = renderQueue[0];
+            if (renderStep.timestamp > Date.now()) break;
+    
+            renderQueue.shift();
+    
+            const playerGraphics = allPlayerGraphics.value.find(player => player.id === renderStep.sessionId);
+            if (playerGraphics === undefined) break;
+    
+            switch (renderStep.type) {
+                case 'piece_spawned': {
+                    let gameState: GameState = { ...renderStep.gameState, garbageQueue: [], isImmobile: false };
+                    renderMap.set(renderStep.sessionId, gameState);
+                    renderState(playerGraphics, renderStep.gameState);
+                    renderDamage(playerGraphics, renderStep.gameState);
+                    break;
                 }
-
-                for (const event of renderStep.events) {
-                    switch (event.type) {
-                        case "piece_placed": {
-                            const { final } = event.payload;
-                            renderPlacedEffect(playerGraphics, final);
-
-                            // AUDIO_SOURCES.place_piece.play();
-                            break;
-                        }
-                        // case 'damage_tanked': {
-                        //     AUDIO_SOURCES.tank_garbage.play();
-                        //     break;
-                        // }
-                        case "clear": {
-                            const clearData = event.payload;
-
-                            renderClearEffect(
-                                playerGraphics,
-                                clearData.clearedLines
-                            );
-
-                            if (clearData.score > 0) {
-                                renderAttackEffect(
-                                    playerGraphics,
-                                    clearData.piece,
-                                    clearData.score
-                                );
-
-                                let currentSpike = spikeMap.get(renderStep.sessionId) ?? 0;
-                                currentSpike += clearData.score;
-                                spikeMap.set(renderStep.sessionId, currentSpike);
-
-                                if (currentSpike >= MIN_SPIKE) {
-                                    renderSpikeEffect(playerGraphics, clearData.piece, currentSpike);
-                                }
+                case 'command': {
+                    let currentGameState = renderMap.get(renderStep.sessionId);
+                    if (currentGameState === undefined) break;
+    
+    
+                    const { gameState: newGameState } = executeCommand(currentGameState, renderStep.command);
+                    renderState(playerGraphics, getPublicGameState(newGameState));
+    
+                    renderMap.set(renderStep.sessionId, newGameState);
+                    break;
+                }
+                case 'piece_placed': {
+                    renderMap.delete(renderStep.sessionId);
+    
+                    renderState(playerGraphics, renderStep.gameState);
+                    renderDamage(playerGraphics, renderStep.gameState);
+    
+                    if (documentVisible.value === "hidden") break;
+    
+                    if (renderStep.events.every(event => event.type !== 'clear')) {
+                        spikeMap.delete(renderStep.sessionId);
+                    }
+    
+                    for (const event of renderStep.events) {
+                        switch (event.type) {
+                            case "piece_placed": {
+                                const { final } = event.payload;
+                                renderPlacedEffect(playerGraphics, final);
+    
+                                // AUDIO_SOURCES.place_piece.play();
+                                break;
                             }
-
-                            if (clearData.combo > 2) {
-                                renderComboEffect(
-                                    playerGraphics,
-                                    clearData.piece,
-                                    clearData.combo
-                                );
-                            }
-
-                            switch (clearData.clearName) {
-                                case 'All-Spin Single':
-                                case 'All-Spin Double':
-                                case 'All-Spin Triple':
-                                case 'Quad':
-                                case 'Perfect Clear':
-                                    renderClearName(playerGraphics, clearData.clearName);
-                            };
-
-                            // if (clearData.pc) {
-                            //     AUDIO_SOURCES.all_clear.play();
-                            // } else if (clearData.allSpin) {
-                            //     AUDIO_SOURCES.all_spin_clear.play();
-                            // } else {
-                            //     if (clearData.combo > 0) {
-                            //         AUDIO_SOURCES.combo[clearData.combo - 1].play();
-                            //     } else {
-                            //         AUDIO_SOURCES.line_clear.play();
-                            //     }
-                            //     // const combo = Math.min(7, newGameState.combo);
+                            // case 'damage_tanked': {
+                            //     AUDIO_SOURCES.tank_garbage.play();
+                            //     break;
                             // }
-                            break;
+                            case "clear": {
+                                const clearData = event.payload;
+    
+                                renderClearEffect(
+                                    playerGraphics,
+                                    clearData.clearedLines
+                                );
+    
+                                if (clearData.score > 0) {
+                                    renderAttackEffect(
+                                        playerGraphics,
+                                        clearData.piece,
+                                        clearData.score
+                                    );
+    
+                                    let currentSpike = spikeMap.get(renderStep.sessionId) ?? 0;
+                                    currentSpike += clearData.score;
+                                    spikeMap.set(renderStep.sessionId, currentSpike);
+    
+                                    if (currentSpike >= MIN_SPIKE) {
+                                        renderSpikeEffect(playerGraphics, clearData.piece, currentSpike);
+                                    }
+                                }
+    
+                                if (clearData.combo > 2) {
+                                    renderComboEffect(
+                                        playerGraphics,
+                                        clearData.piece,
+                                        clearData.combo
+                                    );
+                                }
+    
+                                switch (clearData.clearName) {
+                                    case 'All-Spin Single':
+                                    case 'All-Spin Double':
+                                    case 'All-Spin Triple':
+                                    case 'Quad':
+                                    case 'Perfect Clear':
+                                        renderClearName(playerGraphics, clearData.clearName);
+                                };
+    
+                                // if (clearData.pc) {
+                                //     AUDIO_SOURCES.all_clear.play();
+                                // } else if (clearData.allSpin) {
+                                //     AUDIO_SOURCES.all_spin_clear.play();
+                                // } else {
+                                //     if (clearData.combo > 0) {
+                                //         AUDIO_SOURCES.combo[clearData.combo - 1].play();
+                                //     } else {
+                                //         AUDIO_SOURCES.line_clear.play();
+                                //     }
+                                //     // const combo = Math.min(7, newGameState.combo);
+                                // }
+                                break;
+                            }
                         }
                     }
+                    break;
                 }
-                break;
             }
-        }
-    };
+        };
+    }
 }, 1000 / 60)
 
 onMounted(async () => {
@@ -435,23 +443,23 @@ onMounted(async () => {
             }
 
             case "player_damage_received": {
-                if (!publicRoomData.value) return console.error("no room info");
+                // if (!publicRoomData.value) return console.error("no room info");
 
-                const { sessionId, gameState } = data.payload;
-                const player = publicRoomData.value.players.find(
-                    (p) => p.sessionId === sessionId
-                );
-                if (!player) return console.error("player not found");
-                player.gameState = gameState;
+                // const { sessionId, gameState } = data.payload;
+                // const player = publicRoomData.value.players.find(
+                //     (p) => p.sessionId === sessionId
+                // );
+                // if (!player) return console.error("player not found");
+                // player.gameState = gameState;
 
-                const playerGraphics = allPlayerGraphics.value.find(
-                    (p) => p.id === sessionId
-                ) as PlayerGraphics | undefined;
-                if (!playerGraphics)
-                    return console.error("player graphics not found");
+                // const playerGraphics = allPlayerGraphics.value.find(
+                //     (p) => p.id === sessionId
+                // ) as PlayerGraphics | undefined;
+                // if (!playerGraphics)
+                //     return console.error("player graphics not found");
 
-                renderDamage(playerGraphics, player.gameState);
-                break;
+                // renderDamage(playerGraphics, player.gameState);
+                // break;
             }
             case "settings_changed": {
                 const { roomData } = data.payload;
