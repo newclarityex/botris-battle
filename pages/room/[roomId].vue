@@ -459,7 +459,7 @@ onMounted(async () => {
                 //     return console.error("player graphics not found");
 
                 // renderDamage(playerGraphics, player.gameState);
-                // break;
+                break;
             }
             case "settings_changed": {
                 const { roomData } = data.payload;
