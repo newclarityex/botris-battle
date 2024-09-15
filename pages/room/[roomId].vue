@@ -712,7 +712,7 @@ onMounted(() => {
             displayTime.value = Math.floor((timePassed) / 1000);
         } else {
             displayTime.value = 0;
-            countdownTime.value = Math.ceil((timeLeft) / 1000);
+            countdownTime.value = Math.floor((timeLeft) / 1000);
         }
     }, 1000 / 60);
 

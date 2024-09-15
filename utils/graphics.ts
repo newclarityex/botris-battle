@@ -402,6 +402,7 @@ export function renderSpikeEffect(playerGraphics: PlayerGraphics, piece: PieceDa
         fill: `rgb(255, ${255 - (currentSpike - MIN_SPIKE) * 25.5}, 0)`,
         fontSize: 32 + (currentSpike - MIN_SPIKE) * 1.5,
         fontFamily: 'Fira Mono',
+        fontWeight: 'bold',
     });
     effectSprite.resolution = 1.25;
     effectSprite.anchor.x = 0.5;
