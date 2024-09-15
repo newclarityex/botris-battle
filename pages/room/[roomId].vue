@@ -181,7 +181,7 @@ const spikeMap = new Map<string, number>();
 const renderMap = new Map<string, GameState>();
 const renderInterval = useIntervalFn(() => {
     for (let [id, renderQueue] of renderQueueMap.entries()) {
-        if (renderQueue.length > 3 * 2) {
+        if (renderQueue.length > 3 * 5) {
             renderQueue = renderQueue.filter(renderStep => renderStep.type === "piece_placed");
             renderQueue = [renderQueue[0]];
             renderQueueMap.set(id, renderQueue);
