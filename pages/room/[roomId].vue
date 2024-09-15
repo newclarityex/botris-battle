@@ -12,7 +12,6 @@ import {
 } from "@vueuse/core";
 import type { PlayerGraphics } from "@/utils/graphics";
 import { renderAvatar, renderClearName, renderComboEffect, renderDamage, renderState, CELL_SIZE } from "@/utils/graphics";
-import { AUDIO_SOURCES } from "~/server/utils/audio";
 import { Application } from "vue3-pixi";
 import type { ApplicationInst } from "vue3-pixi";
 import { executeCommand, type GameState, type Command, getPublicGameState, type PublicGameState, type GameEvent, type Piece } from "libtris";
@@ -1064,7 +1063,7 @@ const resizeTarget = window;
                             class="italic opacity-50">
                             No Players Joined
                         </div>
-                        <ul v-else class="flex flex-col gap-2 text-sm">
+                        <ul v-else class="flex flex-col gap-2 text-sm list-none p-0">
                             <li class="flex justify-between" v-for="player in publicRoomData.players">
                                 <div class="flex gap-2">
                                     <NuxtLink :href="`/bot/${player.info.id}`" target="_blank" class="text-btn">{{
