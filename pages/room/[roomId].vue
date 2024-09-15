@@ -15,7 +15,7 @@ import { renderAvatar, renderClearName, renderComboEffect, renderDamage, renderS
 import { AUDIO_SOURCES } from "~/server/utils/audio";
 import { Application } from "vue3-pixi";
 import type { ApplicationInst } from "vue3-pixi";
-import { executeCommand, type GameState, type Command, getPublicGameState, type PublicGameState, type GameEvent } from "libtris";
+import { executeCommand, type GameState, type Command, getPublicGameState, type PublicGameState, type GameEvent, type Piece } from "libtris";
 import FontFaceObserver from "fontfaceobserver";
 import { getBotCreator } from "~/utils/general";
 
@@ -44,16 +44,18 @@ const initialRoomData = await $fetch(`/api/room/info`, {
 
 const publicRoomData = ref<PublicRoomData | null>(initialRoomData);
 
-const allPlayerGraphics = ref<PlayerGraphics[]>([]);
+const allPlayerGraphics = shallowRef<PlayerGraphics[]>([]);
 if (initialRoomData !== null) {
     allPlayerGraphics.value = initialRoomData.players.map((player) => ({
         id: player.sessionId,
         info: player.info,
         boardContainer: null,
-        effectsContainer: null,
+        backgroundContainer: null,
+        foregroundContainer: null,
         heldContainer: null,
         queueContainer: null,
         damageBar: null,
+        spikeEffect: null,
     }));
 }
 
@@ -170,159 +172,129 @@ const scale = computed(() => {
 
 const documentVisible = useDocumentVisibility();
 
-// function resizeRenderer() {
-//     if (!pixiApp.value) {
-//         console.log("NO PIXI APP")
-//         return;
-//     };
+type RenderStep = { timestamp: number, type: 'piece_spawned', sessionId: string, gameState: PublicGameState }
+    | { timestamp: number, type: 'command', sessionId: string, command: Command }
+    | { timestamp: number, type: 'piece_placed', sessionId: string, gameState: PublicGameState, events: GameEvent[] };
+const renderQueue: RenderStep[] = [];
 
-//     pixiApp.value.renderer.resolution = 1 / scale.value;
-//     pixiApp.value.renderer.resize(width.value, height.value);
-//     pixiApp.value.render();
-// }
-
-// watch([width, height], resizeRenderer);
-
-const renderQueueMap: Map<string, {
-    gameState: PublicGameState,
-    prevGameState: PublicGameState,
-    commands: Command[],
-    events: GameEvent[]
-}[]> = new Map();
-
-const currentlyRendering: Set<string> = new Set();
-const FORCE_UPDATE_PIECES = 3;
-
-async function startRenderingSession(sessionId: string) {
-    if (publicRoomData.value === null) return console.error("no room info");
-
-    const renderQueue = renderQueueMap.get(sessionId)!;
-    const ppsDelay = 1000 / Math.max(publicRoomData.value.pps, 1);
-
-    currentlyRendering.add(sessionId);
-
+const spikeMap = new Map<string, number>();
+const renderMap = new Map<string, GameState>();
+const renderInterval = useIntervalFn(() => {
     while (renderQueue.length > 0) {
-        if (renderQueue.length >= FORCE_UPDATE_PIECES) {
-            // Only leave final render if we are severely behind
-            renderQueue.splice(0, renderQueue.length - 1);
-        };
+        let renderStep = renderQueue[0];
+        if (renderStep.timestamp > Date.now()) break;
 
-        const { gameState, prevGameState, commands, events } = renderQueue.shift()!;
-        let commandDelay =
-            (ppsDelay / (commands.length + 1))
-            * (0.95 - 0.05 * renderQueue.length);
+        renderQueue.shift();
 
-        const player = publicRoomData.value.players.find(
-            (p) => p.sessionId === sessionId
-        );
-        if (!player) continue;
+        const playerGraphics = allPlayerGraphics.value.find(player => player.id === renderStep.sessionId);
+        if (playerGraphics === undefined) break;
 
-        player.gameState = gameState;
+        switch (renderStep.type) {
+            case 'piece_spawned': {
+                let gameState: GameState = { ...renderStep.gameState, garbageQueue: [], isImmobile: false };
+                renderMap.set(renderStep.sessionId, gameState);
+                renderDamage(playerGraphics, renderStep.gameState);
+                renderState(playerGraphics, renderStep.gameState);
+                break;
+            }
+            case 'command': {
+                let currentGameState = renderMap.get(renderStep.sessionId);
+                if (currentGameState === undefined) break;
 
-        playerStats.value = getPlayerStats();
 
-        const playerGraphics = allPlayerGraphics.value.find(
-            (p) => p.id === player.sessionId
-        ) as PlayerGraphics | undefined;
-        if (!playerGraphics) continue;
+                const { gameState: newGameState } = executeCommand(currentGameState, renderStep.command);
+                renderState(playerGraphics, getPublicGameState(newGameState));
 
-        const fullQueue = [gameState.current.piece, ...gameState.queue];
-        if (prevGameState.held === null && gameState.held !== null) {
-            fullQueue.unshift(prevGameState.queue[0]);
-        };
+                renderMap.set(renderStep.sessionId, newGameState);
+                break;
+            }
+            case 'piece_placed': {
+                renderMap.delete(renderStep.sessionId);
 
-        let tempGameState: GameState = {
-            ...prevGameState,
-            isImmobile: false,
-            garbageQueue: [],
-            queue: fullQueue,
-        };
+                renderState(playerGraphics, renderStep.gameState);
+                renderDamage(playerGraphics, renderStep.gameState);
 
-        // if each move is less than 32 ms, dont interpolate
-        if (commandDelay > 32) {
-            renderDamage(playerGraphics, prevGameState);
-            renderState(playerGraphics, getPublicGameState(tempGameState));
-            for (const command of commands as Command[]) {
-                await sleep(commandDelay);
-                if (command === 'none') {
-                    continue
+                if (documentVisible.value === "hidden") break;
+
+                if (renderStep.events.every(event => event.type !== 'clear')) {
+                    spikeMap.delete(renderStep.sessionId);
                 }
-                ({ gameState: tempGameState } = executeCommand(tempGameState, command));
-                renderState(playerGraphics, getPublicGameState(tempGameState));
-            };
-            await sleep(commandDelay);
-        }
 
-        renderState(playerGraphics, gameState);
-        renderDamage(playerGraphics, gameState);
+                for (const event of renderStep.events) {
+                    switch (event.type) {
+                        case "piece_placed": {
+                            const { final } = event.payload;
+                            renderPlacedEffect(playerGraphics, final);
 
-        if (documentVisible.value === "hidden") continue;
+                            // AUDIO_SOURCES.place_piece.play();
+                            break;
+                        }
+                        // case 'damage_tanked': {
+                        //     AUDIO_SOURCES.tank_garbage.play();
+                        //     break;
+                        // }
+                        case "clear": {
+                            const clearData = event.payload;
 
-        for (const event of events) {
-            switch (event.type) {
-                case "piece_placed": {
-                    const { final } = event.payload;
-                    renderPlacedEffect(playerGraphics, final);
-                    // AUDIO_SOURCES.place_piece.play();
-                    break;
-                }
-                // case 'damage_tanked': {
-                //     AUDIO_SOURCES.tank_garbage.play();
-                //     break;
-                // }
-                case "clear": {
-                    const clearData = event.payload;
+                            renderClearEffect(
+                                playerGraphics,
+                                clearData.clearedLines
+                            );
 
-                    renderClearEffect(
-                        playerGraphics,
-                        clearData.clearedLines
-                    );
+                            if (clearData.score > 0) {
+                                renderAttackEffect(
+                                    playerGraphics,
+                                    clearData.piece,
+                                    clearData.score
+                                );
 
-                    if (clearData.score > 0) {
-                        renderAttackEffect(
-                            playerGraphics,
-                            clearData.piece,
-                            clearData.score
-                        );
-                    };
+                                let currentSpike = spikeMap.get(renderStep.sessionId) ?? 0;
+                                currentSpike += clearData.score;
+                                spikeMap.set(renderStep.sessionId, currentSpike);
 
-                    if (clearData.combo > 2) {
-                        renderComboEffect(
-                            playerGraphics,
-                            clearData.piece,
-                            clearData.combo
-                        );
+                                if (currentSpike >= MIN_SPIKE) {
+                                    renderSpikeEffect(playerGraphics, clearData.piece, currentSpike);
+                                }
+                            }
+
+                            if (clearData.combo > 2) {
+                                renderComboEffect(
+                                    playerGraphics,
+                                    clearData.piece,
+                                    clearData.combo
+                                );
+                            }
+
+                            switch (clearData.clearName) {
+                                case 'All-Spin Single':
+                                case 'All-Spin Double':
+                                case 'All-Spin Triple':
+                                case 'Quad':
+                                case 'Perfect Clear':
+                                    renderClearName(playerGraphics, clearData.clearName);
+                            };
+
+                            // if (clearData.pc) {
+                            //     AUDIO_SOURCES.all_clear.play();
+                            // } else if (clearData.allSpin) {
+                            //     AUDIO_SOURCES.all_spin_clear.play();
+                            // } else {
+                            //     if (clearData.combo > 0) {
+                            //         AUDIO_SOURCES.combo[clearData.combo - 1].play();
+                            //     } else {
+                            //         AUDIO_SOURCES.line_clear.play();
+                            //     }
+                            //     // const combo = Math.min(7, newGameState.combo);
+                            // }
+                            break;
+                        }
                     }
-
-                    switch (clearData.clearName) {
-                        case 'All-Spin Single':
-                        case 'All-Spin Double':
-                        case 'All-Spin Triple':
-                        case 'Quad':
-                        case 'Perfect Clear':
-                            renderClearName(playerGraphics, clearData.clearName);
-                    };
-
-                    // if (clearData.pc) {
-                    //     AUDIO_SOURCES.all_clear.play();
-                    // } else if (clearData.allSpin) {
-                    //     AUDIO_SOURCES.all_spin_clear.play();
-                    // } else {
-                    //     if (clearData.combo > 0) {
-                    //         AUDIO_SOURCES.combo[clearData.combo - 1].play();
-                    //     } else {
-                    //         AUDIO_SOURCES.line_clear.play();
-                    //     }
-                    //     // const combo = Math.min(7, newGameState.combo);
-                    // }
-                    break;
                 }
+                break;
             }
         }
-    }
-
-    currentlyRendering.delete(sessionId);
-}
+    };
+}, 1000 / 60)
 
 onMounted(async () => {
     const urlParams = new URLSearchParams();
@@ -405,10 +377,12 @@ onMounted(async () => {
                     id: playerData.sessionId,
                     info: playerData.info,
                     boardContainer: null,
-                    effectsContainer: null,
+                    backgroundContainer: null,
+                    foregroundContainer: null,
                     heldContainer: null,
                     queueContainer: null,
                     damageBar: null,
+                    spikeEffect: null,
                 });
 
                 break;
@@ -432,16 +406,36 @@ onMounted(async () => {
 
                 const { sessionId, gameState, prevGameState, commands, events } = data.payload;
 
-                if (!renderQueueMap.has(sessionId)) {
-                    renderQueueMap.set(sessionId, []);
+                const ppsDelay = 1000 / publicRoomData.value.pps;
+                let commandDelay = ppsDelay / (commands.length + 1);
+
+                let timestamp = Date.now();
+                for (const event of events) {
+                    if (event.type === "queue_added") {
+                        prevGameState.queue.push(event.payload.piece);
+                    };
                 };
 
-                const renderQueue = renderQueueMap.get(sessionId)!;
-                renderQueue.push({ gameState, prevGameState, commands, events })
+                renderQueue.push({ timestamp, type: "piece_spawned", sessionId, gameState: prevGameState });
+                timestamp += commandDelay;
 
-                if (currentlyRendering.has(sessionId)) return;
+                for (const command of commands) {
+                    renderQueue.push({ timestamp, type: "command", sessionId, command });
+                    timestamp += commandDelay;
+                };
 
-                startRenderingSession(sessionId);
+                renderQueue.push({ timestamp, type: "piece_placed", sessionId, gameState: gameState, events });
+
+                // if (!renderQueueMap.has(sessionId)) {
+                //     renderQueueMap.set(sessionId, []);
+                // };
+
+                // const renderQueue = renderQueueMap.get(sessionId)!;
+                // renderQueue.push({ gameState, prevGameState, commands, events })
+
+                // if (currentlyRendering.has(sessionId)) return;
+
+                // startRenderingSession(sessionId);
 
                 break;
             }
@@ -826,13 +820,15 @@ const resizeTarget = window;
                                     );
                                     graphics.endFill();
                                 }" />
-                                <!-- Effects Container -->
-                                <container :ref="(el: PIXI.Container) => board.effectsContainer = el" />
+                                <!-- Background Container -->
+                                <container :ref="(el) => board.backgroundContainer = el as unknown as PIXI.Container" />
                                 <!-- Board Container -->
-                                <container :ref="(el: PIXI.Container) => board.boardContainer = el"
+                                <container :ref="(el) => board.boardContainer = el as unknown as PIXI.Container"
                                     :sortable-children="true" />
+                                <!-- Foreground Container -->
+                                <container :ref="(el) => board.foregroundContainer = el as unknown as PIXI.Container" />
                                 <!-- Damage Bar Graphic -->
-                                <graphics :ref="(el: PIXI.Graphics) => board.damageBar = el" :z-index="2" />
+                                <graphics :ref="(el) => board.damageBar = el as unknown as PIXI.Graphics" :z-index="2" />
                                 <text :anchorX="0.5" :anchorY="0.5" :x="10 * CELL_SIZE / 2" :y="200" :style="{
                                     fill: 'white',
                                     fontSize: '48px',
@@ -1067,7 +1063,8 @@ const resizeTarget = window;
                         <ul v-else class="flex flex-col gap-2 text-sm">
                             <li class="flex justify-between" v-for="player in publicRoomData.players">
                                 <div class="flex gap-2">
-                                    <NuxtLink :href="`/bot/${player.info.id}`" target="_blank" class="text-btn">{{ player.info.name }}</NuxtLink>
+                                    <NuxtLink :href="`/bot/${player.info.id}`" target="_blank" class="text-btn">{{
+                                        player.info.name }}</NuxtLink>
                                     <span class="opacity-50">
                                         {{ getBotCreator(player.info) }}
                                     </span>
@@ -1169,7 +1166,7 @@ const resizeTarget = window;
     <div class="w-full h-full flex flex-col items-center p-8 gap-4" v-else>
         <h1 class="text-2xl">404 Room Not Found</h1>
         <NuxtLink class="text-btn text-xl" :href="`/rooms`">Return to Rooms</NuxtLink>
-</div>
+    </div>
 </template>
 
 <style scoped>

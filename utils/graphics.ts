@@ -27,9 +27,11 @@ export type PlayerGraphics = {
     info: PublicBot;
     heldContainer: PIXI.Container | null;
     boardContainer: PIXI.Container | null;
-    effectsContainer: PIXI.Container | null;
+    backgroundContainer: PIXI.Container | null;
+    foregroundContainer: PIXI.Container | null;
     queueContainer: PIXI.Container | null;
     damageBar: PIXI.Graphics | null;
+    spikeEffect: PIXI.Text | null;
 };
 
 type Block = "I" | "J" | "L" | "O" | "S" | "T" | "Z" | "G" | null;
@@ -209,6 +211,8 @@ export function renderState(playerGraphics: PlayerGraphics, gameState: PublicGam
 
     // Render Queue
     for (const [index, piece] of queue.entries()) {
+        if (index >= 6) return;
+
         const pieceMatrix = getPieceMatrix(piece, 0);
         const pieceContainer = new PIXI.Container();
 
@@ -255,8 +259,8 @@ export function renderDamage(playerGraphics: PlayerGraphics, gameState: PublicGa
 }
 
 export function renderPlacedEffect(playerGraphics: PlayerGraphics, piece: PieceData) {
-    const { effectsContainer } = playerGraphics;
-    if (effectsContainer === null) return;
+    const { backgroundContainer } = playerGraphics;
+    if (backgroundContainer === null) return;
 
     const pieceMatrix = getPieceMatrix(piece.piece, piece.rotation);
     for (let y = 0; y < pieceMatrix.length; y++) {
@@ -279,7 +283,7 @@ export function renderPlacedEffect(playerGraphics: PlayerGraphics, piece: PieceD
             effectSprite.x = (piece.x + x) * CELL_SIZE;
             // effectSprite.y = (y + BOARD_HEIGHT - piece.y - 5) * CELL_SIZE;
 
-            effectsContainer.addChild(effectSprite);
+            backgroundContainer.addChild(effectSprite);
 
             const fade = ease.add(
                 effectSprite,
@@ -288,7 +292,7 @@ export function renderPlacedEffect(playerGraphics: PlayerGraphics, piece: PieceD
             );
 
             fade.on("complete", () => {
-                effectsContainer.removeChild(effectSprite);
+                backgroundContainer.removeChild(effectSprite);
             });
         }
     }
@@ -303,9 +307,9 @@ export function renderClearEffect(playerGraphics: PlayerGraphics, lines: {
     height: number;
     blocks: Block[];
 }[]) {
-    const { effectsContainer } = playerGraphics;
+    const { backgroundContainer } = playerGraphics;
 
-    if (effectsContainer === null) return;
+    if (backgroundContainer === null) return;
 
     for (const line of lines) {
         const { height: y, blocks } = line;
@@ -332,7 +336,7 @@ export function renderClearEffect(playerGraphics: PlayerGraphics, lines: {
             const targetX = startX + Math.cos(randomDirection) * distance;
             const targetY = startY + Math.sin(randomDirection) * distance;
 
-            effectsContainer.addChild(effectSprite);
+            backgroundContainer.addChild(effectSprite);
 
             const fade = ease.add(
                 effectSprite,
@@ -341,16 +345,16 @@ export function renderClearEffect(playerGraphics: PlayerGraphics, lines: {
             );
 
             fade.on("complete", () => {
-                effectsContainer.removeChild(effectSprite);
+                backgroundContainer.removeChild(effectSprite);
             });
         }
     }
 }
 
 export function renderAttackEffect(playerGraphics: PlayerGraphics, piece: PieceData, damage: number) {
-    const { effectsContainer } = playerGraphics;
+    const { foregroundContainer } = playerGraphics;
 
-    if (effectsContainer === null) return;
+    if (foregroundContainer === null) return;
 
     const pieceMatrix = getPieceMatrix(piece.piece, piece.rotation);
     const x = pieceMatrix[0].length / 2;
@@ -367,7 +371,7 @@ export function renderAttackEffect(playerGraphics: PlayerGraphics, piece: PieceD
     effectSprite.y = (BOARD_HEIGHT - piece.y - y + 1) * CELL_SIZE - effectSprite.height / 2;
     effectSprite.y += randRange(-32, 32)
 
-    effectsContainer.addChild(effectSprite);
+    foregroundContainer.addChild(effectSprite);
 
     const fade = ease.add(
         effectSprite,
@@ -376,14 +380,65 @@ export function renderAttackEffect(playerGraphics: PlayerGraphics, piece: PieceD
     );
 
     fade.on("complete", () => {
-        effectsContainer.removeChild(effectSprite);
+        foregroundContainer.removeChild(effectSprite);
     });
 }
 
-export function renderComboEffect(playerGraphics: PlayerGraphics, piece: PieceData, damage: number) {
-    const { effectsContainer } = playerGraphics;
+export const MIN_SPIKE = 10;
+export function renderSpikeEffect(playerGraphics: PlayerGraphics, piece: PieceData, currentSpike: number) {
+    const { foregroundContainer } = playerGraphics;
 
-    if (effectsContainer === null) return;
+    if (foregroundContainer === null) return;
+
+    if (playerGraphics.spikeEffect) {
+        foregroundContainer.removeChild(playerGraphics.spikeEffect);
+    }
+
+    const pieceMatrix = getPieceMatrix(piece.piece, piece.rotation);
+    const x = pieceMatrix[0].length / 2;
+    const y = pieceMatrix.length / 2;
+
+    const effectSprite = new PIXI.Text(`>${currentSpike}<`, {
+        fill: `rgb(255, ${255 - (currentSpike - MIN_SPIKE) * 25.5}, 0)`,
+        fontSize: 32 + (currentSpike - MIN_SPIKE) * 1.5,
+        fontFamily: 'Fira Mono',
+    });
+    effectSprite.resolution = 1.25;
+    effectSprite.anchor.x = 0.5;
+    effectSprite.anchor.y = 0.5;
+    effectSprite.rotation = (Math.random() * Math.PI / 6) - (Math.PI / 12);
+
+    effectSprite.x = (piece.x + x) * CELL_SIZE - effectSprite.width / 2;
+    effectSprite.x += randRange(-64, 64)
+    effectSprite.y = (BOARD_HEIGHT - piece.y - y + 1) * CELL_SIZE - effectSprite.height / 2;
+    effectSprite.y += randRange(-64, 64)
+
+    foregroundContainer.addChild(effectSprite);
+    playerGraphics.spikeEffect = effectSprite;
+
+    ease.add(
+        effectSprite,
+        { scale: 1.25 },
+        { duration: 2500, ease: "easeOutQuad" }
+    );
+
+    setTimeout(() => {
+        const fade = ease.add(
+            effectSprite,
+            { alpha: 0 },
+            { duration: 750, ease: "easeOutQuad" }
+        );
+        fade.on("complete", () => {
+            foregroundContainer.removeChild(effectSprite);
+        });
+    }, 1000);
+
+}
+
+export function renderComboEffect(playerGraphics: PlayerGraphics, piece: PieceData, damage: number) {
+    const { foregroundContainer } = playerGraphics;
+
+    if (foregroundContainer === null) return;
 
     const pieceMatrix = getPieceMatrix(piece.piece, piece.rotation);
     const x = pieceMatrix[0].length / 2;
@@ -400,7 +455,7 @@ export function renderComboEffect(playerGraphics: PlayerGraphics, piece: PieceDa
     effectSprite.y = (BOARD_HEIGHT - piece.y - y + 1) * CELL_SIZE - effectSprite.height / 2;
     effectSprite.y += randRange(-32, 32)
 
-    effectsContainer.addChild(effectSprite);
+    foregroundContainer.addChild(effectSprite);
 
     const fade = ease.add(
         effectSprite,
@@ -409,14 +464,14 @@ export function renderComboEffect(playerGraphics: PlayerGraphics, piece: PieceDa
     );
 
     fade.on("complete", () => {
-        effectsContainer.removeChild(effectSprite);
+        foregroundContainer.removeChild(effectSprite);
     });
 }
 
 export function renderClearName(playerGraphics: PlayerGraphics, clearName: ClearName) {
-    const { effectsContainer } = playerGraphics;
+    const { foregroundContainer } = playerGraphics;
 
-    if (effectsContainer === null) return;
+    if (foregroundContainer === null) return;
 
     const effectSprite = new PIXI.Text(`${clearName}`, {
         fill: 0xFFFFFF,
@@ -427,7 +482,7 @@ export function renderClearName(playerGraphics: PlayerGraphics, clearName: Clear
     effectSprite.x = BOARD_DIMENSIONS.width * 0.5 - effectSprite.width / 2;
     effectSprite.y = BOARD_DIMENSIONS.height * 0.25 - effectSprite.height / 2;
 
-    effectsContainer.addChild(effectSprite);
+    foregroundContainer.addChild(effectSprite);
 
     const fade = ease.add(
         effectSprite,
@@ -436,6 +491,6 @@ export function renderClearName(playerGraphics: PlayerGraphics, clearName: Clear
     );
 
     fade.on("complete", () => {
-        effectsContainer.removeChild(effectSprite);
+        foregroundContainer.removeChild(effectSprite);
     });
 }

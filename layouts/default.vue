@@ -30,10 +30,10 @@ const showEditProfile = ref(false);
                 }">Info</NuxtLink>
                 <NuxtLink to="/docs" :class="{
                     'underline text-secondary': route.path !== '/docs'
-                }">API Documentation</NuxtLink>
+                }">Documentation</NuxtLink>
                 <NuxtLink to="/rooms" :class="{
                     'underline text-secondary': route.path !== '/rooms'
-                }">View Rooms</NuxtLink>
+                }">Rooms</NuxtLink>
                 <a class="bg-white/20 p-2" href="/api/login/github" v-if="authStore.status === 'unauthenticated'">
                     Login/Register
                 </a>

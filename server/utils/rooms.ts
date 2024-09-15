@@ -182,6 +182,7 @@ export function checkWinner(room: RoomData) {
 
 	if (playersAlive.length < 2) {
 		const roundWinner = playersAlive[0];
+		console.log("winner", roundWinner)
 		roundWinner.wins++;
 		room.roundOngoing = false;
 		room.lastWinner = roundWinner.sessionId;
