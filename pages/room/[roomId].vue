@@ -115,8 +115,7 @@ function getPlayerStats() {
 
 const playerStats = ref(getPlayerStats());
 useIntervalFn(() => {
-    if (publicRoomData.value === null) return;
-    if (!publicRoomData.value.roundOngoing) return;
+    if (publicRoomData.value === null || !publicRoomData.value.roundOngoing) return;
     playerStats.value = getPlayerStats();
 }, 1000 / 60);
 
@@ -180,7 +179,7 @@ const spikeMap = new Map<string, number>();
 const renderMap = new Map<string, GameState>();
 const renderInterval = useIntervalFn(() => {
     for (let [id, renderQueue] of renderQueueMap.entries()) {
-        if (renderQueue.length > 3 * 5) {
+        if (renderQueue.length > 3 * 20) {
             renderQueue = renderQueue.filter(renderStep => renderStep.type === "piece_placed");
             renderQueue = [renderQueue[0]];
             renderQueueMap.set(id, renderQueue);
@@ -712,7 +711,7 @@ onMounted(() => {
             displayTime.value = Math.floor((timePassed) / 1000);
         } else {
             displayTime.value = 0;
-            countdownTime.value = Math.floor((timeLeft) / 1000);
+            countdownTime.value = Math.ceil((timeLeft) / 1000);
         }
     }, 1000 / 60);
 
