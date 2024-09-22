@@ -2,7 +2,7 @@
 
 ## Authorization
 
-Create an authorization token by going to [Dashboard](/dashboard){.link}! -> Create Token.
+Create an authorization token by creating a bot in [Bots](/Bots){.link} -> Create Token.
 
 ## Rooms
 
@@ -20,7 +20,7 @@ Spectate a room by going to [View Rooms](/rooms){.link} and selecting a room fro
 
 Connect to `wss://botrisbattle.com/ws?token={token}&roomKey={roomKey}`
 using a websocket connection.
-- {token} - Generated API Token from the [Dashboard](/dashboard){.link}
+- {token} - Generated API Token from the [Bots](/bots){.link}
 - {roomKey} - Provided roomKey from the room host
 
 The server will respond with:
@@ -269,6 +269,20 @@ The server will respond with:
 type SessionId = string;
 </pre>
 
+### RoomSettings
+
+<pre class='code'>
+{
+    private: boolean;
+    ft: number;
+    pps: number;
+    initialMultiplier: number;
+    finalMultiplier: number;
+    startMargin: number;
+    endMargin: number;
+}
+</pre>
+
 ### RoomData
 
 <pre class='code'>
@@ -278,14 +292,7 @@ type SessionId = string;
 		id: string;
 		displayName: string;
 	};
-	private: boolean;
-	ft: number;
-	pps: number;
-	initialMultiplier: number;
-	finalMultiplier: number;
-	startMargin: number;
-	endMargin: number;
-	maxPlayers: number;
+    settings: <a href="#roomsettings" class="type-link">RoomSettings</a>;
 	gameOngoing: boolean;
 	roundOngoing: boolean;
 	startedAt: number | null;

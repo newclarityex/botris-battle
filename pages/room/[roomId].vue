@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useRoute } from "vue-router";
 import type { GeneralServerMessage } from "~/server/utils/messages";
-import type { PublicRoomData } from "~/server/utils/rooms";
+import type { PublicRoomData, RoomSettings } from "~/server/utils/rooms";
 import * as PIXI from "pixi.js";
 import {
     useDocumentVisibility,
@@ -18,7 +18,7 @@ import { executeCommand, type GameState, type Command, getPublicGameState, type 
 import FontFaceObserver from "fontfaceobserver";
 import { getBotCreator } from "~/utils/general";
 
-const { status, profile } = toRefs(useAuthStore());
+const { profile } = toRefs(useAuthStore());
 
 definePageMeta({
     layout: "ingame",
@@ -63,9 +63,10 @@ function getPlayerStats() {
 
     const { startedAt, endedAt } = publicRoomData.value;
     return publicRoomData.value.players.map((player) => {
-        const { gameState } = player;
+        const { sessionId } = player;
+        const gameState = renderMap.get(sessionId);
 
-        if (!startedAt || !gameState)
+        if (!startedAt || !gameState) {
             return [
                 {
                     title: "attack/min",
@@ -84,7 +85,8 @@ function getPlayerStats() {
                     value: 0,
                 },
             ];
-
+        }
+        
         let timePassed = (endedAt ?? Date.now()) - startedAt;
         let app = gameState.piecesPlaced > 0
             ? gameState.rawScore / gameState.piecesPlaced
@@ -151,7 +153,7 @@ function scoreStr(wins: number, ft: number) {
 const winStrs = computed(() => {
     if (!publicRoomData.value) return [];
 
-    const { players, ft } = publicRoomData.value;
+    const { players, settings: { ft } } = publicRoomData.value;
 
     return players.map((player) => scoreStr(player.wins, ft));
 });
@@ -332,13 +334,7 @@ onMounted(async () => {
         switch (data.type) {
             case "room_data": {
                 publicRoomData.value = data.payload.roomData;
-                roomOptions.value.ft = publicRoomData.value.ft;
-                roomOptions.value.startMargin = publicRoomData.value.startMargin;
-                roomOptions.value.endMargin = publicRoomData.value.endMargin;
-                roomOptions.value.pps = publicRoomData.value.pps;
-                roomOptions.value.initialMultiplier = publicRoomData.value.initialMultiplier;
-                roomOptions.value.finalMultiplier = publicRoomData.value.finalMultiplier;
-                roomOptions.value.private = publicRoomData.value.private;
+                roomSettings.value = publicRoomData.value.settings;
                 break;
             }
             case "round_started": {
@@ -412,7 +408,7 @@ onMounted(async () => {
 
                 const { sessionId, gameState, prevGameState, commands, events } = data.payload;
 
-                const ppsDelay = 1000 / publicRoomData.value.pps;
+                const ppsDelay = 1000 / publicRoomData.value.settings.pps;
                 let commandDelay = ppsDelay / (commands.length + 1);
 
                 let timestamp = Date.now();
@@ -462,13 +458,7 @@ onMounted(async () => {
             case "settings_changed": {
                 const { roomData } = data.payload;
                 publicRoomData.value = roomData;
-                roomOptions.value.ft = roomData.ft;
-                roomOptions.value.pps = roomData.pps;
-                roomOptions.value.initialMultiplier = roomData.initialMultiplier;
-                roomOptions.value.finalMultiplier = roomData.finalMultiplier;
-                roomOptions.value.startMargin = roomData.startMargin;
-                roomOptions.value.endMargin = roomData.endMargin;
-                roomOptions.value.private = roomData.private;
+                roomSettings.value = roomData.settings;
                 break;
             }
             case "player_banned": {
@@ -592,7 +582,7 @@ onKeyStroke("Escape", (e) => {
     }
 }, { dedupe: true });
 
-const roomOptions = ref({
+const roomSettings = ref<RoomSettings>({
     ft: 5,
     private: false,
     pps: 2.5,
@@ -601,6 +591,16 @@ const roomOptions = ref({
     startMargin: 90,
     endMargin: 600,
 });
+
+// const roomSettings = ref<RoomSettings>({
+//     ft: 5,
+//     private: false,
+//     pps: 2.5,
+//     initialMultiplier: 1,
+//     finalMultiplier: 10,
+//     startMargin: 90,
+//     endMargin: 600,
+// });
 
 const { data: masterKey } = useFetch('/api/room/masterKey', {
     query: {
@@ -627,7 +627,7 @@ async function generateTempKey() {
 }
 
 async function saveSettings() {
-    let ft: string | number = roomOptions.value.ft;
+    let ft: string | number = roomSettings.value.ft;
     if (typeof ft === 'number') {
         ft = Math.floor(ft);
     } else {
@@ -647,13 +647,13 @@ async function saveSettings() {
         method: "POST",
         body: {
             roomId,
-            private: roomOptions.value.private,
+            private: roomSettings.value.private,
             ft,
-            pps: roomOptions.value.pps,
-            initialMultiplier: roomOptions.value.initialMultiplier,
-            finalMultiplier: roomOptions.value.finalMultiplier,
-            startMargin: roomOptions.value.startMargin,
-            endMargin: roomOptions.value.endMargin,
+            pps: roomSettings.value.pps,
+            initialMultiplier: roomSettings.value.initialMultiplier,
+            finalMultiplier: roomSettings.value.finalMultiplier,
+            startMargin: roomSettings.value.startMargin,
+            endMargin: roomSettings.value.endMargin,
         }
     });
 };
@@ -661,25 +661,27 @@ async function saveSettings() {
 const settingsChanged = computed(() => {
     if (publicRoomData.value === null) return console.error("no room info");
 
-    if (publicRoomData.value.private !== roomOptions.value.private) {
+    const existingSettings = publicRoomData.value.settings;
+
+    if (existingSettings.private !== roomSettings.value.private) {
         return true;
     };
-    if (publicRoomData.value.ft !== roomOptions.value.ft) {
+    if (existingSettings.ft !== roomSettings.value.ft) {
         return true;
     };
-    if (publicRoomData.value.pps !== roomOptions.value.pps) {
+    if (existingSettings.pps !== roomSettings.value.pps) {
         return true;
     };
-    if (publicRoomData.value.initialMultiplier !== roomOptions.value.initialMultiplier) {
+    if (existingSettings.initialMultiplier !== roomSettings.value.initialMultiplier) {
         return true;
     };
-    if (publicRoomData.value.finalMultiplier !== roomOptions.value.finalMultiplier) {
+    if (existingSettings.finalMultiplier !== roomSettings.value.finalMultiplier) {
         return true;
     };
-    if (publicRoomData.value.startMargin !== roomOptions.value.startMargin) {
+    if (existingSettings.startMargin !== roomSettings.value.startMargin) {
         return true;
     };
-    if (publicRoomData.value.endMargin !== roomOptions.value.endMargin) {
+    if (existingSettings.endMargin !== roomSettings.value.endMargin) {
         return true;
     };
     return false;
@@ -693,11 +695,11 @@ onMounted(() => {
     const interval = setInterval(() => {
         if (publicRoomData.value === null) return;
 
-        const { initialMultiplier, finalMultiplier, startMargin, endMargin } = publicRoomData.value;
+        const { initialMultiplier, finalMultiplier, startMargin, endMargin } = publicRoomData.value.settings;
         if (!publicRoomData.value.startedAt) {
             countdownTime.value = null;
             displayTime.value = 0;
-            multiplier.value = publicRoomData.value.initialMultiplier;
+            multiplier.value = initialMultiplier;
             return;
         }
 
@@ -779,7 +781,7 @@ const resizeTarget = window;
                                 fontSize: '30px',
                                 fontFamily: 'Fira Mono',
                             }">
-                                win@{{ publicRoomData.ft }}
+                                win@{{ publicRoomData.settings.ft }}
                             </text>
                             <text :anchor="0.5" :x="0" :y="20" :style="{
                                 fill: 'white',
@@ -787,7 +789,7 @@ const resizeTarget = window;
                                 fontFamily: 'Fira Mono',
                             }">
                                 {{ displayTime }} -
-                                {{ publicRoomData.pps.toFixed(1) }} PPS -
+                                {{ publicRoomData.settings.pps.toFixed(1) }} PPS -
                                 {{ multiplier.toFixed(1) }}x
                             </text>
                             <text :anchorX="0" :anchorY="0.5" :x="-650 / 2 + 24" :y="0" :style="{
@@ -811,6 +813,30 @@ const resizeTarget = window;
                             :x="currentConfig.offsets[index]" :scale="currentConfig.scale"
                             :pivotY="(21 * CELL_SIZE) / 2">
                             <container :pivotX="5 * CELL_SIZE" :pivotY="0">
+                                <!-- Bot Modifier -->
+                                <!-- <container :y="-50 - 12" :x="(10 * CELL_SIZE) / 2">
+                                    <graphics :pivotX="(10 * CELL_SIZE) / 2" @render="(graphics: PIXI.Graphics) => {
+                                        graphics.clear();
+                                        graphics.beginFill(0x000000, 0.25);
+                                        graphics.drawRect(
+                                            0,
+                                            0,
+                                            10 * CELL_SIZE,
+                                            50
+                                        );
+                                        graphics.endFill();
+                                    }
+                                        " />
+                                    <text :x="0" :y="0" :anchorX="0.5" :style="{
+                                        fill: 'white',
+                                        fontFamily: 'Fira Mono',
+                                        fontSize: 24,
+                                        lineHeight: 50,
+                                    }">
+                                        5 PPS | 2.0x
+                                    </text>
+                                </container> -->
+
                                 <graphics :pivotX="0" :pivotY="0" @render="(graphics: PIXI.Graphics) => {
                                     graphics.clear();
                                     graphics.beginFill(0x000000, 0.5);
@@ -823,14 +849,14 @@ const resizeTarget = window;
                                     graphics.endFill();
                                 }" />
                                 <!-- Background Container -->
-                                <container :ref="(el) => board.backgroundContainer = el as unknown as PIXI.Container" />
+                                <container :ref="(el: any) => board.backgroundContainer = el as PIXI.Container" />
                                 <!-- Board Container -->
-                                <container :ref="(el) => board.boardContainer = el as unknown as PIXI.Container"
+                                <container :ref="(el: any) => board.boardContainer = el as PIXI.Container"
                                     :sortable-children="true" />
                                 <!-- Foreground Container -->
-                                <container :ref="(el) => board.foregroundContainer = el as unknown as PIXI.Container" />
+                                <container :ref="(el: any) => board.foregroundContainer = el as PIXI.Container" />
                                 <!-- Damage Bar Graphic -->
-                                <graphics :ref="(el) => board.damageBar = el as unknown as PIXI.Graphics" :z-index="2" />
+                                <graphics :ref="(el: any) => board.damageBar = el as PIXI.Graphics" :z-index="2" />
                                 <text :anchorX="0.5" :anchorY="0.5" :x="10 * CELL_SIZE / 2" :y="200" :style="{
                                     fill: 'white',
                                     fontSize: '48px',
@@ -1018,37 +1044,37 @@ const resizeTarget = window;
                     <div class="p-4 bg-white/10 flex flex-col gap-2 text-sm">
                         <div class="flex justify-between items-center">
                             <label>FT (max: 999):</label>
-                            <input type="text" v-model.number="roomOptions.ft"
+                            <input type="text" v-model.number="roomSettings.ft"
                                 class="w-12 px-1 bg-white/20 text-right" />
                         </div>
                         <div class="flex justify-between items-center">
                             <label>PPS (max: 30):</label>
-                            <input type="text" v-model.number="roomOptions.pps"
+                            <input type="text" v-model.number="roomSettings.pps"
                                 class="w-12 px-1 bg-white/20 text-right" />
                         </div>
                         <div class="flex justify-between items-center">
                             <label>Initial Multiplier (0x - 20x):</label>
-                            <input type="text" v-model.number="roomOptions.initialMultiplier"
+                            <input type="text" v-model.number="roomSettings.initialMultiplier"
                                 class="w-12 px-1 bg-white/20 text-right" />
                         </div>
                         <div class="flex justify-between items-center">
                             <label>Final Multiplier (0x - 20x):</label>
-                            <input type="text" v-model.number="roomOptions.finalMultiplier"
+                            <input type="text" v-model.number="roomSettings.finalMultiplier"
                                 class="w-12 px-1 bg-white/20 text-right" />
                         </div>
                         <div class="flex justify-between items-center">
                             <label>Start Margin (secs):</label>
-                            <input type="text" v-model.number="roomOptions.startMargin"
+                            <input type="text" v-model.number="roomSettings.startMargin"
                                 class="w-12 px-1 bg-white/20 text-right" />
                         </div>
                         <div class="flex justify-between items-center">
                             <label>End Margin (secs):</label>
-                            <input type="text" v-model.number="roomOptions.endMargin"
+                            <input type="text" v-model.number="roomSettings.endMargin"
                                 class="w-12 px-1 bg-white/20 text-right" />
                         </div>
                         <div class="flex justify-between items-center">
                             <label>Private:</label>
-                            <input type="checkbox" v-model.number="roomOptions.private" class="w-4 h-4" />
+                            <input type="checkbox" v-model.number="roomSettings.private" class="w-4 h-4" />
                         </div>
                         <div class="flex justify-center">
                             <button class="bg-white/10 w-full py-1 hover:bg-white/20" @click="saveSettings">
@@ -1100,31 +1126,31 @@ const resizeTarget = window;
                     <div class="p-4 bg-white/10 flex flex-col gap-2 text-sm">
                         <div class="flex justify-between items-center">
                             <div>FT (max: 999):</div>
-                            <div>{{ publicRoomData.ft }}</div>
+                            <div>{{ publicRoomData.settings.ft }}</div>
                         </div>
                         <div class="flex justify-between items-center">
                             <label>PPS (max: 30):</label>
-                            <div>{{ publicRoomData.pps }}</div>
+                            <div>{{ publicRoomData.settings.pps }}</div>
                         </div>
                         <div class="flex justify-between items-center">
                             <label>Initial Multiplier (0x - 20x):</label>
-                            <div>{{ publicRoomData.initialMultiplier }}</div>
+                            <div>{{ publicRoomData.settings.initialMultiplier }}</div>
                         </div>
                         <div class="flex justify-between items-center">
                             <label>Final Multiplier (0x - 20x):</label>
-                            <div>{{ publicRoomData.finalMultiplier }}</div>
+                            <div>{{ publicRoomData.settings.finalMultiplier }}</div>
                         </div>
                         <div class="flex justify-between items-center">
                             <label>Start Margin (secs):</label>
-                            <div>{{ publicRoomData.startMargin }}</div>
+                            <div>{{ publicRoomData.settings.startMargin }}</div>
                         </div>
                         <div class="flex justify-between items-center">
                             <label>End Margin (secs):</label>
-                            <div>{{ publicRoomData.endMargin }}</div>
+                            <div>{{ publicRoomData.settings.endMargin }}</div>
                         </div>
                         <div class="flex justify-between items-center">
                             <label>Private:</label>
-                            <div>{{ publicRoomData.private }}</div>
+                            <div>{{ publicRoomData.settings.private }}</div>
                         </div>
                     </div>
                     <div class="p-4 bg-white/10 flex flex-col gap-2">

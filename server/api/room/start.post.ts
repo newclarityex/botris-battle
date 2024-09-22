@@ -40,14 +40,7 @@ export default defineEventHandler(async (event) => {
     if (room.players.size < 2) {
         throw createError({
             statusCode: 400,
-            statusMessage: "You need at 2 players to start the room."
-        });
-    };
-
-    if (room.players.size > room.maxPlayers) {
-        throw createError({
-            statusCode: 400,
-            statusMessage: "Too many players."
+            statusMessage: "You need 2 players to start the room."
         });
     };
 

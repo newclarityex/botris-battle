@@ -180,7 +180,7 @@ async function handlePlayerMessage(data: RawData, connection: Connection) {
 
             const oldGameState = player.gameState!;
 
-            const { initialMultiplier, finalMultiplier, startMargin, endMargin } = room;
+            const { initialMultiplier, finalMultiplier, startMargin, endMargin, pps } = room.settings;
             const timePassed = Date.now() - room.startedAt!;
             const multiplier = calculateMultiplier(timePassed, initialMultiplier, finalMultiplier, startMargin, endMargin);
 
@@ -191,7 +191,7 @@ async function handlePlayerMessage(data: RawData, connection: Connection) {
             );
             player.gameState = newGameState;
 
-            const requestDelay = 1000 / room.pps - latency;
+            const requestDelay = 1000 / pps - latency;
 
             if (!player.gameState.dead) {
                 setTimeout(() => {
@@ -380,7 +380,7 @@ export default defineNitroPlugin((event) => {
             return;
         }
 
-        if (!roomKey && room.private) {
+        if (!roomKey && room.settings.private) {
             ws.close(4005, "Private rooms require a roomKey.");
             return;
         }
@@ -397,7 +397,7 @@ export default defineNitroPlugin((event) => {
             return;
         }
 
-        if (room.players.size >= room.maxPlayers) {
+        if (room.players.size === 2) {
             ws.close(4001, "Too many players");
             return;
         }

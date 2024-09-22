@@ -25,13 +25,12 @@ export type PublicPlayerData = {
 	gameState: PublicGameState | null;
 };
 
-export type RoomData = {
-	id: string;
-	createdAt: number;
-	host: {
-		id: string;
-		displayName: string;
-	};
+export type ModifierSettings = {
+	multiplier: number;
+	pps: number;
+}
+
+export type RoomSettings = {
 	private: boolean;
 	ft: number;
 	pps: number;
@@ -39,7 +38,16 @@ export type RoomData = {
 	finalMultiplier: number;
 	startMargin: number;
 	endMargin: number;
-	maxPlayers: number;
+};
+
+export type RoomData = {
+	id: string;
+	createdAt: number;
+	host: {
+		id: string;
+		displayName: string;
+	};
+	settings: RoomSettings;
 	gameOngoing: boolean;
 	roundOngoing: boolean;
 	startedAt: number | null;
@@ -56,14 +64,7 @@ export type PublicRoomData = {
 		id: string;
 		displayName: string;
 	};
-	private: boolean;
-	ft: number;
-	pps: number;
-	initialMultiplier: number;
-	finalMultiplier: number;
-	startMargin: number;
-	endMargin: number;
-	maxPlayers: number;
+	settings: RoomSettings;
 	gameOngoing: boolean;
 	roundOngoing: boolean;
 	startedAt: number | null;
@@ -195,7 +196,7 @@ export function checkWinner(room: RoomData) {
 				roomData: getPublicRoomData(room),
 			},
 		});
-		if (roundWinner.wins >= room.ft) {
+		if (roundWinner.wins >= room.settings.ft) {
 			room.gameOngoing = false;
 			sendRoom(room.id, {
 				type: "game_over",
@@ -241,14 +242,7 @@ export function getPublicRoomData(roomData: RoomData): PublicRoomData {
 	return {
 		id: roomData.id,
 		host: roomData.host,
-		private: roomData.private,
-		ft: roomData.ft,
-		pps: roomData.pps,
-		initialMultiplier: roomData.initialMultiplier,
-		finalMultiplier: roomData.finalMultiplier,
-		startMargin: roomData.startMargin,
-		endMargin: roomData.endMargin,
-		maxPlayers: roomData.maxPlayers,
+		settings: roomData.settings,
 		gameOngoing: roomData.gameOngoing,
 		roundOngoing: roomData.roundOngoing,
 		startedAt: roomData.startedAt,
