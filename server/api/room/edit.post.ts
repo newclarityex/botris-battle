@@ -47,13 +47,7 @@ export default defineEventHandler(async (event) => {
         });
     };
 
-	room.pps = data.pps;
-	room.initialMultiplier = data.initialMultiplier;
-	room.finalMultiplier = data.finalMultiplier;
-	room.startMargin = data.startMargin;
-	room.endMargin = data.endMargin;
-	room.ft = data.ft;
-	room.private = data.private;
+	room.settings = data;
 
 	sendRoom(data.roomId, {
 		type: "settings_changed",
