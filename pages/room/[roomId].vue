@@ -60,7 +60,8 @@ if (initialRoomData !== null) {
 
 type RenderStep = { timestamp: number, type: 'piece_spawned', sessionId: string, gameState: PublicGameState }
     | { timestamp: number, type: 'command', sessionId: string, command: Command }
-    | { timestamp: number, type: 'piece_placed', sessionId: string, gameState: PublicGameState, events: GameEvent[] };
+    | { timestamp: number, type: 'piece_placed', sessionId: string, gameState: PublicGameState, events: GameEvent[] }
+    | { timestamp: number, type: 'damage_received', sessionId: string, gameState: PublicGameState };
 const renderQueueMap = new Map<string, RenderStep[]>();
 
 const spikeMap = new Map<string, number>();
@@ -183,6 +184,10 @@ const _renderInterval = useIntervalFn(() => {
                     }
                     break;
                 }
+                case 'damage_received': {
+                    renderDamage(playerGraphics, renderStep.gameState);
+                    break;
+                }
             }
         };
     }
@@ -266,7 +271,6 @@ onMounted(() => {
 let ws: WebSocket | null = null;
 
 const pixiInst = ref<ApplicationInst | null>(null);
-const pixiApp = computed(() => pixiInst.value?.app ?? null);
 
 const { width, height } = useWindowSize();
 
@@ -363,10 +367,16 @@ onMounted(async () => {
             }
             case "game_over": {
                 publicRoomData.value = data.payload.roomData;
+                spikeMap.clear();
+                renderMap.clear();
+                renderQueueMap.clear();
                 break;
             }
             case "game_reset": {
                 publicRoomData.value = data.payload.roomData;
+                spikeMap.clear();
+                renderMap.clear();
+                renderQueueMap.clear();
                 break;
             }
             case "player_joined": {
@@ -435,6 +445,12 @@ onMounted(async () => {
             }
 
             case "player_damage_received": {
+                const { sessionId, gameState } = data.payload;
+
+                const renderQueue = renderQueueMap.get(sessionId) ?? [];
+                const timestamp = renderQueue.length > 0 ? renderQueue[renderQueue.length - 1].timestamp : Date.now();
+                renderQueue.push({ timestamp, type: "damage_received", sessionId, gameState: gameState });
+                renderQueueMap.set(sessionId, renderQueue);
                 // if (!publicRoomData.value) return console.error("no room info");
 
                 // const { sessionId, gameState } = data.payload;
