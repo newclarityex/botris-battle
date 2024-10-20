@@ -85,7 +85,7 @@ const _renderInterval = useIntervalFn(() => {
     
             switch (renderStep.type) {
                 case 'piece_spawned': {
-                    let gameState: GameState = { ...renderStep.gameState, garbageQueue: [], isImmobile: false };
+                    let gameState: GameState = { ...renderStep.gameState, garbageQueued: [], isImmobile: false };
                     renderMap.set(renderStep.sessionId, gameState);
                     renderState(playerGraphics, renderStep.gameState);
                     renderDamage(playerGraphics, renderStep.gameState);
@@ -935,7 +935,7 @@ const resizeTarget = window;
                             </container>
 
                             <!-- Bot Avatar -->
-                            <container :y="21 * CELL_SIZE + 12" :ref="(container: PIXI.Container) => {
+                            <container :y="21 * CELL_SIZE + 12" :ref="(container: any) => {
                                 if (container === null) return;
 
                                 container.removeChildren();
