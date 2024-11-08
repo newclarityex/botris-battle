@@ -398,6 +398,11 @@ type SessionId = string;
         final: <a href="#piecedata" class="type-link">PieceData</a>;
     };
 } | {
+    type: 'queue_added',
+    payload: {
+        piece: <a href="#piece" class="type-link">Piece</a>,
+    },
+} | {
     type: "damage_tanked";
     payload: {
         holeIndices: number[];
