@@ -364,6 +364,7 @@ type SessionId = string;
 <pre class='code'>
 {
     board: <a href="#block" class="type-link">Block</a>[][];
+    bag: <a href="#piece" class="type-link">Piece</a>[];
     queue: <a href="#piece" class="type-link">Piece</a>[];
     garbageQueued: <a href="#garbageline" class="type-link">GarbageLine</a>[];
     held: <a href="#piece" class="type-link">Piece</a> | null;
