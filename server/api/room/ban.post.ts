@@ -31,29 +31,34 @@ export default defineEventHandler(async (event) => {
         });
     };
 
-    const targetProfile = await prisma.profile.findFirst({
+    if (room.host.id !== profile.id) {
+        throw createError({
+            statusCode: 401,
+            statusMessage: "You aren't the host for this room."
+        });
+    };
+
+    const targetBot = await prisma.bot.findFirst({
         where: {
             id: data.targetId,
         },
+        include: {
+            developers: true,
+        }
     });
-    if (!targetProfile) {
+    if (!targetBot) {
         throw createError({
             statusCode: 404,
             statusMessage: "Player not found."
         });
     };
 
-    const playerInfo = {
-        userId: profile.id,
-        bot: profile.name,
-        avatar: profile.avatar as Block[][],
-        creator: profile.creator,
-    };
+    const botInfo = toPublicBot(targetBot);
 
-    room.banned.set(profile.id, playerInfo);
+    room.banned.set(profile.id, botInfo);
 
     for (const [sessionId, player] of room.players.entries()) {
-        if (player.info.userId !== data.targetId) continue;
+        if (player.info.id !== data.targetId) continue;
 
         player.ws.close(4002, "Banned by host");
 
@@ -69,7 +74,7 @@ export default defineEventHandler(async (event) => {
     
     sendRoom(data.roomId, {
         type: "player_banned",
-        payload: { playerInfo },
+        payload: { botInfo },
     });
 
     return { success: true };

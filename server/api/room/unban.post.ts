@@ -1,6 +1,5 @@
 import { z } from 'zod';
 import { rooms, startRound } from '~/server/utils/rooms';
-import type { Block } from '~/utils/game';
 
 const UnbanSchema = z.object({ roomId: z.string(), targetId: z.string() });
 
@@ -31,31 +30,36 @@ export default defineEventHandler(async (event) => {
         });
     };
 
-    const targetProfile = await prisma.profile.findFirst({
+    if (room.host.id !== profile.id) {
+        throw createError({
+            statusCode: 401,
+            statusMessage: "You aren't the host for this room."
+        });
+    };
+
+    const targetBot = await prisma.bot.findFirst({
         where: {
             id: data.targetId,
         },
+        include: {
+            developers: true,
+        }
     });
 
-    if (!targetProfile) {
+    if (!targetBot) {
         throw createError({
             statusCode: 404,
             statusMessage: "Player not found."
         });
     };
 
-    const playerInfo = {
-        userId: profile.id,
-        bot: profile.name,
-        avatar: profile.avatar as Block[][],
-        creator: profile.creator,
-    };
+    const botInfo = toPublicBot(targetBot);
 
     room.banned.delete(data.targetId);
 
     sendRoom(data.roomId, {
         type: "player_unbanned",
-        payload: { playerInfo },
+        payload: { botInfo },
     });
 
     return { success: true };

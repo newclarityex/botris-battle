@@ -5,7 +5,7 @@ const route = useRoute();
 
 <template>
     <div class="flex justify-center">
-        <main class="px-8 max-w-[1600px]">
+        <main class="px-8 w-[1240px]">
             <ContentDoc path="/docs" />
         </main>
     </div>

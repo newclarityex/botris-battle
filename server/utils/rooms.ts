@@ -1,16 +1,9 @@
 import type { WebSocket } from "ws";
 import { getPublicGameState, type GameState, type PublicGameState, createGameState } from "libtris";
 import type { GeneralServerMessage } from "./messages";
-import type { Block } from "~/utils/game";
 import { customAlphabet } from "nanoid";
 import { numbers, lowercase } from "nanoid-dictionary";
-
-export type PlayerInfo = {
-	userId: string;
-	creator: string;
-	bot: string;
-	avatar: Block[][];
-};
+import type { PublicBot } from "~/utils/general";
 
 export type PlayerData = {
 	sessionId: string;
@@ -18,7 +11,7 @@ export type PlayerData = {
 	ws: WebSocket;
 	wins: number;
 	gameState: GameState | null;
-	info: PlayerInfo;
+	info: PublicBot;
 	moveRequested: boolean;
 	lastRequestTimestamp: number;
 	timeout: NodeJS.Timeout | null;
@@ -27,15 +20,17 @@ export type PlayerData = {
 export type PublicPlayerData = {
 	sessionId: string;
 	playing: boolean;
-	info: PlayerInfo;
+	info: PublicBot;
 	wins: number;
 	gameState: PublicGameState | null;
 };
 
-export type RoomData = {
-	id: string;
-	createdAt: number;
-	host: PlayerInfo;
+export type ModifierSettings = {
+	multiplier: number;
+	pps: number;
+}
+
+export type RoomSettings = {
 	private: boolean;
 	ft: number;
 	pps: number;
@@ -43,35 +38,40 @@ export type RoomData = {
 	finalMultiplier: number;
 	startMargin: number;
 	endMargin: number;
-	maxPlayers: number;
+};
+
+export type RoomData = {
+	id: string;
+	createdAt: number;
+	host: {
+		id: string;
+		displayName: string;
+	};
+	settings: RoomSettings;
 	gameOngoing: boolean;
 	roundOngoing: boolean;
 	startedAt: number | null;
 	endedAt: number | null;
 	lastWinner: string | null;
-	banned: Map<string, PlayerInfo>;
+	banned: Map<string, PublicBot>;
 	players: Map<string, PlayerData>;
 	spectators: Map<string, WebSocket>;
 };
 
 export type PublicRoomData = {
 	id: string;
-	host: PlayerInfo;
-	private: boolean;
-	ft: number;
-	pps: number;
-	initialMultiplier: number;
-	finalMultiplier: number;
-	startMargin: number;
-	endMargin: number;
-	maxPlayers: number;
+	host: {
+		id: string;
+		displayName: string;
+	};
+	settings: RoomSettings;
 	gameOngoing: boolean;
 	roundOngoing: boolean;
 	startedAt: number | null;
 	endedAt: number | null;
 	lastWinner: string | null;
 	players: PublicPlayerData[];
-	banned: PlayerInfo[];
+	banned: PublicBot[];
 };
 
 export type Connection = {
@@ -80,7 +80,7 @@ export type Connection = {
 	token: string;
 	status: "playing" | "spectating" | "idle";
 	roomId: string;
-	info: PlayerInfo;
+	info: PublicBot;
 };
 
 export const connections = new Map<string, Connection>();
@@ -183,6 +183,7 @@ export function checkWinner(room: RoomData) {
 
 	if (playersAlive.length < 2) {
 		const roundWinner = playersAlive[0];
+		console.log("winner", roundWinner)
 		roundWinner.wins++;
 		room.roundOngoing = false;
 		room.lastWinner = roundWinner.sessionId;
@@ -195,7 +196,7 @@ export function checkWinner(room: RoomData) {
 				roomData: getPublicRoomData(room),
 			},
 		});
-		if (roundWinner.wins >= room.ft) {
+		if (roundWinner.wins >= room.settings.ft) {
 			room.gameOngoing = false;
 			sendRoom(room.id, {
 				type: "game_over",
@@ -241,14 +242,7 @@ export function getPublicRoomData(roomData: RoomData): PublicRoomData {
 	return {
 		id: roomData.id,
 		host: roomData.host,
-		private: roomData.private,
-		ft: roomData.ft,
-		pps: roomData.pps,
-		initialMultiplier: roomData.initialMultiplier,
-		finalMultiplier: roomData.finalMultiplier,
-		startMargin: roomData.startMargin,
-		endMargin: roomData.endMargin,
-		maxPlayers: roomData.maxPlayers,
+		settings: roomData.settings,
 		gameOngoing: roomData.gameOngoing,
 		roundOngoing: roomData.roundOngoing,
 		startedAt: roomData.startedAt,

@@ -41,6 +41,7 @@
                 <ol class="max-w-2xl list-decimal">
                     <li>
                         Matches will be done FT5 in a single elimination bracket.
+                        Semifinals will be FT7, and Finals will be FT10.
                     </li>
                     <li>
                         Maximum of 8 players per team.

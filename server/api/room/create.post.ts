@@ -1,16 +1,14 @@
 import { z } from "zod";
-import { createRoomKey, rooms } from "~/server/utils/rooms";
+import { createRoomKey, type RoomData, rooms } from "~/server/utils/rooms";
 import { checkAuth } from "~/server/utils/auth";
 import { customAlphabet, nanoid } from "nanoid";
 import { numbers, lowercase } from "nanoid-dictionary";
-import type { Block } from "~/utils/game";
 
 const genRoomId = customAlphabet(numbers + lowercase, 8);
 
-const CreateGameSchema = z.object({
+const CreateRoomSchema = z.object({
 	private: z.boolean(),
 	ft: z.number().min(1).max(999),
-	// maxPlayers: z.number().min(2).max(4),
 	pps: z.number().gt(0).max(30),
 	initialMultiplier: z.number().gte(0).max(20),
 	finalMultiplier: z.number().gte(0).max(20),
@@ -27,7 +25,7 @@ export default defineEventHandler(async (event) => {
 		});
 	}
 
-	const body = await readValidatedBody(event, body => CreateGameSchema.safeParse(body));
+	const body = await readValidatedBody(event, body => CreateRoomSchema.safeParse(body));
 	if (!body.success) {
 		throw createError({
 			statusCode: 400,
@@ -41,23 +39,19 @@ export default defineEventHandler(async (event) => {
 		roomId = nanoid();
 	}
 
-	const match = {
+	const room: RoomData = {
 		id: roomId,
 		createdAt: Date.now(),
-		host: {
-			userId: profile.id,
-			creator: profile.creator,
-			bot: profile.name,
-			avatar: profile.avatar as Block[][],
+		host: { id: profile.id, displayName: profile.displayName },
+		settings: {
+			private: data.private,
+			ft: data.ft,
+			pps: data.pps,
+			initialMultiplier: data.initialMultiplier,
+			finalMultiplier: data.finalMultiplier,
+			startMargin: data.startMargin,
+			endMargin: data.endMargin,
 		},
-		private: data.private,
-		ft: data.ft,
-		maxPlayers: 2,
-		pps: data.pps,
-		initialMultiplier: data.initialMultiplier,
-		finalMultiplier: data.finalMultiplier,
-		startMargin: data.startMargin,
-		endMargin: data.endMargin,
 		gameOngoing: false,
 		roundOngoing: false,
 		startedAt: null,
@@ -68,7 +62,7 @@ export default defineEventHandler(async (event) => {
 		spectators: new Map(),
 	};
 
-	rooms.set(roomId, match);
+	rooms.set(roomId, room);
 
 	await prisma.roomKey.create({
 		data: {
@@ -77,6 +71,17 @@ export default defineEventHandler(async (event) => {
 			singleUse: false,
 		},
 	});
+
+	const cleanupInterval = setInterval(() => {
+		if (!rooms.has(roomId)) {
+			clearInterval(cleanupInterval);
+		};
+
+		if (room.players.size === 0 && room.spectators.size === 0) {
+			rooms.delete(roomId);
+			clearInterval(cleanupInterval);
+		};
+	}, 5 * 60 * 1000);
 
 	return {
 		roomId,

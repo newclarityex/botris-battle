@@ -29,6 +29,13 @@ export default defineEventHandler(async (event) => {
         });
     };
 
+    if (room.host.id !== profile.id) {
+        throw createError({
+            statusCode: 401,
+            statusMessage: "You aren't the host for this room."
+        });
+    };
+
     const player = room.players.get(data.targetId);
     if (!player) {
         throw createError({

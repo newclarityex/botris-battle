@@ -33,26 +33,44 @@ model User {
 }
 
 model Profile {
-  id       String     @id
-  User     User       @relation(fields: [id], references: [id])
-  creator  String
-  name     String
-  email    String?    @unique
-  avatar   Json?
-  ApiToken ApiToken[]
+  id          String  @id
+  User        User    @relation(fields: [id], references: [id])
+  displayName String
+  email       String? @unique
+  Bots        Bot[]
 }
 
-model ApiToken {
-  token     String    @id @default(uuid())
-  name      String?
-  Profile   Profile   @relation(fields: [profileId], references: [id])
-  profileId String
-  temp      Boolean   @default(false)
-  expires   DateTime?
+model Bot {
+  id       String  @id @default(uuid())
+  name     String
+  avatar   Json
+  team     String?
+  language String?
+  eval     String?
+  movegen  String?
+  search   String?
+
+  developers Profile[]
+  botTokens  BotToken[]
+  BotInvite  BotInvite[]
+}
+
+model BotToken {
+  token String  @id @default(uuid())
+  name  String?
+  Bot   Bot     @relation(fields: [botId], references: [id])
+  botId String
 }
 
 model RoomKey {
   key       String  @id
   singleUse Boolean @default(false)
   roomId    String
+}
+
+model BotInvite {
+  key     String   @id
+  Bot     Bot      @relation(fields: [botId], references: [id])
+  botId   String
+  expires DateTime
 }

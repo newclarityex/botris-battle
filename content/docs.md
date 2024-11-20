@@ -2,7 +2,7 @@
 
 ## Authorization
 
-Create an authorization token by going to [Dashboard](/dashboard){.link}! -> Create Token.
+Create an authorization token by creating a bot in [Bots](/Bots){.link} -> Create Token.
 
 ## Rooms
 
@@ -20,7 +20,7 @@ Spectate a room by going to [View Rooms](/rooms){.link} and selecting a room fro
 
 Connect to `wss://botrisbattle.com/ws?token={token}&roomKey={roomKey}`
 using a websocket connection.
-- {token} - Generated API Token from the [Dashboard](/dashboard){.link}
+- {token} - Generated API Token from the [Bots](/bots){.link}
 - {roomKey} - Provided roomKey from the room host
 
 The server will respond with:
@@ -85,7 +85,7 @@ When a player gets banned, the server will send:
 {
     type: "player_banned";
     payload: {
-        playerInfo: <a href="#playerinfo" class="type-link">PlayerInfo</a>
+        botInfo: <a href="#botinfo" class="type-link">BotInfo</a>
     };
 }
 </pre>
@@ -95,7 +95,7 @@ When a player gets unbanned, the server will send:
 {
     type: "player_unbanned";
     payload: {
-        playerInfo: <a href="#playerinfo" class="type-link">PlayerInfo</a>
+        botInfo: <a href="#botinfo" class="type-link">BotInfo</a>
     };
 }
 </pre>
@@ -106,16 +106,6 @@ When the room settings are changed, the server will send:
     type: "settings_changed";
     payload: {
         roomData: <a href="#roomdata" class="type-link">RoomData</a>
-    };
-}
-</pre>
-
-When the host is transfered, the server will send:
-<pre class='code'>
-{
-    type: "host_changed";
-    payload: {
-        hostInfo: PlayerInfo;
     };
 }
 </pre>
@@ -223,7 +213,7 @@ When a round is over, the winner is sent using:
     type: "round_over";
     payload: {
         winnerId: <a href="#sessionid" class="type-link">SessionId</a>;
-        winnerInfo: <a href="#playerinfo" class="type-link">PlayerInfo</a>;
+        winnerInfo: <a href="#botinfo" class="type-link">BotInfo</a>;
         roomData: <a href="#roomdata" class="type-link">RoomData</a>;
     }
 }
@@ -236,7 +226,7 @@ When the game is over, the winner is sent using:
     type: "game_over";
     payload: {
         winnerId: <a href="#sessionid" class="type-link">SessionId</a>;
-        winnerInfo: <a href="#playerinfo" class="type-link">PlayerInfo</a>;
+        winnerInfo: <a href="#botinfo" class="type-link">BotInfo</a>;
         roomData: <a href="#roomdata" class="type-link">RoomData</a>;
     }
 }
@@ -279,27 +269,37 @@ The server will respond with:
 type SessionId = string;
 </pre>
 
+### RoomSettings
+
+<pre class='code'>
+{
+    private: boolean;
+    ft: number;
+    pps: number;
+    initialMultiplier: number;
+    finalMultiplier: number;
+    startMargin: number;
+    endMargin: number;
+}
+</pre>
+
 ### RoomData
 
 <pre class='code'>
 {
 	id: string;
-	host: <a href="#playerinfo" class="type-link">PlayerInfo</a>;
-	private: boolean;
-	ft: number;
-	pps: number;
-	initialMultiplier: number;
-	finalMultiplier: number;
-	startMargin: number;
-	endMargin: number;
-	maxPlayers: number;
+	host: {
+		id: string;
+		displayName: string;
+	};
+    settings: <a href="#roomsettings" class="type-link">RoomSettings</a>;
 	gameOngoing: boolean;
 	roundOngoing: boolean;
 	startedAt: number | null;
 	endedAt: number | null;
 	lastWinner: <a href="#sessionid" class="type-link">SessionId</a> | null;
 	players: <a href="#playerdata" class="type-link">PlayerData</a>[];
-	banned: <a href="#playerinfo" class="type-link">PlayerInfo</a>[];
+	banned: <a href="#botinfo" class="type-link">BotInfo</a>[];
 }
 </pre>
 
@@ -309,19 +309,25 @@ type SessionId = string;
 {
 	sessionId: <a href="#sessionid" class="type-link">SessionId</a>;
 	playing: boolean;
-	info: <a href="#playerinfo" class="type-link">PlayerInfo</a>;
+	info: <a href="#botinfo" class="type-link">BotInfo</a>;
 	wins: number;
 	gameState: <a href="#gamestate" class="type-link">GameState</a> | null;
 }
 </pre>
 
-### PlayerInfo
+### BotInfo
 
 <pre class='code'>
 {
-    userId: string;
-    creator: string;
-    bot: string;
+	id: string;
+	name: string;
+	avatar: Avatar;
+	team: string | null;
+	language: string | null;
+	eval: string | null;
+	movegen: string | null;
+	search: string | null;
+	developers: { id: string, displayName: string }[];
 }
 </pre>
 
@@ -358,6 +364,7 @@ type SessionId = string;
 <pre class='code'>
 {
     board: <a href="#block" class="type-link">Block</a>[][];
+    bag: <a href="#piece" class="type-link">Piece</a>[];
     queue: <a href="#piece" class="type-link">Piece</a>[];
     garbageQueued: <a href="#garbageline" class="type-link">GarbageLine</a>[];
     held: <a href="#piece" class="type-link">Piece</a> | null;
@@ -391,6 +398,11 @@ type SessionId = string;
         initial: <a href="#piecedata" class="type-link">PieceData</a>;
         final: <a href="#piecedata" class="type-link">PieceData</a>;
     };
+} | {
+    type: 'queue_added',
+    payload: {
+        piece: <a href="#piece" class="type-link">Piece</a>,
+    },
 } | {
     type: "damage_tanked";
     payload: {

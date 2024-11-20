@@ -30,6 +30,13 @@ export default defineEventHandler(async (event) => {
         });
     };
 
+    if (room.host.id !== profile.id) {
+        throw createError({
+            statusCode: 401,
+            statusMessage: "You aren't the host for this room."
+        });
+    };
+
     if (!room.gameOngoing) {
         throw createError({
             statusCode: 400,

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useRoute } from "vue-router";
 import type { GeneralServerMessage } from "~/server/utils/messages";
-import type { PublicRoomData } from "~/server/utils/rooms";
+import type { PublicRoomData, RoomSettings } from "~/server/utils/rooms";
 import * as PIXI from "pixi.js";
 import {
     useDocumentVisibility,
@@ -11,14 +11,14 @@ import {
     onKeyStroke,
 } from "@vueuse/core";
 import type { PlayerGraphics } from "@/utils/graphics";
-import { renderClearName, renderComboEffect, renderDamage, renderState, CELL_SIZE } from "@/utils/graphics";
-import { AUDIO_SOURCES } from "~/server/utils/audio";
+import { renderAvatar, renderClearName, renderComboEffect, renderDamage, renderState, CELL_SIZE } from "@/utils/graphics";
 import { Application } from "vue3-pixi";
 import type { ApplicationInst } from "vue3-pixi";
-import { executeCommand, type GameState, type Command, getPublicGameState, type PublicGameState, type GameEvent } from "libtris";
+import { executeCommand, type GameState, type Command, getPublicGameState, type PublicGameState, type GameEvent, type Piece } from "libtris";
 import FontFaceObserver from "fontfaceobserver";
+import { getBotCreator } from "~/utils/general";
 
-const { status, profile } = toRefs(useAuthStore());
+const { profile } = toRefs(useAuthStore());
 
 definePageMeta({
     layout: "ingame",
@@ -41,33 +41,167 @@ const initialRoomData = await $fetch(`/api/room/info`, {
     return null;
 });
 
-if (!initialRoomData) {
-    throw createError({
-        statusCode: 404,
-        statusMessage: "Room not found",
-    });
+const publicRoomData = ref<PublicRoomData | null>(initialRoomData);
+
+const allPlayerGraphics = shallowRef<PlayerGraphics[]>([]);
+if (initialRoomData !== null) {
+    allPlayerGraphics.value = initialRoomData.players.map((player) => ({
+        id: player.sessionId,
+        info: player.info,
+        boardContainer: null,
+        backgroundContainer: null,
+        foregroundContainer: null,
+        heldContainer: null,
+        queueContainer: null,
+        damageBar: null,
+        spikeEffect: null,
+    }));
 }
 
-const publicRoomData = ref<PublicRoomData>(initialRoomData);
+type RenderStep = { timestamp: number, type: 'piece_spawned', sessionId: string, gameState: PublicGameState }
+    | { timestamp: number, type: 'command', sessionId: string, command: Command }
+    | { timestamp: number, type: 'piece_placed', sessionId: string, gameState: PublicGameState, events: GameEvent[] }
+    | { timestamp: number, type: 'damage_received', sessionId: string, gameState: PublicGameState };
+const renderQueueMap = new Map<string, RenderStep[]>();
 
-const allPlayerGraphics = ref<PlayerGraphics[]>([]);
-allPlayerGraphics.value = initialRoomData.players.map((player) => ({
-    id: player.sessionId,
-    name: player.info.bot,
-    creator: player.info.creator,
-    boardContainer: null,
-    effectsContainer: null,
-    heldContainer: null,
-    queueContainer: null,
-    damageBar: null,
-}));
+const spikeMap = new Map<string, number>();
+const renderMap = new Map<string, GameState>();
+const _renderInterval = useIntervalFn(() => {
+    for (let [id, renderQueue] of renderQueueMap.entries()) {
+        if (renderQueue.length > 3 * 20) {
+            renderQueue = renderQueue.filter(renderStep => renderStep.type === "piece_placed");
+            renderQueue = [renderQueue[0]];
+            renderQueueMap.set(id, renderQueue);
+        };
+
+        while (renderQueue.length > 0) {
+            let renderStep = renderQueue[0];
+            if (renderStep.timestamp > Date.now()) break;
+    
+            renderQueue.shift();
+    
+            const playerGraphics = allPlayerGraphics.value.find(player => player.id === renderStep.sessionId);
+            if (playerGraphics === undefined) break;
+    
+            switch (renderStep.type) {
+                case 'piece_spawned': {
+                    let gameState: GameState = { ...renderStep.gameState, garbageQueued: [], isImmobile: false };
+                    renderMap.set(renderStep.sessionId, gameState);
+                    renderState(playerGraphics, renderStep.gameState);
+                    renderDamage(playerGraphics, renderStep.gameState);
+                    break;
+                }
+                case 'command': {
+                    let currentGameState = renderMap.get(renderStep.sessionId);
+                    if (currentGameState === undefined) break;
+    
+    
+                    const { gameState: newGameState } = executeCommand(currentGameState, renderStep.command);
+                    renderState(playerGraphics, getPublicGameState(newGameState));
+    
+                    renderMap.set(renderStep.sessionId, newGameState);
+                    break;
+                }
+                case 'piece_placed': {
+                    renderState(playerGraphics, renderStep.gameState);
+                    renderDamage(playerGraphics, renderStep.gameState);
+    
+                    if (documentVisible.value === "hidden") break;
+    
+                    if (renderStep.events.every(event => event.type !== 'clear')) {
+                        spikeMap.delete(renderStep.sessionId);
+                    }
+    
+                    for (const event of renderStep.events) {
+                        switch (event.type) {
+                            case "piece_placed": {
+                                const { final } = event.payload;
+                                renderPlacedEffect(playerGraphics, final);
+    
+                                // AUDIO_SOURCES.place_piece.play();
+                                break;
+                            }
+                            // case 'damage_tanked': {
+                            //     AUDIO_SOURCES.tank_garbage.play();
+                            //     break;
+                            // }
+                            case "clear": {
+                                const clearData = event.payload;
+    
+                                renderClearEffect(
+                                    playerGraphics,
+                                    clearData.clearedLines
+                                );
+    
+                                if (clearData.score > 0) {
+                                    renderAttackEffect(
+                                        playerGraphics,
+                                        clearData.piece,
+                                        clearData.score
+                                    );
+    
+                                    let currentSpike = spikeMap.get(renderStep.sessionId) ?? 0;
+                                    currentSpike += clearData.score;
+                                    spikeMap.set(renderStep.sessionId, currentSpike);
+    
+                                    if (currentSpike >= MIN_SPIKE) {
+                                        renderSpikeEffect(playerGraphics, clearData.piece, currentSpike);
+                                    }
+                                }
+    
+                                if (clearData.combo > 2) {
+                                    renderComboEffect(
+                                        playerGraphics,
+                                        clearData.piece,
+                                        clearData.combo
+                                    );
+                                }
+    
+                                switch (clearData.clearName) {
+                                    case 'All-Spin Single':
+                                    case 'All-Spin Double':
+                                    case 'All-Spin Triple':
+                                    case 'Quad':
+                                    case 'Perfect Clear':
+                                        renderClearName(playerGraphics, clearData.clearName);
+                                };
+    
+                                // if (clearData.pc) {
+                                //     AUDIO_SOURCES.all_clear.play();
+                                // } else if (clearData.allSpin) {
+                                //     AUDIO_SOURCES.all_spin_clear.play();
+                                // } else {
+                                //     if (clearData.combo > 0) {
+                                //         AUDIO_SOURCES.combo[clearData.combo - 1].play();
+                                //     } else {
+                                //         AUDIO_SOURCES.line_clear.play();
+                                //     }
+                                //     // const combo = Math.min(7, newGameState.combo);
+                                // }
+                                break;
+                            }
+                        }
+                    }
+                    break;
+                }
+                case 'damage_received': {
+                    renderDamage(playerGraphics, renderStep.gameState);
+                    break;
+                }
+            }
+        };
+    }
+}, 1000 / 60)
 
 function getPlayerStats() {
+    if (publicRoomData.value === null) return [];
+
     const { startedAt, endedAt } = publicRoomData.value;
     return publicRoomData.value.players.map((player) => {
-        const { gameState } = player;
+        const { sessionId } = player;
+        const gameState = renderMap.get(sessionId);
 
-        if (!startedAt || !gameState)
+        if (!startedAt || !gameState) {
             return [
                 {
                     title: "attack/min",
@@ -86,7 +220,8 @@ function getPlayerStats() {
                     value: 0,
                 },
             ];
-
+        }
+        
         let timePassed = (endedAt ?? Date.now()) - startedAt;
         let app = gameState.piecesPlaced > 0
             ? gameState.rawScore / gameState.piecesPlaced
@@ -117,11 +252,12 @@ function getPlayerStats() {
 
 const playerStats = ref(getPlayerStats());
 useIntervalFn(() => {
-    if (!publicRoomData.value.roundOngoing) return;
+    if (publicRoomData.value === null || !publicRoomData.value.roundOngoing) return;
     playerStats.value = getPlayerStats();
 }, 1000 / 60);
 
 onMounted(() => {
+    if (initialRoomData === null) return;
     for (const player of initialRoomData.players) {
         const playerGraphics = allPlayerGraphics.value.find(
             (p) => p.id === player.sessionId
@@ -135,7 +271,6 @@ onMounted(() => {
 let ws: WebSocket | null = null;
 
 const pixiInst = ref<ApplicationInst | null>(null);
-const pixiApp = computed(() => pixiInst.value?.app ?? null);
 
 const { width, height } = useWindowSize();
 
@@ -152,7 +287,7 @@ function scoreStr(wins: number, ft: number) {
 const winStrs = computed(() => {
     if (!publicRoomData.value) return [];
 
-    const { players, ft } = publicRoomData.value;
+    const { players, settings: { ft } } = publicRoomData.value;
 
     return players.map((player) => scoreStr(player.wins, ft));
 });
@@ -171,167 +306,13 @@ const scale = computed(() => {
 
 const documentVisible = useDocumentVisibility();
 
-// function resizeRenderer() {
-//     if (!pixiApp.value) {
-//         console.log("NO PIXI APP")
-//         return;
-//     };
-
-//     pixiApp.value.renderer.resolution = 1 / scale.value;
-//     pixiApp.value.renderer.resize(width.value, height.value);
-//     pixiApp.value.render();
-// }
-
-// watch([width, height], resizeRenderer);
-
-const renderQueueMap: Map<string, {
-    gameState: PublicGameState,
-    prevGameState: PublicGameState,
-    commands: Command[],
-    events: GameEvent[]
-}[]> = new Map();
-
-const currentlyRendering: Set<string> = new Set();
-const FORCE_UPDATE_PIECES = 5;
-
-async function startRenderingSession(sessionId: string) {
-    const renderQueue = renderQueueMap.get(sessionId)!;
-    const ppsDelay = 1000 / Math.max(publicRoomData.value.pps, 1);
-
-    currentlyRendering.add(sessionId);
-
-    while (renderQueue.length > 0) {
-        if (renderQueue.length >= FORCE_UPDATE_PIECES) {
-            // Only leave final render if we are severely behind
-            renderQueue.splice(0, renderQueue.length - 1);
-        };
-
-        const { gameState, prevGameState, commands, events } = renderQueue.shift()!;
-        let commandDelay =
-            (ppsDelay / (commands.length + 1))
-            * (0.95 - 0.05 * renderQueue.length);
-
-        const player = publicRoomData.value.players.find(
-            (p) => p.sessionId === sessionId
-        );
-        if (!player) continue;
-
-        player.gameState = gameState;
-
-        playerStats.value = getPlayerStats();
-
-        const playerGraphics = allPlayerGraphics.value.find(
-            (p) => p.id === player.sessionId
-        ) as PlayerGraphics | undefined;
-        if (!playerGraphics) continue;
-
-        const fullQueue = [gameState.current.piece, ...gameState.queue];
-        if (prevGameState.held === null && gameState.held !== null) {
-            fullQueue.unshift(prevGameState.queue[0]);
-        };
-
-        let tempGameState: GameState = {
-            ...prevGameState,
-            isImmobile: false,
-            garbageQueue: [],
-            queue: fullQueue,
-        };
-
-        // if each move is less than 16 ms, dont interpolate
-        if (commandDelay > 16) {
-            renderDamage(playerGraphics, prevGameState);
-            renderState(playerGraphics, getPublicGameState(tempGameState));
-            for (const command of commands as Command[]) {
-                await sleep(commandDelay);
-                if (command === 'none') {
-                    continue
-                }
-                ({ gameState: tempGameState } = executeCommand(tempGameState, command));
-                renderState(playerGraphics, getPublicGameState(tempGameState));
-            };
-            await sleep(commandDelay);
-        }
-
-        renderState(playerGraphics, gameState);
-        renderDamage(playerGraphics, gameState);
-
-        if (documentVisible.value === "hidden") continue;
-
-        for (const event of events) {
-            switch (event.type) {
-                case "piece_placed": {
-                    const { final } = event.payload;
-                    renderPlacedEffect(playerGraphics, final);
-                    // AUDIO_SOURCES.place_piece.play();
-                    break;
-                }
-                // case 'damage_tanked': {
-                //     AUDIO_SOURCES.tank_garbage.play();
-                //     break;
-                // }
-                case "clear": {
-                    const clearData = event.payload;
-
-                    renderClearEffect(
-                        playerGraphics,
-                        clearData.clearedLines
-                    );
-
-                    if (clearData.score > 0) {
-                        renderAttackEffect(
-                            playerGraphics,
-                            clearData.piece,
-                            clearData.score
-                        );
-                    };
-
-                    if (clearData.combo > 2) {
-                        renderComboEffect(
-                            playerGraphics,
-                            clearData.piece,
-                            clearData.combo
-                        );
-                    }
-
-                    switch (clearData.clearName) {
-                        case 'All-Spin Single':
-                        case 'All-Spin Double':
-                        case 'All-Spin Triple':
-                        case 'Quad':
-                        case 'Perfect Clear':
-                            renderClearName(playerGraphics, clearData.clearName);
-                    };
-
-                    // if (clearData.pc) {
-                    //     AUDIO_SOURCES.all_clear.play();
-                    // } else if (clearData.allSpin) {
-                    //     AUDIO_SOURCES.all_spin_clear.play();
-                    // } else {
-                    //     if (clearData.combo > 0) {
-                    //         AUDIO_SOURCES.combo[clearData.combo - 1].play();
-                    //     } else {
-                    //         AUDIO_SOURCES.line_clear.play();
-                    //     }
-                    //     // const combo = Math.min(7, newGameState.combo);
-                    // }
-                    break;
-                }
-            }
-        }
-    }
-
-    currentlyRendering.delete(sessionId);
-}
-
 onMounted(async () => {
-    // resizeRenderer();
-
     const urlParams = new URLSearchParams();
     urlParams.append("roomId", roomId as string);
     urlParams.append("spectate", "true");
 
     const runtimeConfig = useRuntimeConfig();
-    const wsUrl = runtimeConfig.public.environment === "production" ? `wss://${location.host}/ws?${urlParams.toString()}` : `ws://localhost:8080/api/ws?${urlParams.toString()}`;
+    const wsUrl = runtimeConfig.public.environment === "production" ? `wss://${location.host}/ws?${urlParams.toString()}` : `ws://localhost:8080/ws?${urlParams.toString()}`;
     ws = new WebSocket(wsUrl);
 
     ws.addEventListener("close", (event) => {
@@ -348,22 +329,17 @@ onMounted(async () => {
     });
 
     ws.addEventListener("message", async (event) => {
+        if (!publicRoomData.value) return console.error("no room info");
+
         const data = JSON.parse(event.data) as GeneralServerMessage;
 
         switch (data.type) {
             case "room_data": {
                 publicRoomData.value = data.payload.roomData;
-                roomOptions.value.ft = publicRoomData.value.ft;
-                roomOptions.value.startMargin = publicRoomData.value.startMargin;
-                roomOptions.value.endMargin = publicRoomData.value.endMargin;
-                roomOptions.value.pps = publicRoomData.value.pps;
-                roomOptions.value.initialMultiplier = publicRoomData.value.initialMultiplier;
-                roomOptions.value.finalMultiplier = publicRoomData.value.finalMultiplier;
-                roomOptions.value.private = publicRoomData.value.private;
+                roomSettings.value = publicRoomData.value.settings;
                 break;
             }
             case "round_started": {
-                if (!publicRoomData.value) return console.error("no room info");
                 publicRoomData.value = data.payload.roomData;
 
                 for (const player of publicRoomData.value.players) {
@@ -379,6 +355,8 @@ onMounted(async () => {
                 }
 
                 setTimeout(() => {
+                    if (publicRoomData.value === null) return console.error("no room info");
+
                     publicRoomData.value.roundOngoing = true;
                 }, data.payload.startsAt - Date.now());
                 break;
@@ -389,29 +367,32 @@ onMounted(async () => {
             }
             case "game_over": {
                 publicRoomData.value = data.payload.roomData;
+                spikeMap.clear();
+                renderMap.clear();
+                renderQueueMap.clear();
                 break;
             }
             case "game_reset": {
-                if (!publicRoomData.value) return console.error("no room info");
-
                 publicRoomData.value = data.payload.roomData;
+                spikeMap.clear();
+                renderMap.clear();
+                renderQueueMap.clear();
                 break;
             }
             case "player_joined": {
-                if (!publicRoomData.value) return console.error("no room info");
-
                 const { playerData } = data.payload;
                 publicRoomData.value.players.push(playerData);
 
                 allPlayerGraphics.value.push({
                     id: playerData.sessionId,
-                    name: playerData.info.bot,
-                    creator: playerData.info.creator,
+                    info: playerData.info,
                     boardContainer: null,
-                    effectsContainer: null,
+                    backgroundContainer: null,
+                    foregroundContainer: null,
                     heldContainer: null,
                     queueContainer: null,
                     damageBar: null,
+                    spikeEffect: null,
                 });
 
                 break;
@@ -435,20 +416,41 @@ onMounted(async () => {
 
                 const { sessionId, gameState, prevGameState, commands, events } = data.payload;
 
-                if (!renderQueueMap.has(sessionId)) {
-                    renderQueueMap.set(sessionId, []);
+                const ppsDelay = 1000 / publicRoomData.value.settings.pps;
+                let commandDelay = ppsDelay / (commands.length + 1);
+
+                let timestamp = Date.now();
+                for (const event of events) {
+                    if (event.type === "queue_added") {
+                        prevGameState.queue.push(event.payload.piece);
+                    };
                 };
 
-                const renderQueue = renderQueueMap.get(sessionId)!;
-                renderQueue.push({ gameState, prevGameState, commands, events })
+                const renderQueue = renderQueueMap.get(sessionId) ?? [];
 
-                if (currentlyRendering.has(sessionId)) return;
+                if (commands.length < 100) {
+                    renderQueue.push({ timestamp, type: "piece_spawned", sessionId, gameState: prevGameState });
+                    timestamp += commandDelay;
+    
+                    for (const command of commands) {
+                        renderQueue.push({ timestamp, type: "command", sessionId, command });
+                        timestamp += commandDelay;
+                    };
+                }
 
-                startRenderingSession(sessionId);
+                renderQueue.push({ timestamp, type: "piece_placed", sessionId, gameState: gameState, events });
 
+                renderQueueMap.set(sessionId, renderQueue);
                 break;
             }
+
             case "player_damage_received": {
+                const { sessionId, gameState } = data.payload;
+
+                const renderQueue = renderQueueMap.get(sessionId) ?? [];
+                const timestamp = renderQueue.length > 0 ? renderQueue[renderQueue.length - 1].timestamp : Date.now();
+                renderQueue.push({ timestamp, type: "damage_received", sessionId, gameState: gameState });
+                renderQueueMap.set(sessionId, renderQueue);
                 // if (!publicRoomData.value) return console.error("no room info");
 
                 // const { sessionId, gameState } = data.payload;
@@ -463,28 +465,23 @@ onMounted(async () => {
                 // ) as PlayerGraphics | undefined;
                 // if (!playerGraphics)
                 //     return console.error("player graphics not found");
+
                 // renderDamage(playerGraphics, player.gameState);
                 break;
             }
             case "settings_changed": {
                 const { roomData } = data.payload;
                 publicRoomData.value = roomData;
-                roomOptions.value.ft = roomData.ft;
-                roomOptions.value.pps = roomData.pps;
-                roomOptions.value.initialMultiplier = roomData.initialMultiplier;
-                roomOptions.value.finalMultiplier = roomData.finalMultiplier;
-                roomOptions.value.startMargin = roomData.startMargin;
-                roomOptions.value.endMargin = roomData.endMargin;
-                roomOptions.value.private = roomData.private;
+                roomSettings.value = roomData.settings;
                 break;
             }
             case "player_banned": {
-                publicRoomData.value.banned.push(data.payload.playerInfo);
+                publicRoomData.value.banned.push(data.payload.botInfo);
                 break;
             }
             case "player_unbanned": {
                 publicRoomData.value.banned = publicRoomData.value.banned.filter(
-                    (banned) => banned.userId !== data.payload.playerInfo.userId
+                    (banned) => banned.id !== data.payload.botInfo.id
                 );
                 break;
             }
@@ -575,20 +572,31 @@ onMounted(() => {
     gameMenu.value.showModal();
 });
 
+function closeMenu() {
+    if (!gameMenu.value) return;
+    gameMenu.value.close();
+    showMasterKey.value = false;
+}
+
+function openMenu() {
+    if (!gameMenu.value) return;
+
+    gameMenu.value.showModal();
+}
+
 onKeyStroke("Escape", (e) => {
     if (!gameMenu.value) return;
 
     e.preventDefault();
 
     if (gameMenu.value.open) {
-        gameMenu.value.close();
-        showMasterKey.value = false;
+        closeMenu()
     } else {
-        gameMenu.value.showModal();
+        openMenu()
     }
 }, { dedupe: true });
 
-const roomOptions = ref({
+const roomSettings = ref<RoomSettings>({
     ft: 5,
     private: false,
     pps: 2.5,
@@ -597,6 +605,16 @@ const roomOptions = ref({
     startMargin: 90,
     endMargin: 600,
 });
+
+// const roomSettings = ref<RoomSettings>({
+//     ft: 5,
+//     private: false,
+//     pps: 2.5,
+//     initialMultiplier: 1,
+//     finalMultiplier: 10,
+//     startMargin: 90,
+//     endMargin: 600,
+// });
 
 const { data: masterKey } = useFetch('/api/room/masterKey', {
     query: {
@@ -623,7 +641,7 @@ async function generateTempKey() {
 }
 
 async function saveSettings() {
-    let ft: string | number = roomOptions.value.ft;
+    let ft: string | number = roomSettings.value.ft;
     if (typeof ft === 'number') {
         ft = Math.floor(ft);
     } else {
@@ -643,37 +661,41 @@ async function saveSettings() {
         method: "POST",
         body: {
             roomId,
-            private: roomOptions.value.private,
+            private: roomSettings.value.private,
             ft,
-            pps: roomOptions.value.pps,
-            initialMultiplier: roomOptions.value.initialMultiplier,
-            finalMultiplier: roomOptions.value.finalMultiplier,
-            startMargin: roomOptions.value.startMargin,
-            endMargin: roomOptions.value.endMargin,
+            pps: roomSettings.value.pps,
+            initialMultiplier: roomSettings.value.initialMultiplier,
+            finalMultiplier: roomSettings.value.finalMultiplier,
+            startMargin: roomSettings.value.startMargin,
+            endMargin: roomSettings.value.endMargin,
         }
     });
 };
 
 const settingsChanged = computed(() => {
-    if (publicRoomData.value.private !== roomOptions.value.private) {
+    if (publicRoomData.value === null) return console.error("no room info");
+
+    const existingSettings = publicRoomData.value.settings;
+
+    if (existingSettings.private !== roomSettings.value.private) {
         return true;
     };
-    if (publicRoomData.value.ft !== roomOptions.value.ft) {
+    if (existingSettings.ft !== roomSettings.value.ft) {
         return true;
     };
-    if (publicRoomData.value.pps !== roomOptions.value.pps) {
+    if (existingSettings.pps !== roomSettings.value.pps) {
         return true;
     };
-    if (publicRoomData.value.initialMultiplier !== roomOptions.value.initialMultiplier) {
+    if (existingSettings.initialMultiplier !== roomSettings.value.initialMultiplier) {
         return true;
     };
-    if (publicRoomData.value.finalMultiplier !== roomOptions.value.finalMultiplier) {
+    if (existingSettings.finalMultiplier !== roomSettings.value.finalMultiplier) {
         return true;
     };
-    if (publicRoomData.value.startMargin !== roomOptions.value.startMargin) {
+    if (existingSettings.startMargin !== roomSettings.value.startMargin) {
         return true;
     };
-    if (publicRoomData.value.endMargin !== roomOptions.value.endMargin) {
+    if (existingSettings.endMargin !== roomSettings.value.endMargin) {
         return true;
     };
     return false;
@@ -685,11 +707,13 @@ const multiplier = ref(1);
 
 onMounted(() => {
     const interval = setInterval(() => {
-        const { initialMultiplier, finalMultiplier, startMargin, endMargin } = publicRoomData.value;
+        if (publicRoomData.value === null) return;
+
+        const { initialMultiplier, finalMultiplier, startMargin, endMargin } = publicRoomData.value.settings;
         if (!publicRoomData.value.startedAt) {
             countdownTime.value = null;
             displayTime.value = 0;
-            multiplier.value = publicRoomData.value.initialMultiplier;
+            multiplier.value = initialMultiplier;
             return;
         }
 
@@ -717,9 +741,10 @@ const resizeTarget = window;
 </script>
 
 <template>
-    <div class="w-full h-full">
+    <div class="w-full h-full" v-if="publicRoomData">
         <div class="absolute w-full h-full overflow-hidden -z-10">
-            <Application :backgroundAlpha="0" ref="pixiInst" :antialias="true" :resolution="dpi" :resize-to="resizeTarget" >
+            <Application :backgroundAlpha="0" ref="pixiInst" :antialias="true" :resolution="dpi"
+                :resize-to="resizeTarget">
                 <tiling-sprite texture="/images/tiling.png" :width="width" :height="height" :tile-scale="8 * scale"
                     :tilePosition="[
                         backgroundOffset * scale,
@@ -727,6 +752,29 @@ const resizeTarget = window;
                     ]" />
                 <container :x="width / 2" :y="height / 2" :scale="scale" ref="scaledContainer">
                     <container :y="-425">
+                        <!-- <container v-if="allPlayerGraphics[0]" :ref="(container: PIXI.Container) => {
+                            container.removeChildren();
+
+                            const avatar = renderAvatar(allPlayerGraphics[0].info.avatar);
+                            avatar.scale.set(0.39);
+
+                            avatar.y -= avatar.height / 2;
+                            avatar.x -= avatar.width;
+                            avatar.x -= 650 / 2 + 10;
+
+                            container.addChild(avatar);
+                            }" />
+                        <container v-if="allPlayerGraphics[1]" :ref="(container: PIXI.Container) => {
+                            container.removeChildren();
+
+                            const avatar = renderAvatar(allPlayerGraphics[1].info.avatar);
+                            avatar.scale.set(0.39);
+
+                            avatar.y -= avatar.height / 2;
+                            avatar.x += 650 / 2 + 10;
+
+                            container.addChild(avatar);
+                            }" /> -->
                         <graphics :pivotX="650 / 2" :pivotY="100 / 2" @render="(graphics: PIXI.Graphics) => {
                             graphics.clear();
                             graphics.beginFill(0x000000, 0.2);
@@ -747,7 +795,7 @@ const resizeTarget = window;
                                 fontSize: '30px',
                                 fontFamily: 'Fira Mono',
                             }">
-                                win@{{ publicRoomData.ft }}
+                                win@{{ publicRoomData.settings.ft }}
                             </text>
                             <text :anchor="0.5" :x="0" :y="20" :style="{
                                 fill: 'white',
@@ -755,7 +803,7 @@ const resizeTarget = window;
                                 fontFamily: 'Fira Mono',
                             }">
                                 {{ displayTime }} -
-                                {{ publicRoomData.pps.toFixed(1) }} PPS -
+                                {{ publicRoomData.settings.pps.toFixed(1) }} PPS -
                                 {{ multiplier.toFixed(1) }}x
                             </text>
                             <text :anchorX="0" :anchorY="0.5" :x="-650 / 2 + 24" :y="0" :style="{
@@ -779,6 +827,30 @@ const resizeTarget = window;
                             :x="currentConfig.offsets[index]" :scale="currentConfig.scale"
                             :pivotY="(21 * CELL_SIZE) / 2">
                             <container :pivotX="5 * CELL_SIZE" :pivotY="0">
+                                <!-- Bot Modifier -->
+                                <!-- <container :y="-50 - 12" :x="(10 * CELL_SIZE) / 2">
+                                    <graphics :pivotX="(10 * CELL_SIZE) / 2" @render="(graphics: PIXI.Graphics) => {
+                                        graphics.clear();
+                                        graphics.beginFill(0x000000, 0.25);
+                                        graphics.drawRect(
+                                            0,
+                                            0,
+                                            10 * CELL_SIZE,
+                                            50
+                                        );
+                                        graphics.endFill();
+                                    }
+                                        " />
+                                    <text :x="0" :y="0" :anchorX="0.5" :style="{
+                                        fill: 'white',
+                                        fontFamily: 'Fira Mono',
+                                        fontSize: 24,
+                                        lineHeight: 50,
+                                    }">
+                                        5 PPS | 2.0x
+                                    </text>
+                                </container> -->
+
                                 <graphics :pivotX="0" :pivotY="0" @render="(graphics: PIXI.Graphics) => {
                                     graphics.clear();
                                     graphics.beginFill(0x000000, 0.5);
@@ -790,12 +862,15 @@ const resizeTarget = window;
                                     );
                                     graphics.endFill();
                                 }" />
-                                <!-- Effects Container -->
-                                <container :ref="(el: any) => board.effectsContainer = el" />
+                                <!-- Background Container -->
+                                <container :ref="(el: any) => board.backgroundContainer = el as PIXI.Container" />
                                 <!-- Board Container -->
-                                <container :ref="(el: any) => board.boardContainer = el" :sortable-children="true" />
+                                <container :ref="(el: any) => board.boardContainer = el as PIXI.Container"
+                                    :sortable-children="true" />
+                                <!-- Foreground Container -->
+                                <container :ref="(el: any) => board.foregroundContainer = el as PIXI.Container" />
                                 <!-- Damage Bar Graphic -->
-                                <graphics :ref="(el: any) => board.damageBar = el" :z-index="2" />
+                                <graphics :ref="(el: any) => board.damageBar = el as PIXI.Graphics" :z-index="2" />
                                 <text :anchorX="0.5" :anchorY="0.5" :x="10 * CELL_SIZE / 2" :y="200" :style="{
                                     fill: 'white',
                                     fontSize: '48px',
@@ -812,6 +887,7 @@ const resizeTarget = window;
                                     winner
                                 </text>
                             </container>
+                            <!-- Bot Name -->
                             <container :y="21 * CELL_SIZE + 12">
                                 <graphics :pivotX="(10 * CELL_SIZE) / 2" @render="(graphics: PIXI.Graphics) => {
                                     graphics.clear();
@@ -831,9 +907,10 @@ const resizeTarget = window;
                                     fontSize: 24,
                                     lineHeight: 50,
                                 }">
-                                    {{ board.name }}
+                                    {{ board.info.name }}
                                 </text>
                             </container>
+                            <!-- Bot Creator -->
                             <container :y="21 * CELL_SIZE + 74">
                                 <graphics :pivotX="(10 * CELL_SIZE) / 2" @render="(graphics: PIXI.Graphics) => {
                                     graphics.clear();
@@ -853,9 +930,35 @@ const resizeTarget = window;
                                     fontSize: 20,
                                     lineHeight: 36,
                                 }">
-                                    {{ board.creator }}
+                                    {{ getBotCreator(board.info) }}
                                 </text>
                             </container>
+
+                            <!-- Bot Avatar -->
+                            <container :y="21 * CELL_SIZE + 12" :ref="(container: any) => {
+                                if (container === null) return;
+
+                                container.removeChildren();
+
+                                const avatar = renderAvatar(board.info.avatar);
+                                avatar.scale.set(0.3075);
+
+                                avatar.x += 100;
+                                avatar.x -= avatar.width / 2;
+                                avatar.x += 5 * CELL_SIZE + 20;
+                                // if (index === 0) {
+                                //     // avatar.x -= avatar.width;
+                                //     // avatar.x -= 5 * CELL_SIZE + 20;
+                                //     avatar.x += 100;
+                                //     avatar.x -= avatar.width / 2;
+                                //     avatar.x += 5 * CELL_SIZE + 20;
+                                // } else if (index === 1) {
+                                //     avatar.x += 5 * CELL_SIZE + 20;
+                                // }
+
+                                container.addChild(avatar);
+                            }" />
+                            <!-- Stats -->
                             <container :x="-5 * CELL_SIZE - 20" :pivotX="200" :pivotY="0">
                                 <graphics :pivot="0" @render="(graphics: PIXI.Graphics) => {
                                     graphics.clear();
@@ -919,132 +1022,192 @@ const resizeTarget = window;
                 </container>
             </Application>
         </div>
-        <dialog ref="gameMenu" v-if="publicRoomData && publicRoomData.host.userId === profile?.id
-        " class="bg-black/40 backdrop:bg-black/20 backdrop:backdrop-blur-sm">
+        <dialog ref="gameMenu" v-if="publicRoomData" class="bg-black/40 backdrop:bg-black/20 backdrop:backdrop-blur-sm">
             <div class="p-6 flex flex-col gap-4 w-[520px] text-white">
+                <button class="absolute top-6 right-6 px-2" @click="closeMenu">X</button>
                 <div class="text-white text-center text-lg">
                     Press ESC to toggle menu
                 </div>
-                <div class="p-4 bg-white/10 flex flex-col gap-2 text-sm">
-                    <div class="flex justify-between">
-                        <div>Room ID:</div>
-                        <div>
-                            {{ publicRoomData.id }}
-                        </div>
-                    </div>
-                    <div class="flex justify-between">
-                        <div>Master Key:</div>
-                        <div class="relative">
-                            <button class="h-full w-full absolute bg-stone-950/80 z-10" @click="showMasterKey = true"
-                                v-if="!showMasterKey">
-                            </button>
-                            <div class="px-1" :class="{
-                                'opacity-0': !showMasterKey
-                            }">
-                                {{ masterKey?.key }}
-                            </div>
-                        </div>
-                    </div>
-                    <div class="flex justify-between">
-                        <div>Single Use Key:</div>
-                        <button class="underline disabled:opacity-50" @click="generateTempKey"
-                            :disabled="loadingTempKey">Generate</button>
-                    </div>
-                </div>
-                <div class="p-4 bg-white/10 flex flex-col gap-2 text-sm">
-                    <div class="flex justify-between items-center">
-                        <label>FT (max: 999):</label>
-                        <input type="text" v-model.number="roomOptions.ft" class="w-12 px-1 bg-white/20 text-right" />
-                    </div>
-                    <div class="flex justify-between items-center">
-                        <label>PPS (max: 30):</label>
-                        <input type="text" v-model.number="roomOptions.pps" class="w-12 px-1 bg-white/20 text-right" />
-                    </div>
-                    <div class="flex justify-between items-center">
-                        <label>Initial Multiplier (0x - 20x):</label>
-                        <input type="text" v-model.number="roomOptions.initialMultiplier"
-                            class="w-12 px-1 bg-white/20 text-right" />
-                    </div>
-                    <div class="flex justify-between items-center">
-                        <label>Final Multiplier (0x - 20x):</label>
-                        <input type="text" v-model.number="roomOptions.finalMultiplier"
-                            class="w-12 px-1 bg-white/20 text-right" />
-                    </div>
-                    <div class="flex justify-between items-center">
-                        <label>Start Margin (secs):</label>
-                        <input type="text" v-model.number="roomOptions.startMargin"
-                            class="w-12 px-1 bg-white/20 text-right" />
-                    </div>
-                    <div class="flex justify-between items-center">
-                        <label>End Margin (secs):</label>
-                        <input type="text" v-model.number="roomOptions.endMargin"
-                            class="w-12 px-1 bg-white/20 text-right" />
-                    </div>
-                    <div class="flex justify-between items-center">
-                        <label>Private:</label>
-                        <input type="checkbox" v-model.number="roomOptions.private" class="w-4 h-4" />
-                    </div>
-                    <div class="flex justify-center">
-                        <button class="bg-white/10 w-full py-1 hover:bg-white/20" @click="saveSettings">
-                            Save{{ settingsChanged ? '*' : '' }}
-                        </button>
-                    </div>
-                </div>
-                <div class="p-4 bg-white/10 flex flex-col gap-2">
-                    <h2 class="text-lg">Players</h2>
-                    <div v-if="publicRoomData.players.length === 0 && publicRoomData.banned.length === 0"
-                        class="italic opacity-50">
-                        No Players Joined
-                    </div>
-                    <ul v-else class="flex flex-col gap-2 text-sm">
-                        <li class="w-full flex justify-between" v-for="player in publicRoomData.players ">
+                <template v-if="publicRoomData.host.id === profile?.id">
+                    <div class="p-4 bg-white/10 flex flex-col gap-2 text-sm">
+                        <div class="flex justify-between">
+                            <div>Room ID:</div>
                             <div>
-                                {{ player.info.bot }}
-                                <span class="opacity-50">
-                                    {{ player.info.creator }}
-                                </span>
+                                {{ publicRoomData.id }}
                             </div>
-                            <div class="flex gap-2">
-                                <button class="underline" @click="kickPlayer(player.sessionId)">
-                                    Kick
+                        </div>
+                        <div class="flex justify-between">
+                            <div>Master Key:</div>
+                            <div class="relative">
+                                <button class="h-full w-full absolute bg-stone-950/80 z-10"
+                                    @click="showMasterKey = true" v-if="!showMasterKey">
                                 </button>
-                                <button class="underline" @click="banPlayer(player.info.userId)">
-                                    Ban
-                                </button>
+                                <div class="px-1" :class="{
+                                    'opacity-0': !showMasterKey
+                                }">
+                                    {{ masterKey?.key }}
+                                </div>
                             </div>
-                        </li>
-                        <li class="flex justify-between" v-for=" player in publicRoomData.banned">
-                            <div class="text-red-400">
-                                {{ player.bot }}
-                                <span class="opacity-50">
-                                    {{ player.creator }}
-                                </span>
-                            </div>
-                            <div class="flex gap-2">
-                                <button class="underline" @click="unbanPlayer(player.userId)">
-                                    Unban
-                                </button>
-                            </div>
-                        </li>
-                    </ul>
-                </div>
+                        </div>
+                        <div class="flex justify-between">
+                            <div>Single Use Key:</div>
+                            <button class="underline disabled:opacity-50" @click="generateTempKey"
+                                :disabled="loadingTempKey">Generate</button>
+                        </div>
+                    </div>
+                    <div class="p-4 bg-white/10 flex flex-col gap-2 text-sm">
+                        <div class="flex justify-between items-center">
+                            <label>FT (max: 999):</label>
+                            <input type="text" v-model.number="roomSettings.ft"
+                                class="w-12 px-1 bg-white/20 text-right" />
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <label>PPS (max: 30):</label>
+                            <input type="text" v-model.number="roomSettings.pps"
+                                class="w-12 px-1 bg-white/20 text-right" />
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <label>Initial Multiplier (0x - 20x):</label>
+                            <input type="text" v-model.number="roomSettings.initialMultiplier"
+                                class="w-12 px-1 bg-white/20 text-right" />
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <label>Final Multiplier (0x - 20x):</label>
+                            <input type="text" v-model.number="roomSettings.finalMultiplier"
+                                class="w-12 px-1 bg-white/20 text-right" />
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <label>Start Margin (secs):</label>
+                            <input type="text" v-model.number="roomSettings.startMargin"
+                                class="w-12 px-1 bg-white/20 text-right" />
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <label>End Margin (secs):</label>
+                            <input type="text" v-model.number="roomSettings.endMargin"
+                                class="w-12 px-1 bg-white/20 text-right" />
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <label>Private:</label>
+                            <input type="checkbox" v-model.number="roomSettings.private" class="w-4 h-4" />
+                        </div>
+                        <div class="flex justify-center">
+                            <button class="bg-white/10 w-full py-1 hover:bg-white/20" @click="saveSettings">
+                                Save{{ settingsChanged ? '*' : '' }}
+                            </button>
+                        </div>
+                    </div>
+                    <div class="p-4 bg-white/10 flex flex-col gap-2">
+                        <h2 class="text-lg">Players</h2>
+                        <div v-if="publicRoomData.players.length === 0 && publicRoomData.banned.length === 0"
+                            class="italic opacity-50">
+                            No Players Joined
+                        </div>
+                        <ul v-else class="flex flex-col gap-2 text-sm list-none p-0">
+                            <li class="flex justify-between" v-for="player in publicRoomData.players">
+                                <div class="flex gap-2">
+                                    <NuxtLink :href="`/bot/${player.info.id}`" target="_blank" class="text-btn">{{
+                                        player.info.name }}</NuxtLink>
+                                    <span class="opacity-50">
+                                        {{ getBotCreator(player.info) }}
+                                    </span>
+                                </div>
+                                <div class="flex gap-2">
+                                    <button class="underline" @click="kickPlayer(player.sessionId)">
+                                        Kick
+                                    </button>
+                                    <button class="underline" @click="banPlayer(player.info.id)">
+                                        Ban
+                                    </button>
+                                </div>
+                            </li>
+                            <li class="flex justify-between" v-for=" player in publicRoomData.banned">
+                                <div class="text-red-400">
+                                    {{ player.name }}
+                                    <span class="opacity-50">
+                                        {{ getBotCreator(player) }}
+                                    </span>
+                                </div>
+                                <div class="flex gap-2">
+                                    <button class="underline" @click="unbanPlayer(player.id)">
+                                        Unban
+                                    </button>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                </template>
+                <template v-else>
+                    <div class="p-4 bg-white/10 flex flex-col gap-2 text-sm">
+                        <div class="flex justify-between items-center">
+                            <div>FT (max: 999):</div>
+                            <div>{{ publicRoomData.settings.ft }}</div>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <label>PPS (max: 30):</label>
+                            <div>{{ publicRoomData.settings.pps }}</div>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <label>Initial Multiplier (0x - 20x):</label>
+                            <div>{{ publicRoomData.settings.initialMultiplier }}</div>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <label>Final Multiplier (0x - 20x):</label>
+                            <div>{{ publicRoomData.settings.finalMultiplier }}</div>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <label>Start Margin (secs):</label>
+                            <div>{{ publicRoomData.settings.startMargin }}</div>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <label>End Margin (secs):</label>
+                            <div>{{ publicRoomData.settings.endMargin }}</div>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <label>Private:</label>
+                            <div>{{ publicRoomData.settings.private }}</div>
+                        </div>
+                    </div>
+                    <div class="p-4 bg-white/10 flex flex-col gap-2">
+                        <h2 class="text-lg">Players</h2>
+                        <div v-if="publicRoomData.players.length === 0 && publicRoomData.banned.length === 0"
+                            class="italic opacity-50">
+                            No Players Joined
+                        </div>
+                        <ul v-else class="flex flex-col gap-2 text-sm">
+                            <li class="w-full flex justify-start" v-for="player in publicRoomData.players ">
+                                <div>
+                                    {{ player.info.name }}
+                                    <span class="opacity-50">
+                                        {{ getBotCreator(player.info) }}
+                                    </span>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                </template>
                 <div class="flex justify-evenly">
                     <NuxtLink class="underline text-lg" to="/rooms">
                         Leave Game
                     </NuxtLink>
-                    <button class="underline disabled:opacity-60 text-lg" @click="resetGame"
-                        :disabled="!publicRoomData || !publicRoomData.gameOngoing">
-                        Reset Game
-                    </button>
-                    <button class="underline disabled:opacity-60 text-lg" @click="startGame" :disabled="!publicRoomData ||
-                        publicRoomData.gameOngoing ||
-                        publicRoomData.players.length < 2
-                        ">
-                        Start Game
-                    </button>
+                    <template v-if="publicRoomData.host.id === profile?.id">
+                        <button class="underline disabled:opacity-60 text-lg" @click="resetGame"
+                            :disabled="!publicRoomData || !publicRoomData.gameOngoing">
+                            Reset Game
+                        </button>
+                        <button class="underline disabled:opacity-60 text-lg" @click="startGame" :disabled="!publicRoomData ||
+                            publicRoomData.gameOngoing ||
+                            publicRoomData.players.length < 2
+                            ">
+                            Start Game
+                        </button>
+                    </template>
                 </div>
             </div>
         </dialog>
+    </div>
+    <div class="w-full h-full flex flex-col items-center p-8 gap-4" v-else>
+        <h1 class="text-2xl">404 Room Not Found</h1>
+        <NuxtLink class="text-btn text-xl" :href="`/rooms`">Return to Rooms</NuxtLink>
     </div>
 </template>
 
