@@ -136,16 +136,3 @@ export type GeneralServerMessage =
 			roomData: PublicRoomData;
 		};
 	};
-// | {
-// 	type: "game_info";
-// 	payload: {
-// 		roomData: PublicRoomData;
-// 		players: PublicPlayerData[];
-// 	};
-// }
-// | {
-// 	type: "player_died";
-// 	payload: {
-// 		sessionId: string;
-// 	};
-// };

@@ -52,7 +52,7 @@ model Bot {
 
   developers Profile[]
   botTokens  BotToken[]
-  BotInvite  BotInvite[]
+  botInvites BotInvite[]
 }
 
 model BotToken {
